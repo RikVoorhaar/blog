@@ -10,7 +10,10 @@ const config = defineConfig({
 	// },
 
 	remarkPlugins: [remarkMath],
-	rehypePlugins: [[rehypeKatex, { fleqn: true }]]
+	rehypePlugins: [[rehypeKatex, { fleqn: true, throwOnError: false }]],
+	// layout: {
+	// 	_: './src/lib/mdsvex.svelte'
+	// }
 });
 
 export default config;

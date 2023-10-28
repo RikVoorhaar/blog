@@ -12,7 +12,7 @@
 		>
 			<a href={post.slug} class="text-lg font-bold">{post.title}</a>
 			<p>{formatDate(post.date)}</p>
-			<p class="p-2">{post.description}</p>
+			<p class="p-2">{post.excerpt}</p>
 		</div>
 	{/each}
 </div>

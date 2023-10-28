@@ -1,3 +1,26 @@
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+.katex-display {
+	overflow: auto hidden;
+}
+
+.katex { font-size: 1.1em !important; } 
+
+.katex-display::-webkit-scrollbar {
+	height: 0.5rem;
+}
+
+.katex-display::-webkit-scrollbar-thumb {
+	background-color: #7aabf1;
+	border-radius: 8px;
+}
+
+.katex-display::-webkit-scrollbar-thumb:hover {
+	background: #185e97;
+}
+
+.katex-display {
+	scrollbar-color: #9e2b2b #ffffff00;
+	scrollbar-width: 0.5rem;
+}
