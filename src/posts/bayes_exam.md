@@ -5,7 +5,7 @@ date:   "2020-11-09"
 categories: data-science statistics education
 excerpt: "We use exams to determine how much a student knows, but exams aren't perfect. How can we estimate the uncertainty in students' exams scores?"
 header: 
-    teaser: "/imgs/teasers/bayes-exam.webp"
+    teaser: "/blog/bayes_exam/teasers/bayes-exam.webp"
 ---
 
 We widely use exams in education to gauge the level of students. The result of an exam is really
@@ -38,7 +38,7 @@ questions
 
 
     
-![png](/imgs/bayes_exam_3_0.png)
+![png](/blog/bayes_exam/bayes_exam_3_0.png)
     
 
 
@@ -55,18 +55,18 @@ $$
 with 
 
 $$
-    G_j|p_j,S \sim \mbox{Bin}(p_j,m_j).
+    G_j|p_j,S \sim \mathrm{Bin}(p_j,m_j).
 $$
 
 Next we need to model the conditional distribution $$P(p_j|S)$$. We tried linear and quadratic
-regression on $$\mbox{logit}(p_j)$$, but this tends to perform badly near the limits $$S=0$$ and $$S=96$$,
+regression on $$\mathrm{logit}(p_j)$$, but this tends to perform badly near the limits $$S=0$$ and $$S=96$$,
 and in general tends to shift the predictions towards the global mean. Instead we want a model such
 that if $$S=0$$ then $$p_j$$ is concentrated near zero. To do this we model $$p_j$$ with a beta
 distribution, whose parameters depend quadratically on $$S$$. More precisely if $$\hat S= S/96$$ (which
 supported on $$[0,1]$$), then we set
 
 $$
-    p_j|S,\alpha_0,\alpha^j_1,\beta^j_0,\beta^j_1 \sim \mbox{Beta}\left(e^{\alpha^j_0} S+e^{\alpha^j_1} S^2+\tau,\, e^{\beta^j_0} (1-S)+e^{\beta^j_1} (1-S)^2+\tau\right),
+    p_j|S,\alpha_0,\alpha^j_1,\beta^j_0,\beta^j_1 \sim \mathrm{Beta}\left(e^{\alpha^j_0} S+e^{\alpha^j_1} S^2+\tau,\, e^{\beta^j_0} (1-S)+e^{\beta^j_1} (1-S)^2+\tau\right),
 $$
 
 where $$\tau=0.01$$ is a small regularization parameter. This model has $$p_j$$ constrained close to $$0$$
@@ -91,7 +91,7 @@ concerns.
 
 
     
-![png](/imgs/bayes_exam_9_0.png)
+![png](/blog/bayes_exam/bayes_exam_9_0.png)
     
 
 
@@ -106,7 +106,7 @@ for each question given just the total score.
 
 
     
-![png](/imgs/bayes_exam_11_0.png)
+![png](/blog/bayes_exam/bayes_exam_11_0.png)
     
 
 
@@ -120,7 +120,7 @@ predictions for the most part.
 
 
     
-![png](/imgs/bayes_exam_13_0.png)
+![png](/blog/bayes_exam/bayes_exam_13_0.png)
     
 
 
@@ -139,12 +139,12 @@ the students found easier or more difficult.
 
 
     
-![png](/imgs/bayes_exam_15_0.png)
+![png](/blog/bayes_exam/bayes_exam_15_0.png)
     
 
 
 
     
-![png](/imgs/bayes_exam_16_0.png)
+![png](/blog/bayes_exam/bayes_exam_16_0.png)
     
 

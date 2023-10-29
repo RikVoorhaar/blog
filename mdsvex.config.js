@@ -11,9 +11,7 @@ const config = defineConfig({
 
 	remarkPlugins: [remarkMath],
 	rehypePlugins: [[rehypeKatex, { fleqn: true, throwOnError: false }]],
-	// layout: {
-	// 	_: './src/lib/mdsvex.svelte'
-	// }
+	layout: './src/mdsvex.svelte'
 });
 
 export default config;
