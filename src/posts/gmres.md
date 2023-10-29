@@ -6,7 +6,7 @@ categories: mathematics linear-algebra code
 excerpt: "Linear least-squares system pop up everywhere, and there are many fast way to solve them. We'll
 be looking at one such way: GMRES."
 header: 
-    teaser: "/imgs/teasers/gmres-teaser.webp"
+    teaser: "/blog/teasers/gmres-teaser.webp"
 ---
 
 
@@ -359,7 +359,7 @@ for n_restart in n_restart_list:
 
 
     
-![svg](/imgs/gmres/gmres_13_0.svg)
+![svg](/blog/gmres/gmres_13_0.svg)
     
 
 
@@ -569,7 +569,7 @@ plt.title(f"Singular values. Condition number: {cond_num:.0f}")
 
 
     
-![svg](/imgs/gmres/gmres_19_1.svg)
+![svg](/blog/gmres/gmres_19_1.svg)
     
 
 
@@ -615,13 +615,13 @@ plt.scatter(np.real(eigs), np.imag(eigs), marker=".")
 
 
     
-![svg](/imgs/gmres/gmres_21_0.svg)
+![svg](/blog/gmres/gmres_21_0.svg)
     
 
 
 
     
-![svg](/imgs/gmres/gmres_21_2.svg)
+![svg](/blog/gmres/gmres_21_2.svg)
     
 
 
@@ -659,7 +659,7 @@ for _ in range(n_its):
 ```
 
     
-![svg](/imgs/gmres/gmres_24_1.svg)
+![svg](/blog/gmres/gmres_24_1.svg)
     
 
 
@@ -740,7 +740,7 @@ print(f"Deconvolution in {time_taken:.2f} s")
 
 
     
-![svg](/imgs/gmres/gmres_28_0.svg)
+![svg](/blog/gmres/gmres_28_0.svg)
     
 
 
@@ -769,7 +769,7 @@ for n_its in [1, 5, 10, 20, 50, 100]:
 ```
 
     
-![svg](/imgs/gmres/gmres_31_0.svg)
+![svg](/blog/gmres/gmres_31_0.svg)
     
 
 

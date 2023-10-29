@@ -86,7 +86,7 @@ plt.yscale("log")
 plt.title("Plot of singular values")
 ```
 
-![png](/imgs/low-rank-matrix/intro-tn_3_1.png)
+![png](/blog/low_rank_matrix/intro-tn_3_1.png)
     
 
 We see that the first 5 singular values are roughly the same size, but that the
@@ -144,7 +144,7 @@ plt.yscale("log")
 plt.plot(S)
 ```
 
-![png](/imgs/low-rank-matrix/intro-tn_7_1.png)
+![png](/blog/low_rank_matrix/intro-tn_7_1.png)
     
 
 
@@ -171,7 +171,7 @@ for i, rank in enumerate([10, 20, 50, 100]):
     plt.axis("off")
 ```
     
-![png](/imgs/low-rank-matrix/intro-tn_9_0.png)
+![png](/blog/low_rank_matrix/intro-tn_9_0.png)
     
 
 
@@ -238,7 +238,7 @@ print(f"The matrix is approximately of rank: {np.sum(S>1e-12)}")
 
 
     
-![png](/imgs/low-rank-matrix/intro-tn_11_1.png)
+![png](/blog/low_rank_matrix/intro-tn_11_1.png)
     
 
 
@@ -340,7 +340,7 @@ plt.ylabel("Mean squared error")
 ```
 
     
-![png](/imgs/low-rank-matrix/intro-tn_14_1.png)
+![png](/blog/low_rank_matrix/intro-tn_14_1.png)
     
 
 
@@ -435,7 +435,7 @@ plt.ylabel("Root mean squared error (RMSE)");
 
 
     
-![png](/imgs/low-rank-matrix/intro-tn_16_0.png)
+![png](/blog/low_rank_matrix/intro-tn_16_0.png)
     
 
 

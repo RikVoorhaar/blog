@@ -5,7 +5,7 @@ date:   "2021-05-31"
 categories: machine-learning computer-vision
 excerpt: "Finally, let's look at how we can automatically sharpen images, without knowing how they were blurred in the first place."
 header: 
-    teaser: "/imgs/teasers/st-vitus-deblurred.webp"
+    teaser: "/blog/teasers/st-vitus-deblurred.webp"
 ---
 
 In this final part on the deconvolution series, we will look at blind deconvolution. That is, we
@@ -32,7 +32,7 @@ spends less exposure time in any particular point. Therefore we should make the 
 blur inversely proportional to the speed at any point. The end result looks something like this:
 
     
-![png](/imgs/deconvolution_part4/part4_1_0.png)
+![png](/blog/deconvolution_part4/part4_1_0.png)
     
 
 
@@ -40,7 +40,7 @@ In practice we will consider this kind of blur at a much smaller resolution, for
 15x15. Below we show how such a kernel will affect for example the St. Vitus image.
 
     
-![png](/imgs/deconvolution_part4/part4_3_0.png)
+![png](/blog/deconvolution_part4/part4_3_0.png)
     
 
 
@@ -66,7 +66,7 @@ vice-versa.  We can see the result of this procedure below:
 
 
     
-![png](/imgs/deconvolution_part4/part4_5_1.png)
+![png](/blog/deconvolution_part4/part4_5_1.png)
     
 
 
@@ -181,7 +181,7 @@ this gives us the results shown below.
 
 
     
-![svg](/imgs/deconvolution_part4/part4_7_1.svg)
+![svg](/blog/deconvolution_part4/part4_7_1.svg)
     
 
 
@@ -195,7 +195,7 @@ spread function or shifting the image after deconvolution.
 
 
     
-![svg](/imgs/deconvolution_part4/part4_11_0.svg)
+![svg](/blog/deconvolution_part4/part4_11_0.svg)
     
 
 

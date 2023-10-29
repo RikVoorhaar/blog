@@ -5,7 +5,7 @@ date:   "2021-02-13"
 categories: data-science statistics
 excerpt: "I have 15 years worth of email traffic data, let's take a closer look and discover some fascinating patterns."
 header: 
-    teaser: "/imgs/teasers/email-time-series.webp"
+    teaser: "/blog/email_datetime/teasers/email-time-series.webp"
 ---
 
 I've been using gmail since back 2006 -- when it was still an invite-only beta. In these last 15
@@ -51,7 +51,7 @@ the past couple years. We can also see a lot of local fluctuations, and as we sh
 largely attributed to a fairly regular seasonal variation. 
 
    
-![png](/imgs/email_datetime_8_0.png)
+![png](/blog/email_datetime/email_datetime_8_0.png)
     
 
 ### Weekday trends
@@ -60,7 +60,7 @@ Unsurprisingly I receive less emails on the weekend. Interestingly emails are ne
 on Tuesday through Friday, but less on Mondays. 
 
     
-![png](/imgs/email_datetime_10_0.png)
+![png](/blog/email_datetime/email_datetime_10_0.png)
     
 
 
@@ -72,7 +72,7 @@ vacation. There are also monthly oscillations, and a peak before and after summe
 winter holidays. I don't have a satisfying explanation for this.
 
     
-![png](/imgs/email_datetime_12_0.png)
+![png](/blog/email_datetime/email_datetime_12_0.png)
     
 
 
@@ -91,7 +91,7 @@ On the gray curve we can also see a peak corresponding at each hour mark, which 
 caused by emails scheduled to go out at a particular time. 
 
    
-![png](/imgs/email_datetime_14_0.png)
+![png](/blog/email_datetime/email_datetime_14_0.png)
     
 
 
@@ -121,7 +121,7 @@ trend in particular is a bit less oscillatory, but the weekly and seasonal trend
 identical. 
 
     
-![png](/imgs/email_datetime_17_1.png)
+![png](/blog/email_datetime/email_datetime_17_1.png)
     
 
 
@@ -157,7 +157,7 @@ emails are all independent. This is probably not the case, but we can either way
 assumption holds up.
 
     
-![png](/imgs/email_datetime_19_0.png)
+![png](/blog/email_datetime/email_datetime_19_0.png)
     
 
 
@@ -198,7 +198,7 @@ this kind of distribution is hard to interpret. A good statistical model should 
 theoretical justification as well.
 
     
-![png](/imgs/email_datetime_22_0.png)
+![png](/blog/email_datetime/email_datetime_22_0.png)
     
 
 

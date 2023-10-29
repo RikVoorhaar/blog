@@ -5,7 +5,7 @@ date:   "2020-12-31"
 categories: music
 excerpt: "2020 was a great year for music, I will look back and give some thoughts on the best albums that came out in 20202."
 header: 
-    teaser: "/imgs/teasers/music-2020.webp"
+    teaser: "/blog/teasers/music-2020.webp"
 ---
 
 It goes without saying that 2020 is a special year in a number of ways. I want to look back at what
@@ -14,7 +14,7 @@ listened to more music than previous years. In fact, I listened to music roughly
 2020 compared to 2019, although it still can't match my high school levels. Below is a bar plot of
 my number of last.fm scrobbles since 2010. 
 
-![png](/imgs/music_2020/music_2020_barplot.png)
+![png](/blog/music_2020/music_2020_barplot.png)
 
 On a less positive note, 2020 is also the year Google Play Music stopped. I'm very sad about this,
 as it had both great streaming features and allowed you to listen to your own uploaded music
@@ -35,7 +35,7 @@ actually released this year.
 
 ### Fiona Apple - Fetch the Bolt Cutters (2020)
 
-<img style="float: left; padding-right: 10px;" src="/imgs/music_2020/fetch_the_boltcutters.jpg" width="150"/>
+<img style="float: left; padding-right: 10px;" src="/blog/music_2020/fetch_the_boltcutters.jpg" width="150"/>
 _Genre: Art Pop_  
 This is definitely the album of the year for me. I can't quite put my finger on why, but this album
 just sounds amazing. I think it's the overall sound of the album that really draws me in, and it
@@ -45,7 +45,7 @@ doesn't become boring even after dozens of listens.
 
 ### Gezan - KLUE (2020)
 
-<img style="float: left; padding-right: 10px;" src="/imgs/music_2020/klue.jpg" width="150"/>
+<img style="float: left; padding-right: 10px;" src="/blog/music_2020/klue.jpg" width="150"/>
 
 _Genre: Noise Rock_  
 Definitely one of the weirder albums of this year. At times intense, at times hypnotic and at other
@@ -56,7 +56,7 @@ interesting piece of music.
 
 ### King Krule - Man Alive! (2020)
 
-<img style="float: left; padding-right: 10px;" src="/imgs/music_2020/man_alive.jpg" width="150"/>
+<img style="float: left; padding-right: 10px;" src="/blog/music_2020/man_alive.jpg" width="150"/>
 
 _Genre: Post-Punk_  
 Calm, melancholic and noisy. The texture and sound of this album is great, and just gets better
@@ -66,7 +66,7 @@ every time you listen to it.
 
 ### Jeff Rosenstock - NO DREAM (2020)
 
-<img style="float: left; padding-right: 10px;" src="/imgs/music_2020/no_dream.jpg" width="150"/>
+<img style="float: left; padding-right: 10px;" src="/blog/music_2020/no_dream.jpg" width="150"/>
 _Genre: Pop Punk_  
 Very energetic, although the latter half of the album is very melancholic. The lyrics are also very
 witty, and the noisy guitar riffs are nice, but in the end I think I like it because it's just a
@@ -77,7 +77,7 @@ really catchy record.
 ### Klô Pelgag - Notre-Dame-des-Sept-Douleurs (2020)
 
 <img style="float: left; padding-right: 10px;"
-src="/imgs/music_2020/notre-dame-des-sept-douleurs.jpg" width="150"/>
+src="/blog/music_2020/notre-dame-des-sept-douleurs.jpg" width="150"/>
 _Genre: Art/Baroque Pop_   
 Probably the first French-language pop I have to come to enjoy, and probably the second best album
 that came out this year as far as I'm concerned. The instrumentals on this record are perfect, and
@@ -87,7 +87,7 @@ the melody is incredibly catchy.
 
 ### Pottery - Welcome to Bobby's Motel (2020)
 
-<img style="float: left; padding-right: 10px;" src="/imgs/music_2020/welcome_to_bobbys_motel.jpg"
+<img style="float: left; padding-right: 10px;" src="/blog/music_2020/welcome_to_bobbys_motel.jpg"
 width="150"/>
 _Genre: Dance Punk_   
 This record sounds a lot like Talking Heads' _Remain in the Light_, and this is not a bad thing. 
@@ -96,7 +96,7 @@ This record sounds a lot like Talking Heads' _Remain in the Light_, and this is 
 
 ### The Microphones - Microphones in 2020 (2020)
 
-<img style="float: left; padding-right: 10px;" src="/imgs/music_2020/microphones_in_2020.jpg"
+<img style="float: left; padding-right: 10px;" src="/blog/music_2020/microphones_in_2020.jpg"
 width="150"/>
 _Genre: Indie Folk_   
 The "music video" of this album is a 45 minute video showing photographs, and I was glued to my
@@ -110,7 +110,7 @@ that, it is almost as packed with emotion as _A Crow Looked At Me_.
 
 ### Tom Waits - Rain Dogs (1985)
 
-<img style="float: left; padding-right: 10px;" src="/imgs/music_2020/rain_dogs.jpg" width="150"/>
+<img style="float: left; padding-right: 10px;" src="/blog/music_2020/rain_dogs.jpg" width="150"/>
 _Genre: Singer/Songwriter, Experimental Rock_  
 I'm surprised I only discovered Tom Waits this year. Waits' deep smoky voice and bluesy songs are
 wonderful. It's hard to pin this record down to a single genre, yet the sound is completely
@@ -120,7 +120,7 @@ coherent.
 
 ### Duster - Duster (2019)
 
-<img style="float: left; padding-right: 10px;" src="/imgs/music_2020/duster.jpg" width="150"/>
+<img style="float: left; padding-right: 10px;" src="/blog/music_2020/duster.jpg" width="150"/>
 _Genre: Slowcore_  
 Slow, noisy and hypnotic. This album will calmly you put you into a trance, but never leave you
 bored.
@@ -129,7 +129,7 @@ bored.
 
 ### Hella - Hold Your Horse Is (2002)
 
-<img style="float: left; padding-right: 10px;" src="/imgs/music_2020/hold_your_horse_is.jpg"
+<img style="float: left; padding-right: 10px;" src="/blog/music_2020/hold_your_horse_is.jpg"
 width="150"/>
 _Genre: Math Rock_  
 Very complex and technical instrumental math rock. Often I lose interest in purely instrumental albums
@@ -140,7 +140,7 @@ after a couple listens, but this album definitely stays interesting even after m
 
 ### Milton Nascimento & Lô Borges - Clube da Esquina (1972)
 
-<img style="float: left; padding-right: 10px;" src="/imgs/music_2020/clube_da_esquina.jpg" width="150"/>
+<img style="float: left; padding-right: 10px;" src="/blog/music_2020/clube_da_esquina.jpg" width="150"/>
 _Genre: Música Popular Brasileira_  
 This is my first exposure to Brazillian music. After discovering this album I tried a number of
 other albums in the same genre, but nothing comes close to this. 
@@ -151,7 +151,7 @@ other albums in the same genre, but nothing comes close to this.
 
 ### Have a Nice Life - Deathconsciousness (2008)
 
-<img style="float: left; padding-right: 10px;" src="/imgs/music_2020/deathconsciousness.jpg"
+<img style="float: left; padding-right: 10px;" src="/blog/music_2020/deathconsciousness.jpg"
 width="150"/>
 _Genre: Post-Punk_  
 I have been aware of this album for a long time, since I used to browse /mu/ in high school, but I
@@ -162,7 +162,7 @@ the record.
 
 ### Shellac - At Action Park (1994)
 
-<img style="float: left; padding-right: 10px;" src="/imgs/music_2020/at_action_park.jpg"
+<img style="float: left; padding-right: 10px;" src="/blog/music_2020/at_action_park.jpg"
 width="150"/>
 _Genre: Post-Hardcore, Math Rock_  
 Beautiful, noisy sound. Reminds me a lot of Number Girl, but with a much stronger beat. It's hard
@@ -173,7 +173,7 @@ not to bop my head to this.
 ### IDLES - Joy as an Act of Resistance. (2018)
 
 <img style="float: left; padding-right: 10px;"
-src="/imgs/music_2020/joy_as_an_act_of_resistance.jpg" width="150"/>
+src="/blog/music_2020/joy_as_an_act_of_resistance.jpg" width="150"/>
 _Genre: Post-Punk_  
 Incredibly energetic punk. It takes a very wholesome spin on the traditional anarchistic lyrics of
 punk rock. IDLES also released an album in 2020, and while it's certainly good, it didn't leave
@@ -183,7 +183,7 @@ nearly as much as an impression on me as this album.
 
 ### Purple Mountains - Purple Mountains (2019)
 
-<img style="float: left; padding-right: 10px;" src="/imgs/music_2020/purple_mountains.jpg" width="150"/>
+<img style="float: left; padding-right: 10px;" src="/blog/music_2020/purple_mountains.jpg" width="150"/>
 _Genre: Alt-Country_  
 Country rock meets existential dread. 
 
@@ -191,7 +191,7 @@ Country rock meets existential dread.
 
 ### Acid Bath - When the Kite String Pops (1994)
 
-<img style="float: left; padding-right: 10px;" src="/imgs/music_2020/when_the_kite_string_pops.jpg"
+<img style="float: left; padding-right: 10px;" src="/blog/music_2020/when_the_kite_string_pops.jpg"
 width="150"/>
 _Genre: Sludge Metal_  
 Like Melvins' or Boris' Sludge Metal records, but much more raw and dark. I love it.
@@ -200,7 +200,7 @@ Like Melvins' or Boris' Sludge Metal records, but much more raw and dark. I love
 
 ### Black Flag - My War (1984)
 
-<img style="float: left; padding-right: 10px;" src="/imgs/music_2020/my_war.jpg" width="150"/>
+<img style="float: left; padding-right: 10px;" src="/blog/music_2020/my_war.jpg" width="150"/>
 _Genre: Hardcore Punk_  
 The lyrics are a bit angsty, but the dark, raw, noisy sound more than makes up for that. 
 
@@ -210,7 +210,7 @@ The lyrics are a bit angsty, but the dark, raw, noisy sound more than makes up f
 ### clipping. - There Existed an Addiction to Blood (2019)
 
 <img style="float: left; padding-right: 10px;"
-src="/imgs/music_2020/there_existed_an_addiction_to_blood.jpg" width="150"/> 
+src="/blog/music_2020/there_existed_an_addiction_to_blood.jpg" width="150"/> 
 _Genre: Industrial Hip-Hop, Horrorcore_  
 This is probably the biggest surprise for me this year. I didn't expect to like
 this at all, but I really do. For some reason I find it difficult to like hip-hop, especially rap.
@@ -220,7 +220,7 @@ Perhaps the noisy sound of this album is what attracts me to it.
 
 ### Built to Spill - Perfect From Now On (1997)
 
-<img style="float: left; padding-right: 10px;" src="/imgs/music_2020/perfect_from_now_on.jpg"
+<img style="float: left; padding-right: 10px;" src="/blog/music_2020/perfect_from_now_on.jpg"
 width="150"/>
 _Genre: Indie Rock_  
 A lo-fi indie pop, but still definitely sounds like the 90s, and definitely holds up against some of
@@ -232,7 +232,7 @@ the best albums of that decade.
 
 ### Current 93 - Thunder Perfect Mind (1992)
 
-<img style="float: left; padding-right: 10px;" src="/imgs/music_2020/thunder_perfect_mind.jpeg"
+<img style="float: left; padding-right: 10px;" src="/blog/music_2020/thunder_perfect_mind.jpeg"
 width="150"/>
 _Genre: Neofolk_  
 A sombre, melancholic, acoustic album. At first I didn't like this album, but a few months after
@@ -243,7 +243,7 @@ album again and found that I suddenly really enjoyed it.
 
 ### Comus - First Utterance (1971)
 
-<img style="float: left; padding-right: 10px;" src="/imgs/music_2020/first_utterance.jpg"
+<img style="float: left; padding-right: 10px;" src="/blog/music_2020/first_utterance.jpg"
 width="150"/>
 _Genre: Progressive Folk, Freak Folk_  
 Grim, psychedelic and intense. The album draws you in, despite its dark and disturbing content.
@@ -253,7 +253,7 @@ Grim, psychedelic and intense. The album draws you in, despite its dark and dist
 
 ### 공중도둑 (Mid-Air Thief) - 공중도덕 (Gongjoong Doduk) (2015)
 
-<img style="float: left; padding-right: 10px;" src="/imgs/music_2020/gongjoong_doduk.jpg"
+<img style="float: left; padding-right: 10px;" src="/blog/music_2020/gongjoong_doduk.jpg"
 width="150"/>
 _Genre: Psychedelic Folk_  
 Psychedelic, yet calm and relaxing. Probably my first exposure to Korean music (other than k-pop),

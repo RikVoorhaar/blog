@@ -5,7 +5,7 @@ date:   "2020-08-12"
 categories: data-science music
 excerpt: "I use last.fm to track my music listening. Let's look at my data to discover how my musical preferences evolve over time."
 header: 
-    teaser: "/imgs/teasers/lastfm.webp"
+    teaser: "/blog/lastfm/teasers/lastfm.webp"
 ---
 
 Last.fm is a great tool to keep track of the music you listen to. It's also great for analysis!
@@ -235,7 +235,7 @@ plt.show()
 ```
 
 
-![png](/imgs/lastfm_7_0.png)
+![png](/blog/lastfm/lastfm_7_0.png)
 
 
 ## Annotating the scrobbles
@@ -364,7 +364,7 @@ plot_genre('Pop Rock')
 ```
 
 
-![png](/imgs/lastfm_17_0.png)
+![png](/blog/lastfm/lastfm_17_0.png)
 
 
 ### 2012: J-pop
@@ -377,7 +377,7 @@ plot_genre('J-pop')
 ```
 
 
-![png](/imgs/lastfm_19_0.png)
+![png](/blog/lastfm/lastfm_19_0.png)
 
 
 ### 2011-2013 Prog Rock
@@ -389,7 +389,7 @@ plot_genre('Prog Rock')
 ```
 
 
-![png](/imgs/lastfm_21_0.png)
+![png](/blog/lastfm/lastfm_21_0.png)
 
 
 ### 2015 - 2020: Noise and post rock
@@ -402,11 +402,11 @@ plot_genre('Post Rock')
 ```
 
 
-![png](/imgs/lastfm_23_0.png)
+![png](/blog/lastfm/lastfm_23_0.png)
 
 
 
-![png](/imgs/lastfm_23_1.png)
+![png](/blog/lastfm/lastfm_23_1.png)
 
 
 ### 2016-2019: Stoner/Doom 
@@ -420,15 +420,15 @@ plot_genre('Sludge Metal')
 ```
 
 
-![png](/imgs/lastfm_25_0.png)
+![png](/blog/lastfm/lastfm_25_0.png)
 
 
 
-![png](/imgs/lastfm_25_1.png)
+![png](/blog/lastfm/lastfm_25_1.png)
 
 
 
-![png](/imgs/lastfm_25_2.png)
+![png](/blog/lastfm/lastfm_25_2.png)
 
 
 ### 2020: Punk, math rock and emo
@@ -443,15 +443,15 @@ plot_genre('Emo')
 ```
 
 
-![png](/imgs/lastfm_27_0.png)
+![png](/blog/lastfm/lastfm_27_0.png)
 
 
 
-![png](/imgs/lastfm_27_1.png)
+![png](/blog/lastfm/lastfm_27_1.png)
 
 
 
-![png](/imgs/lastfm_27_2.png)
+![png](/blog/lastfm/lastfm_27_2.png)
 
 
 ## What's next?

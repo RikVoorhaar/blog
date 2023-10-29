@@ -104,7 +104,7 @@ plt.legend();
 
 
     
-![svg](/imgs/discrete-function-tensor/tensor-completion_2_0.svg)
+![svg](/blog/discrete_function_tensor/tensor-completion_2_0.svg)
     
 
 
@@ -148,7 +148,7 @@ plt.title("discretized function");
 
 
     
-![svg](/imgs/discrete-function-tensor/tensor-completion_4_0.svg)
+![svg](/blog/discrete_function_tensor/tensor-completion_4_0.svg)
     
 
 
@@ -245,7 +245,7 @@ for perc in Y_grid:
 
 
     
-![svg](/imgs/discrete-function-tensor/tensor-completion_6_0.svg)
+![svg](/blog/discrete_function_tensor/tensor-completion_6_0.svg)
     
 
 
@@ -299,7 +299,7 @@ print(f"Final test loss: {test_loss:.4f}")
 
 
     
-![svg](/imgs/discrete-function-tensor/tensor-completion_8_1.svg)
+![svg](/blog/discrete_function_tensor/tensor-completion_8_1.svg)
     
 
 
@@ -551,7 +551,7 @@ print(f"Final test loss: {test_loss:.4f}")
 
 
     
-![svg](/imgs/discrete-function-tensor/tensor-completion_15_1.svg)
+![svg](/blog/discrete_function_tensor/tensor-completion_15_1.svg)
     
 
 
@@ -653,7 +653,7 @@ plt.yscale("log")
 
 
     
-![svg](/imgs/discrete-function-tensor/tensor-completion_19_1.svg)
+![svg](/blog/discrete_function_tensor/tensor-completion_19_1.svg)
     
 
 
@@ -770,7 +770,7 @@ plt.legend();
 
 
     
-![svg](/imgs/discrete-function-tensor/tensor-completion_28_1.svg)
+![svg](/blog/discrete_function_tensor/tensor-completion_28_1.svg)
     
 
 

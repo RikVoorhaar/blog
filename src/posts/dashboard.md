@@ -5,7 +5,7 @@ date: "2023-05-01"
 categories: website data-science tools
 excerpt: "I made an interactive dashboard for this website, [check it out!](https://dashboard.rikvoorhaar.com)"
 header:
-  teaser: "/imgs/teasers/dashboard.webp"
+  teaser: "/blog/teasers/dashboard.webp"
 ---
 
 I made a dashboard for exploring the access logs of this website. You can check it out at [dashboard.rikvoorhaar.com](https://dashboard.rikvoorhaar.com). It's a fun little project I've been tinkering with to shed some light on the way people interact with my site.
@@ -34,7 +34,7 @@ I did some benchmarking and found that even on just two months' worth of data mo
 
 One thing I really wanted to understand from the data was the differences in geographic regions, but this seems to be very difficult to capture in one or two plots. Instead, I realized that to convey this information properly we need to have some kind of interactivity. I came up with the idea of allowing a user of the dashboard to select different subsets of the dataset which are then displayed in the same plot. For example, suppose I want to know at what time users in Denmark typically connect to my website versus people in Switzerland. I could then make one subset of the dataset containing only the people connecting from Denmark, and another subset of people connecting from Switzerland. After proper normalization, I can then just make a time series of the time of day when users from both subsets of the data connect, and I've got my answer. (Shown below; Denmark in blue, Switzerland in orange)
 
-![A time of day plot comparing user activity for two countries](/imgs/dashboard/switzerland-denmark.png)
+![A time of day plot comparing user activity for two countries](/blog/dashboard/switzerland-denmark.png)
 
 
 I thus needed to make a component that can be used to interactively select different subsets or 'filters' for the dataset. This turned out to be more ambitious and tricky to code than I initially expected. First of all, there is the pure fronted stuff; it took a while to figure out which components to include and how to configure all the CSS and necessary animations for it to work. Since my experience with Typescript and CSS is quite limited, this was probably one of the most challenging parts. I also needed to code quite a bit of interaction between the front-end and the back-end. For example, the front-end and back-end need to agree on which options are allowed in the country selector, and so this has to be communicated from the python back-end. Next, the front-end needs to send all this filter information to the back-end, which of course also requires us to specify a format for this data. 

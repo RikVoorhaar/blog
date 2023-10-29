@@ -5,7 +5,7 @@ date:   "2021-04-09"
 categories: machine-learning signal-processing computer-vision
 excerpt: "In order to automatically sharpen images, we need to first understand how a computer can judge how 'natural' an image looks."
 header: 
-    teaser: "/imgs/teasers/st-vitus-laplace.webp"
+    teaser: "/blog/teasers/st-vitus-laplace.webp"
 ---
 
 This is part two in a series on blind deconvolution of images. In the previous part we looked at non-blind deconvolution, where we have an image and we know exactly how it was distorted. While this situation may seem unrealistic, it does occur in cases where we have excellent understanding of how the camera takes images; for example for telescopes or microscopes which always work in the same environment. 
@@ -15,7 +15,7 @@ The next step is then to try to do deconvolution if we have partial information 
 Below we have the image of the St. Vitus church in my hometown distorted with gaussian blur with $$\sigma=2$$, and then deblurred with several different values of $$\sigma$$. Looking at these images we can see that $$\sigma=2.05$$ and $$\sigma=2.29$$ looks best, and $$\sigma=2.53$$ is over-sharpened. The real challenge lies in finding some concrete metric to automatically decide which of these looks most natural. This is especially hard since even to the human eye this is not clear. The fact that $$\sigma=2.29$$ looks very good probably means that the original image wasn't completely sharp itself, and we don't have a good ground truth of what it means for an image to be perfectly sharp. 
 
     
-![png](/imgs/deconvolution_part2/part2_1_0.png)
+![png](/blog/deconvolution_part2/part2_1_0.png)
     
 
 
@@ -50,7 +50,7 @@ Below we can see this gradient transformation in action on the six images shown 
 
 
     
-![png](/imgs/deconvolution_part2/part2_3_0.png)
+![png](/blog/deconvolution_part2/part2_3_0.png)
     
 
 
@@ -64,7 +64,7 @@ Below we look at the distribution of the gradients after deconvolution with diff
 This suggests that to find the optimal value of $$\sigma$$ we can look at these curves and pick the value of $$\sigma$$ where the gradient magnitude starts to increase quickly. This is however not very precise, and ideally we have some function which has a minimum near the optimal value of $$\sigma$$. Furthermore this curve will look slightly different for different images. This is a good starting point for an image prior, but is not useful yet. 
 
     
-![png](/imgs/deconvolution_part2/part2_5_1.png)
+![png](/blog/deconvolution_part2/part2_5_1.png)
     
 
 Instead of using the gradient to obtain the edges in the image, we can use the Laplacian. The
@@ -87,13 +87,13 @@ Note that the Laplacian can take on both negative and positive values, unlike th
 
 
     
-![png](/imgs/deconvolution_part2/part2_7_0.png)
+![png](/blog/deconvolution_part2/part2_7_0.png)
     
 
 
 
     
-![png](/imgs/deconvolution_part2/part2_8_1.png)
+![png](/blog/deconvolution_part2/part2_8_1.png)
     
 
 
@@ -115,7 +115,7 @@ optimization routine. We therefore need to come up with something better.
 
 
     
-![png](/imgs/deconvolution_part2/part2_10_1.png)
+![png](/blog/deconvolution_part2/part2_10_1.png)
     
 
 
@@ -139,14 +139,14 @@ Below we show an 8x8 patch in the St. Vitus image (top left) together with its 1
 
 
     
-![png](/imgs/deconvolution_part2/part2_13_0.png)
+![png](/blog/deconvolution_part2/part2_13_0.png)
     
 
 
 Note that we look at patches closest in _Euclidean distance_, this does not necessarily mean the patches are visually similar. Visually very similar patches can have large euclidean distance, for example the two patches below are orthogonal (and hence have maximal Euclidean distance), despite being visually similar. One could come up with better measures for visual similarity than Euclidean distance, probably something that is invariant under small shifts, rotations and mirroring, but this would come at an obvious cost of increased (computational) complexity. 
 
     
-![png](/imgs/deconvolution_part2/part2_15_1.png)
+![png](/blog/deconvolution_part2/part2_15_1.png)
     
 
 
@@ -161,7 +161,7 @@ $$
 where $$\sigma_i(A)$$ is the $$i$$th singular value. Below we show how the average singular values change with scale $$\sigma$$ of the deconvolution kernel for the NLSS matrices for 8x8 patches with 63 neighbors (so that the NLSS matrix is square). We see that in all cases most of the energy is in the first singular value, followed by a fairly slow decay. As $$\sigma$$ increases, the decay of singular values slows down. This means that the more blurry the image, the lower the _effective_ rank of the NLSS matrices. As such, the nuclear norm of the NLSS matrix gives a measure of the amount of information in the picture. 
 
     
-![png](/imgs/deconvolution_part2/part2_17_0.png)
+![png](/blog/deconvolution_part2/part2_17_0.png)
     
 
 
@@ -173,7 +173,7 @@ matrices. We can see that the mean nuclear norm is biggest at around the ground 
 $$\sigma$$.
 
     
-![png](/imgs/deconvolution_part2/part2_19_0.png)
+![png](/blog/deconvolution_part2/part2_19_0.png)
     
 
 
@@ -186,14 +186,14 @@ since then we mostly observe a strict increase in nuclear norms with $$\sigma$$.
 Repeating the same for the Laplacian gives a similar result:
 
     
-![png](/imgs/deconvolution_part2/part2_21_0.png)
+![png](/blog/deconvolution_part2/part2_21_0.png)
     
 
 
 Now finally to turn this into a useful image prior, we can plot how the mean nuclear norm changes with varying $$\sigma$$. Both for the gradients and Laplacian of the image we see a clear maximum near $$\sigma=2$$, so this looks like a useful image prior. 
 
 
-![png](/imgs/deconvolution_part2/part2_23_1.png)
+![png](/blog/deconvolution_part2/part2_23_1.png)
     
 
 
@@ -203,7 +203,7 @@ The image above was made for $$6\times 6$$ patches with 36 neighbors. Below we m
 
 
     
-![png](/imgs/deconvolution_part2/part2_25_2.png)
+![png](/blog/deconvolution_part2/part2_25_2.png)
     
 
 
@@ -228,33 +228,33 @@ All the images we use are from the [COCO 2017 dataset](https://cocodataset.org/#
 First up is an image of a bear, blurred with $$\sigma=2$$ Gaussian kernel. Deblurring this is easy, and not very sensitive on the hyper parameters used.
 
     
-![png](/imgs/deconvolution_part2/part2_30_1.png)
+![png](/blog/deconvolution_part2/part2_30_1.png)
     
 
 
 Here is the same image of the bear, but now blurred with $$\sigma=4$$, and it becomes much harder to recover the image. I found that the only way to do it is to reduce the patch size all the way to $$2\times 2$$, for higher patch sizes the image can't be accurately recovered and it always overestimates the value of $$\sigma$$.
 
     
-![png](/imgs/deconvolution_part2/part2_32_1.png)
+![png](/blog/deconvolution_part2/part2_32_1.png)
     
 
 
 Below is a picture of some food. For $$\sigma=3$$ recovery is excellent, and again not strongly dependent on hyperparameters. For $$\sigma=4$$ the problem becomes significantly harder, and it again takes a small patch size for reasonable results. 
 
 
-![png](/imgs/deconvolution_part2/part2_34_1.png)
+![png](/blog/deconvolution_part2/part2_34_1.png)
     
 
 
 
     
-![png](/imgs/deconvolution_part2/part2_35_1.png)
+![png](/blog/deconvolution_part2/part2_35_1.png)
     
 
 Now let's change the blur kernel to an idealized motion blur kernel. Here the point spread function is a line segment of some specified length and thickness, as shown below:
 
     
-![png](/imgs/deconvolution_part2/part2_38_1.png)
+![png](/blog/deconvolution_part2/part2_38_1.png)
     
 
 
@@ -263,7 +263,7 @@ The way I construct these point spread functions is by rasterizing an image of a
 Let's try to apply the method on a picture of some cows below:
 
     
-![png](/imgs/deconvolution_part2/part2_40_1.png)
+![png](/blog/deconvolution_part2/part2_40_1.png)
     
 
 
@@ -275,7 +275,7 @@ Additionally, the effect of motion blur on edges is different than that of Gauss
 
 
     
-![png](/imgs/deconvolution_part2/part2_42_1.png)
+![png](/blog/deconvolution_part2/part2_42_1.png)
     
 
 

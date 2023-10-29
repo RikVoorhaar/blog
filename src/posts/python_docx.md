@@ -5,7 +5,7 @@ date:   "2021-08-29"
 categories: data-mining code
 excerpt: "Parsing and editing Word documents automatically can be extremely useful, but doing it in Python is not that straightforward."
 header: 
-    teaser: "/imgs/teasers/doc_comparison.webp"
+    teaser: "/blog/teasers/doc_comparison.webp"
 ---
 
 In preparation for the job market, I started polishing my CV. I try to keep the
@@ -55,7 +55,7 @@ additional things happened when editing this paragraph: the font of the edited
 paragraph changed, and the bar / text box on the right-hand side disappeared
 completely!
 
-![img](/imgs/python_docx/doc_comparison.png)
+![img](/blog/python_docx/doc_comparison.png)
 
 This is no good, but to understand what happened to the text box we need to 
 dig into the XML of the document. We can turn the document into an XML file like 

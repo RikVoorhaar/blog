@@ -5,7 +5,7 @@ date:   "2021-03-13"
 categories: machine-learning signal-processing computer-vision
 excerpt: "Deconvolution is one of the cornerstones of image processing. Let's take a look at how it works."
 header: 
-    teaser: "/imgs/teasers/st-vitus-blur.webp"
+    teaser: "/blog/deconvolution_part1/teasers/st-vitus-blur.webp"
 ---
 
 
@@ -95,7 +95,7 @@ bottom-left image shows Gaussian blur, with $$\sigma=1$$. Finally the bottom-rig
 motion blur with a top-left to bottom-right diagonal line segment of 5 pixels in length. 
 
     
-![png](/imgs/part1_4_0.png)
+![png](/blog/deconvolution_part1/part1_4_0.png)
     
 
 
@@ -157,7 +157,7 @@ deconvolute with a Gaussian PSF with $$\sigma=2$$ and $$\sigma=2.01$$. The first
 the original image, but then the second doesn't look similar at all!
 
     
-![png](/imgs/part1_6_0.png)
+![png](/blog/deconvolution_part1/part1_6_0.png)
     
 
 
@@ -167,7 +167,7 @@ absolute value of the Fourier transform on a logarithmic scale. For reference we
 fourier transform of the original and blurred signals.
 
     
-![png](/imgs/part1_8_0.png)
+![png](/blog/deconvolution_part1/part1_8_0.png)
     
 
 
@@ -200,7 +200,7 @@ where $$S>0$$ is a regularization constant. Let's see how well this works for di
 $$S$$:
 
     
-![png](/imgs/part1_11_0.png)
+![png](/blog/deconvolution_part1/part1_11_0.png)
     
 
 
@@ -212,7 +212,7 @@ however exaggerated by the logarithmic scale). There are significant artifacts r
 near-zero values of the Fourier transform of the PSF
 
 
-![png](/imgs/part1_13_0.png)
+![png](/blog/deconvolution_part1/part1_13_0.png)
     
 
 
@@ -253,7 +253,7 @@ results. Nevertheless, it's a bit finicky to get working well, and on my machine
 takes a full minute, as opposed to a few milliseconds for FFT-based deconvolution.
 
     
-![png](/imgs/part1_16_1.png)
+![png](/blog/deconvolution_part1/part1_16_1.png)
     
 
 

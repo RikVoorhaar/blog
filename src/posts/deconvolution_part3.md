@@ -5,7 +5,7 @@ date:   "2021-05-02"
 categories: machine-learning signal-processing computer-vision
 excerpt: "Deconvolving and sharpening images is actually pretty tricky. Let's have a look at some more advanced methods for deconvolution."
 header: 
-    teaser: "/imgs/teasers/cow-weird-blur.webp"
+    teaser: "/blog/teasers/cow-weird-blur.webp"
 ---
 
 In part 1 we saw how to do non-blind image deconvolution. In part 2 we saw a couple good image
@@ -63,7 +63,7 @@ modification to the Wiener filter, that should give less ringing effects. Let's 
 in practice.
 
     
-![svg](/imgs/deconvolution_part3/part3_2_0.svg)
+![svg](/blog/deconvolution_part3/part3_2_0.svg)
     
 
 
@@ -76,7 +76,7 @@ probably because the Fourier transform of the Laplacian (show below) has a fairl
 distribution and is therefore not too different from a uniform distribution we use in the Wiener
 filter.
 
-![svg](/imgs/deconvolution_part3/part3_4_1.svg)
+![svg](/blog/deconvolution_part3/part3_4_1.svg)
     
 
 ## Richardson-Lucy deconvolution
@@ -106,7 +106,7 @@ and point spread function as before.
 
 
     
-![svg](/imgs/deconvolution_part3/part3_6_0.svg)
+![svg](/blog/deconvolution_part3/part3_6_0.svg)
     
 
 
@@ -134,7 +134,7 @@ Below is the St. Vitus church image blurred with $$\sigma=3$$ Gaussian blur, and
 deblurred using a Wiener filter with and without using the border around the image.
 
     
-![svg](/imgs/deconvolution_part3/part3_10_0.svg)
+![svg](/blog/deconvolution_part3/part3_10_0.svg)
 
 
 The ringing at the boundary is known as Gibbs oscillation. The reason it occurs is because the
@@ -159,7 +159,7 @@ each boundary, and such that the total Laplacian is minimized.
 
 
     
-![svg](/imgs/deconvolution_part3/part3_12_1.svg)
+![svg](/blog/deconvolution_part3/part3_12_1.svg)
     
 
 
@@ -170,13 +170,13 @@ always in Matlab. This seems to be a general problem when reading literature abo
 Below we see the Laplacian of the image extended using Liu-Jia's method, using zero padding and by reflecting the image. We see that both in the reflected image, and the one using Liu-Jia's method there are no large values of the Laplacian around the border, because of the soft transition to the border. 
 
     
-![svg](/imgs/deconvolution_part3/part3_15_1.svg)
+![svg](/blog/deconvolution_part3/part3_15_1.svg)
     
 
 Next we can check if these periodic extensions of the images actually reduces boundary artifacts when deconvolving. Below we see the three methods for both the Wiener and Richardson-Lucy (RL) deconvolution in action on an image distorted with $$\sigma=3$$ Gaussian blur.
 
     
-![svg](/imgs/deconvolution_part3/part3_17_0.svg)
+![svg](/blog/deconvolution_part3/part3_17_0.svg)
     
 
 
@@ -185,7 +185,7 @@ filter. More strikingly, the reflective padding works even better. This is becau
 
 It is interesting to note that Richardson-Lucy deconvolution suffers heavily in quality regardless of padding method. Interestingly, if we look at motion blur instead of Gaussian blur, the roles are a bit reversed. For the Wiener filter we have to use fairly aggressive regularization to not get too many artifacts, whereas RL deconvolution works without problems.
     
-![svg](/imgs/deconvolution_part3/part3_19_0.svg)
+![svg](/blog/deconvolution_part3/part3_19_0.svg)
     
 
 ## Conclusion

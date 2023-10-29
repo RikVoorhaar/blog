@@ -5,7 +5,7 @@ date:   "2020-08-10"
 categories: data-science statistics
 excerpt: "Normally distributed data is great, but how do you know whether your data is normally distributed?"
 header: 
-    teaser: "/imgs/teasers/normal-data.webp"
+    teaser: "/blog/normal_data/teasers/normal-data.webp"
 ---
 
 Normally distributed data is great. It is easy to interpet, and many statistical and machine learning method work much better on normally distributed data. But how do we know if our data is actually normally distributed?
@@ -43,7 +43,7 @@ plot_normal(mean_brightness)
 ```
 
 
-![svg](/imgs/normal_data_5_0.svg)
+![svg](/blog/normal_data/normal_data_5_0.svg)
 
 
 Going by these plots, our data is indeed wonderfully normally distributed! This is not surprising; the mean of a large number of random variables tends to be normally distributed, even if they are not identically distributed.
@@ -58,7 +58,7 @@ plot_normal(single_pixel)
 ```
 
 
-![svg](/imgs/normal_data_7_0.svg)
+![svg](/blog/normal_data/normal_data_7_0.svg)
 
 
 We see two problems, this data's distribution is bimodal (i.e. it has two different peaks), and it's clipped off near the extreme values of 0 and 255. This makes sense, since we're dealing with grayscale images. 
@@ -129,11 +129,11 @@ plot_normal_cdf(single_pixel,name="Single pixel")
 ```
 
 
-![svg](/imgs/normal_data_12_0.svg)
+![svg](/blog/normal_data/normal_data_12_0.svg)
 
 
 
-![svg](/imgs/normal_data_12_1.svg)
+![svg](/blog/normal_data/normal_data_12_1.svg)
 
 
 These CDF plots again visually confirm that one distribution is quite close to a normal distribution, whereass the other is not. In the second plot you can clearly see the singularity at 0 and 255 as well. 
@@ -265,11 +265,11 @@ plot_model_cdf(single_pixel,model,name="single pixel")
 ```
 
 
-![svg](/imgs/normal_data_19_0.svg)
+![svg](/blog/normal_data/normal_data_19_0.svg)
 
 
 
-![svg](/imgs/normal_data_19_1.svg)
+![svg](/blog/normal_data/normal_data_19_1.svg)
 
 
 For the mean brigthness data it seems that the gaussian mixture with two components isn't much better or even worse! This is because it is close to normally distributed already. 

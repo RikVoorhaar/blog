@@ -5,7 +5,7 @@ date:   "2020-08-26"
 categories: data-science statistics
 excerpt: "Cross validation is extremely important, but how should we choose the size of our validation and test sets?"
 header: 
-    teaser: "/imgs/teasers/validation-data.webp"
+    teaser: "/blog/validation_size/teasers/validation-data.webp"
 ---
 
 
@@ -61,7 +61,7 @@ print(f"mean={rv.mean()}, std={rv.std()}")
 ```
 
 
-![svg](/imgs/validation-size_3_0.svg)
+![svg](/blog/validation_size/validation-size_3_0.svg)
 
 
     mean=0.9509803921568627, std=0.021274143540891813
@@ -94,7 +94,7 @@ plt.show()
 ```
 
 
-![svg](/imgs/validation-size_6_0.svg)
+![svg](/blog/validation_size/validation-size_6_0.svg)
 
 
 Just going by the probability distrubutions we see a lot of overlap. We can actually estimate the probability that the second model is better than the first model. (Or rather, we can estimate the probability of rejecting the null hypothesis that the second model is not better than the first.) A crude but simple way to do this is to sample both distrubutions and then count the number of values in one distrubution that are bigger than the other. Unfortunately this is not efficient, and requires a lot of samples to produce an accurate probability.
