@@ -1,2 +1,4 @@
 import img from './img.svelte';
-export { img };
+import blockquote from './blockquote.svelte';
+import code from './code.svelte';
+export { img, blockquote, code };

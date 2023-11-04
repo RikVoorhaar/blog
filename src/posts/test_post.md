@@ -19,6 +19,10 @@ This is markdown text. _italic_ **bold** ~~strikeout~~
 
 > This is a block quote
 
+    this is indented by 4 spaces
+
+This is `inline_code` in a sentence
+
 This is inline math: $f(x):=\int_0^x\! g(t)\,\mathrm{d}t$, and this is display math:
 
 $$

@@ -99,7 +99,7 @@ unfortunately the style of this paragraph is still reset when we do this. Let's
 have a look at how the XML changes when we edit this paragraph. Ignoring
 irrelevant information, before changing it looks like this:
 
-```xml
+```
 <w:p>
     <w:r>
     <w:t>R</w:t>
@@ -111,7 +111,7 @@ irrelevant information, before changing it looks like this:
 ```
 
 And afterwards it looks like this:
-```xml
+```
 <w:p>
     <w:r>
     <w:t>Curriculum Vitae</w:t>
@@ -194,7 +194,7 @@ and the inner structure of Word documents.
 The first step is understanding how text boxes are encoded in the XML. It turns
 out that the structure is something like this:
 
-```XML
+```
 <mc:AlternateContent>
     <mc:Choice Requires="wps">
         <w:drawing>
