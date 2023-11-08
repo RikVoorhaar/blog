@@ -1,88 +1,31 @@
 ---
 layout: posts
-title: "My thesis in a nutshell"
-date: "2023-02-26"
+title: 'My thesis in a nutshell'
+date: '2023-02-26'
 categories: math
 excerpt: "Read this blog post if you're curious what I worked on during my PhD!"
 header:
-  teaser: "/blog/teasers/thesis.webp"
+  teaser: '/blog/teasers/thesis.webp'
 ---
 
-<style>
-    img[src*="#nice"] {
-        margin: 0 1em 1em 0;
-        max-width: 450px;
-        width: 100%;
-        margin-left: auto;
-        margin-right: auto;
-        display: block;
-    }
-    img[src*="#nice-medium"] {
-        margin: 0 1em 1em 0;
-        max-width: 600px;
-        width: 100%;
-        margin-left: auto;
-        margin-right: auto;
-        display: block;
-    }
-    img[src*="#nice-small-inline"] {
-        margin: 0 1em 1em 0;
-        max-width: 300px;
-        width: 100%;
-        margin-left: auto;
-        margin-right: auto;
-        display: inline;
-    }
-    img[src*="#nice-inline"] {
-        margin: 0 1em 1em 0;
-        max-width: 360px;
-        width: 100%;
-        margin-left: auto;
-        margin-right: auto;
-        display: inline;
-    }
-    img[src*="#nice-wide"] {
-        margin: 0 1em 1em 0;
-        width: 100%;
-        max-width: 100%;
-        margin-left: auto;
-        margin-right: auto;
-        display: block;
-    }
-    /* img[src*="#nice"] {
-        margin: 0 1em 1em 0;
-        max-width: 450px;
-        width: 100%;
-        padding-left: 50px;
-        margin-right: auto;
-    }
-    img[src*="#nice-medium"] {
-        margin: 0 1em 1em 0;
-        max-width: 600px;
-        width: 100%;
-        padding-left: 50px;
-        margin-right: auto;
-    } */
-</style>
- 
 A few months ago, I defended my thesis and earned the title of "doctor." I'm excited to share the contents of my thesis defense with you in this blog post, where you can get a glimpse of the fascinating research I conducted over the past few years. The post is divided into several parts, with the level of technical detail increasing gradually.
 
 If you're interested in reading my full thesis, [you can find it here](https://doi.org/10.13097/archive-ouverte/unige:166308). I've also made my [defense slides available for download here](https://github.com/RikVoorhaar/website/raw/master/jekyll/_data/presentation.pdf).
 
 ## Low-rank matrices
 
-![A train](/blog/thesis/chapter1_compressed.webp#nice-medium)
+![A train](/blog/thesis/chapter1_compressed.webp)
 
 My thesis focuses on low-rank tensors, but to understand them, it's important to first discuss low-rank matrices.
 You can learn more about low-rank matrices in [this blog post](/low-rank-matrix). A low-rank matrix is simply the product of two smaller matrices. For example below we write the matrix $$A$$ as the product $$A=XY^\top$$.
 
-![Low-rank matrix](/blog/thesis/def-low-rank.svg#nice)
+![Low-rank matrix](/blog/thesis/def-low-rank.svg)
 
 In this case, the matrix $$X$$ is of size $$m\times r$$ and the matrix $$Y$$ is of size $$n\times r$$. This usually means that the product $$A$$ is a rank-$$r$$ matrix, though it could have a lower rank if for example one of the rows of $$X$$ or $$Y$$ is zero.
 
 While many matrices encountered in real-world applications are not low-rank, they can often be well approximated by low-rank matrices. Images, for example, can be represented as matrices (if we consider each color channel separately), and low-rank approximations of images can give recognizable results. In the figure below, we can see several low-rank approximations of an image, with higher ranks giving better approximations of the original image.
 
-![Several low-rank approximations of an image](/blog/thesis/low-rank-approx-img.webp#nice-wide)
+![Several low-rank approximations of an image](/blog/thesis/low-rank-approx-img.webp)
 
 To determine the "best" rank-$$r$$ approximation of a matrix $$A$$, we can solve the following optimization problem:
 
@@ -122,17 +65,17 @@ where $$\Omega$$ is the set of known entries of $$A$$, and $$\mathcal P_\Omega$$
 
 Matrix completion is illustrated in two examples of reconstructing an image as a rank 100 matrix, where 2.7% of the pixels were removed. The effectiveness of matrix completion depends on the distribution of the unknown pixels. When the unknown pixels are spread out, matrix completion works well, as seen in the first example. However, when the unknown pixels are clustered in specific regions, matrix completion does not work well, as seen in the second example.
 
-![Matrix completion applied to a chocolate cauldron](/blog/thesis/cauldron-completion.webp#nice-wide)
+![Matrix completion applied to a chocolate cauldron](/blog/thesis/cauldron-completion.webp)
 
 There are various methods to solve the matrix completion problem, and one simple technique is alternating least squares optimization, which I also [discussed in this blog post](/low-rank-matrix/). This approach optimizes the matrices $$X$$ and $$Y$$ alternately, given the decomposition $$B=XY^\top$$. Another interesting method is solving a slightly different optimization problem which turns out to be _convex_, which can thus b solved using the machinery of convex optimization. Another effective method is Riemannian gradient descent, which is also useful for low-rank tensors. The idea is to treat the set of low-rank matrices as a Riemannian manifold, and then use gradient descent methods. The gradient is projected onto the tangent space of the manifold, and then a step is taken in the projected direction, which keeps us closer to the constraint set. The projection back onto the manifold is usually cheap to compute, and can be combined with the step into a single operation known as a _retraction_. The challenge of Riemannian gradient descent is to find a retraction that is both cheap to compute and effective for optimizing the objective.
 
 ## Low-rank tensors
 
-![A train](/blog/thesis/cover_compressed.webp#nice-medium)
+![A train](/blog/thesis/cover_compressed.webp)
 
 Let's now move on to the basics of tensors. A tensor is a multi-dimensional array, with a vector being an _order 1 tensor_ and a matrix being an _order 2 tensor_. An order 3 tensor can be thought of as a collection of matrices or an array whose entries can be represented by a cube of values. Unfortunately, this geometric way of thinking about tensors breaks down at higher orders, but in principle still works.
 
-![Tensors of different orders with examples](/blog/thesis/explanation-tensor-opt.svg#nice-wide)
+![Tensors of different orders with examples](/blog/thesis/explanation-tensor-opt.svg)
 
 Some examples of tensors include:
 
@@ -142,6 +85,7 @@ Some examples of tensors include:
 - Order 4: _Color video, fMRI scans_
 
 Recall that a matrix is low-rank if it is the product of two smaller matrices, that is, $$A=XY^\top$$. Unfortunately, this notation doesn't generalize well to tensors. Instead, we can write down each entry of $$A$$ as a sum:
+
 $$
     A[i,j] = \sum_{\ell=1}^rX[i,\ell]Y[j,\ell]
 $$
@@ -154,13 +98,13 @@ $$
 
 However, if we're dealing with more complicated tensors of higher order, this kind of notation can quickly become unwieldy. One way to get around this is to use a diagrammatic notation, where tensors are represented by boxes with one leg (edge) for each of the tensor's indices. Connecting two boxes via one of these legs denotes summation over the associated index. For example, matrix multiplication is denoted as follows:
 
-![Diagrammatic notation of matrix multiplication](/blog/thesis/low-rank-matrix-def.svg#nice)
+![Diagrammatic notation of matrix multiplication](/blog/thesis/low-rank-matrix-def.svg)
 
 To make it clearer which legs can be contracted together, it's helpful to label them with the dimension of the associated index; it is only possible to sum over an index belonging to two different tensors if they have the same dimension.
 
- We can for example use the following diagram to depict the low-rank order 3 tensor described above:
+We can for example use the following diagram to depict the low-rank order 3 tensor described above:
 
-![Diagrammatic notation of contraction of 3 matrices to form a tensor](/blog/thesis/low-rank-tensor-def.svg#nice)
+![Diagrammatic notation of contraction of 3 matrices to form a tensor](/blog/thesis/low-rank-tensor-def.svg)
 
 In this case, we sum over the same index for three different matrices, so we connect the three legs together in the diagram. This resulting low-rank tensor is called a "CP tensor", where "CP" stands for "canonical polyadic". This tensor format can be easily generalized to higher order tensors. For an order-d tensor, we can represent it as:
 
@@ -182,7 +126,7 @@ $$
 
 Alternatively, we can rewrite this as the product of row $$i_1$$ of the first matrix and column $$i_2$$ of the second matrix, like so: $$A[i_1,i_2] = C_1[i_1,:]C_2[:,i_2]$$ This can be visualized as follows:
 
-![Diagram depicting the product of two matrices](/blog/thesis/tt-explanation1.svg#nice)
+![Diagram depicting the product of two matrices](/blog/thesis/tt-explanation1.svg)
 
 To extend this to an order-3 tensor, we can represent $$A[i_1,i_2,i_3]$$ as the product of 3 vectors, which is known as the CP tensor format. Alternatively, we can express $$A[i_1,i_2,i_3]$$ as a vector-matrix-vector product, like so:
 
@@ -195,7 +139,7 @@ $$
 
 This can be represented visually as shown below:
 
-![Diagram depicting the product of two matrices and order 3 tensor](/blog/thesis/tt-explanation2.svg#nice)
+![Diagram depicting the product of two matrices and order 3 tensor](/blog/thesis/tt-explanation2.svg)
 
 Extending this to an arbitrary order is straightforward. For example, for an order-4 tensor, we would write each entry of the tensor as a vector-matrix-matrix-vector product, like so:
 
@@ -208,29 +152,27 @@ $$
 
 which can be depicted like this:
 
-![Diagram depicting the product of two matrices and 2 order 3 tensors](/blog/thesis/tt-explanation3.svg#nice)
+![Diagram depicting the product of two matrices and 2 order 3 tensors](/blog/thesis/tt-explanation3.svg)
 
 Let's translate the formula back into diagrammatic notation. We want to represent an order 4 tensor as a box with four legs, expressed as the product of a matrix, two order 3 tensors, and another matrix. This is the resulting diagram:
 
-![Alternative diagram depicting the product of two matrices and 2 order 3 tensors](/blog/thesis/tt-explanation4.svg#nice)
+![Alternative diagram depicting the product of two matrices and 2 order 3 tensors](/blog/thesis/tt-explanation4.svg)
 
 An arbitrary tensor train can be denoted as follows:
 
-
-![Diagram depicting an arbitrary tensor train](/blog/thesis/def-tt.svg#nice-medium)
+![Diagram depicting an arbitrary tensor train](/blog/thesis/def-tt.svg)
 
 This notation helps us understand why this decomposition is called a tensor train. Each box of order 2/3 tensors represents a "carriage" in the train. We can translate the above diagram into a train shape, like this:
 
-![Drawing of a train](/blog/thesis/photo-of-tt-bad.png#nice)
+![Drawing of a train](/blog/thesis/photo-of-tt-bad.png)
 
 Although I am not skilled at drawing, we can use stable diffusion to create a more aesthetically pleasing depiction:
 
-
-![Painting of a train](/blog/thesis/photo-of-tt-nice.png#nice)
+![Painting of a train](/blog/thesis/photo-of-tt-nice.png)
 
 ### Tensor trains: what are they good for?
 
-From what we have seen so far it is not obvious what makes the tensor train decomposition such a useful tool. Although these properties are not unique to the tensor train decomposition, here are some reasons why it is a good decomposition for many applications. 
+From what we have seen so far it is not obvious what makes the tensor train decomposition such a useful tool. Although these properties are not unique to the tensor train decomposition, here are some reasons why it is a good decomposition for many applications.
 
 **Computing entries is fast:** Computing an arbitrary entry $$A[i_1,\dots,i_d]$$ is very fast, requiring just a few matrix-vector products. These operations can be efficiently done in parallel using a GPU as well.
 
@@ -244,7 +186,7 @@ From what we have seen so far it is not obvious what makes the tensor train deco
 
 ## Using tensor trains for machine learning
 
-![A train](/blog/thesis/chapter2_compressed.webp#nice-medium)
+![A train](/blog/thesis/chapter2_compressed.webp)
 
 With the understanding that low-rank tensors can effectively represent discretized functions, I will demonstrate how tensor trains can be utilized to create a unique type of machine learning estimator. To avoid redundancy, I will provide a condensed summary of the topic, and I invite you to read [my more detailed blog post on this subject](/discrete-function-tensor) if you would like to learn more.
 
@@ -256,11 +198,11 @@ $$
     f(x,y) = 3\cos(10(x^2 + y^2/2)) -\sin(20(2x-y))/2
 $$
 
-![A plot of a 2D function](/blog/thesis/low-rank-function1.webp#nice)
+![A plot of a 2D function](/blog/thesis/low-rank-function1.webp)
 
 Note that grayscale images can be represented as matrices, so if we use $$m\times n$$ pixels to plot the function, we get an $$m\times n$$ matrix. Surprisingly, this matrix is always rank-4, irrespective of its size. We illustrate the rows of matrices $$X$$ and $$Y$$ of the low-rank decomposition $$A=XY^\top$$ below. Notice that increasing the matrix size doesn't visibly alter the low-rank decomposition.
 
-![A plot of a 2D function](/blog/thesis/low-rank-function2.webp#nice)
+![A plot of a 2D function](/blog/thesis/low-rank-function2.webp)
 
 This suggests that low-rank matrices can potentially capture complex 2D functions. We can extend this to higher dimensions by using low-rank tensors to represent intricate functions.
 
@@ -274,23 +216,23 @@ Each data point $$x_j$$ corresponds to an entry $$A[i_1(x_j),\dots,i_d(x_j)]$$, 
 
 Let's see this in action for the 2D/matrix case to gain some intuition. First, let's generate some random points in a square and sample the function $$f(x,y)$$ defined above. On the left, we see a scatterplot of the random value samples, and next, we see what this looks like as a discretized function/matrix.
 
-![Scatter plot of the function f](/blog/thesis/low-rank-fun/discrete_func_scatterplot_1.webp#nice-small-inline)![Discretization of the previous plot](/blog/thesis/low-rank-fun/discrete_func_sparse_1.webp#nice-small-inline)
+![Scatter plot of the function f](/blog/thesis/low-rank-fun/discrete_func_scatterplot_1.webp)
 
 If we now apply matrix completion to this, we get the following. First, we see the completed matrix using a rank-8 matrix, and then the matrices $$X, Y$$ of the decomposition $$A=XY^\top$$.
 
-![Matrix completed discretization](/blog/thesis/low-rank-fun/discrete_func_contourplot_1.webp#nice-small-inline)![Low-rank decomposition](/blog/thesis/low-rank-fun/discrete_func_matrix_completion_1.webp#nice-small-inline)
+![Matrix completed discretization](/blog/thesis/low-rank-fun/discrete_func_contourplot_1.webp)
 
 What we have so far is already a useable supervised learning model; we plug in data, and as output, it can make reasonably accurate predictions of data points it hasn't seen so far. However, the data used to train this model is uniformly distributed across the domain. Real data is rarely like that, and if we plot the same for images for less uniformly distributed data the result is less impressive:
 
-![Scatter plot of the function f, non-uniform data](/blog/thesis/low-rank-fun/discrete_func_scatterplot_2.webp#nice-small-inline)![Discretization of the previous plot](/blog/thesis/low-rank-fun/discrete_func_sparse_2.webp#nice-small-inline)
+![Scatter plot of the function f, non-uniform data](/blog/thesis/low-rank-fun/discrete_func_scatterplot_2.webp)
 
-![Matrix completed discretization](/blog/thesis/low-rank-fun/discrete_func_contourplot_2.webp#nice-small-inline)![Low-rank decomposition](/blog/thesis/low-rank-fun/discrete_func_matrix_completion_2.webp#nice-small-inline)
+![Matrix completed discretization](/blog/thesis/low-rank-fun/discrete_func_contourplot_2.webp)
 
 How can we get around this? Well, if the data is not uniform, then why should we use a uniform discretization? For technical reasons, the discretization is still required to be a grid, but we can adjust the spacing of the grid points to better match the data. If we do this, we get something like this:
 
-![Scatter plot of the function f, non-uniform data and grid](/blog/thesis/low-rank-fun/discrete_func_scatterplot_3.webp#nice-small-inline)![Discretization of the previous plot](/blog/thesis/low-rank-fun/discrete_func_sparse_3.webp#nice-small-inline)
+![Scatter plot of the function f, non-uniform data and grid](/blog/thesis/low-rank-fun/discrete_func_scatterplot_3.webp)
 
-![Matrix completed discretization](/blog/thesis/low-rank-fun/discrete_func_contourplot_3.webp#nice-small-inline)![Low-rank decomposition](/blog/thesis/low-rank-fun/discrete_func_matrix_completion_3.webp#nice-small-inline)
+![Matrix completed discretization](/blog/thesis/low-rank-fun/discrete_func_contourplot_3.webp)
 
 While the final function (3rd plot) may look odd, it does achieve two important things. First, it makes the matrix-completion problem easier because we start with a matrix where a larger percentage of entries are known. And secondly, the resulting function is accurate in the vicinity of the data points. So long as the distribution of the training data is reasonably similar to the test data, this means that the model is accurate on most test data points. The model is potentially not very accurate in some regions, but this may simply not matter in practice.
 
@@ -310,17 +252,17 @@ But why go through all this trouble? Why not just use the initialization model i
 
 To summarize the potential advantages of TTML, consider the following three graphs (for more details, please refer to my thesis):
 
-![Benchmarks of error vs number of parameters](/blog/thesis/complexity_comparison1.svg#nice-inline)
-![Benchmarks of speed vs size](/blog/thesis/complexity_comparison2.svg#nice-inline)
-![Benchmarks of error vs size](/blog/thesis/complexity_comparison3.svg#nice-inline)
+![Benchmarks of error vs number of parameters](/blog/thesis/complexity_comparison1.svg)
+![Benchmarks of speed vs size](/blog/thesis/complexity_comparison2.svg)
+![Benchmarks of error vs size](/blog/thesis/complexity_comparison3.svg)
 
 Based on the results shown in the graphs, it is clear that the TTML model has a significant advantage over other models in terms of size and speed. It is much smaller and faster than other models while maintaining a similar level of test error. However, it is important to note that the performance of the TTML model may depend on the specific dataset used, and in many practical machine learning problems, its test error may not be as impressive as in the experiment shown. That being said, if speed is a crucial factor in a particular application, the TTML model can be a very competitive option.
 
 ## Randomized linear algebra
 
-![A train](/blog/thesis/chapter3-2_compressed.webp#nice-medium)
+![A train](/blog/thesis/chapter3-2_compressed.webp)
 
-As we have seen above, the singular value decomposition (SVD) can be used to find the best low-rank approximation of any matrix. Unfortunately, the SVD is rather expensive to compute, costing $$O(mn^2)$$ flops for an $$m\times n$$ matrix. Moreover, while SVD can also be used to compute good low-rank TT approximations of any tensor, the cost of the SVD can become prohibitively expensive in this context. Therefore, we need a faster way to compute low-rank matrix approximations. 
+As we have seen above, the singular value decomposition (SVD) can be used to find the best low-rank approximation of any matrix. Unfortunately, the SVD is rather expensive to compute, costing $$O(mn^2)$$ flops for an $$m\times n$$ matrix. Moreover, while SVD can also be used to compute good low-rank TT approximations of any tensor, the cost of the SVD can become prohibitively expensive in this context. Therefore, we need a faster way to compute low-rank matrix approximations.
 
 In [my blog post](/low-rank-matrix) I discussed some iterative methods to compute low-rank approximations using only matrix-vector products. However, there are even faster non-iterative methods that are based on multiplying the matrix of interest with a random matrix.
 
@@ -389,7 +331,7 @@ Note that this method computes the decomposition implicitly by solving a linear 
 
 ## Randomized tensor train approximations
 
-![A train](/blog/thesis/chapter3_compressed.webp#nice-medium)
+![A train](/blog/thesis/chapter3_compressed.webp)
 
 Next, we will see how to generalize the GN method to a method for tensor trains. Unfortunately this will get a little technical. Recall that for the GN decomposition we had a decomposition of form
 
@@ -405,7 +347,7 @@ $$
 
 We call this product a _'sketch'_, and this particular sketch corresponds to the product $$Y^\top AX$$ in the matrix case. We visualize the computation of this sketch below:
 
-![Depiction of the sketch Omega_mu](/blog/thesis/def-omega-mu.svg#nice)
+![Depiction of the sketch Omega_mu](/blog/thesis/def-omega-mu.svg)
 
 If we think of a matrix as a tensor with only two modes (legs), then the products $$AX$$ and $$Y^\top A$$ correspond to multiplying the tensor by matrices such that 'one mode is left alone'. From this perspective, we can generalize these products to the sketch
 
@@ -415,7 +357,7 @@ $$
 
 where $$Y_{\mu-1}$$ is now a matrix of size $$(n_1\dots n_{\mu-1})\times r_L$$, also depicted below:
 
-![Depiction of the sketch Psi_mu](/blog/thesis/def-psi-mu.svg#nice)
+![Depiction of the sketch Psi_mu](/blog/thesis/def-psi-mu.svg)
 
 By extension, we can define $$Y_0=X_d=1$$, and then the definition of $$\Psi_\mu$$ reduces to $$\Psi_1=AX$$ and $$\Psi_2=Y^\top A$$ in the matrix case. We can therefore rewrite the GN method as
 
@@ -425,7 +367,7 @@ $$
 
 More generally, we can chain the sketches $$\Omega_\mu$$ and $$\Psi_\mu$$ together to form a tensor network of the following form:
 
-![Depiction of randomized tensor train approximation](/blog/thesis/approximation-def.svg#nice-wide)
+![Depiction of randomized tensor train approximation](/blog/thesis/approximation-def.svg)
 
 With only minor work, we can turn this tensor network into a tensor train. It turns out that this defines a very useful approximation method for tensor trains. However, it may not be immediately clear why this method gives an approximation to the original tensor. To gain some insight, we can rewrite this decomposition into a different form. We can then see that this approximation boils down to successively applying a series of projections to the original tensor. However, the proof of this fact, as well as the error analysis, is outside the scope of this blog post.
 
@@ -435,24 +377,23 @@ We call this decomposition the _streaming tensor train approximation_, and it ha
 
 The decomposition is also _quasi-optimal_. This means that the approximation of this error will (with high probability) lie within a constant factor of the error of the best possible approximation. Unlike the matrix case, however, it is not possible in general to compute the best possible approximation itself in a reasonable time.
 
-The cost of computing this decomposition varies depending on the type of tensor being used.  It is easy to derive the cost for the case where $$\mathcal T$$ is a 'dense' tensor, i.e. just a multidimensional array. However, it rarely makes sense to apply a method like that to such a tensor; usually, we apply it to tensors that are far too big to even store in memory. Instead, we assume that the tensor already has some structure. For example, $$\mathcal T$$ could be a CP tensor, a sparse tensor or even a tensor train itself. For each type of tensor, we can then derive a fast way to compute this decomposition, especially if we allow the matrices $$X_\mu$$ and $$Y_\mu$$ to be structured tensors. The exact implementation of this is however a little technical to discuss here, but safe to say the method is quite fast in practice.
+The cost of computing this decomposition varies depending on the type of tensor being used. It is easy to derive the cost for the case where $$\mathcal T$$ is a 'dense' tensor, i.e. just a multidimensional array. However, it rarely makes sense to apply a method like that to such a tensor; usually, we apply it to tensors that are far too big to even store in memory. Instead, we assume that the tensor already has some structure. For example, $$\mathcal T$$ could be a CP tensor, a sparse tensor or even a tensor train itself. For each type of tensor, we can then derive a fast way to compute this decomposition, especially if we allow the matrices $$X_\mu$$ and $$Y_\mu$$ to be structured tensors. The exact implementation of this is however a little technical to discuss here, but safe to say the method is quite fast in practice.
 
 In addition to this decomposition, we also invented a second kind of decomposition (called _OTTS_) that is somewhat of a hybrid generalization of the GN and HMT methods. It is no longer a streaming method, but it is in certain cases significantly more accurate than the previous method, and it can be applied in almost all of the same cases. Finally, there is also a generalization (called _TT-HMT_) of the HMT method to tensor trains that already existed in the literature for a few years that also works in most of the same situations but is also not a streaming method.
 
 Below we compare these three methods -- STTA, OTTS and TT-HMT -- to a generalization of the truncated SVD (TT-SVD). The latter method is generally expensive to compute but has a very good approximation error, making it an excellent benchmark.
 
-
-![A plot of approximation error of several TT approximation methods](/blog/thesis/plot-cp.webp#nice-wide)
+![A plot of approximation error of several TT approximation methods](/blog/thesis/plot-cp.webp)
 
 In the plot above we have taken a 10x10x10x10x10 CP tensor and computed TT approximations of different ranks. What we see is that all methods have similar behavior, and are ordered from best to worst approximation as TT-SVD > OTTS > TT-HMT > STTA. This order is something we observe in general across many different experiments, and also in terms of theoretical approximation error. Furthermore, even though these last three methods are all randomized, the variation in approximation error is relatively small, especially for larger ranks. Next, we consider another experiment below:
 
-![Another plot of approximation error of several TT approximation methods](/blog/thesis/plot-dimension-scaling.webp#nice-wide)
+![Another plot of approximation error of several TT approximation methods](/blog/thesis/plot-dimension-scaling.webp)
 
 Here we compare the scaling of the error of the different approximation methods as the order of the tensor increases exponentially. The tensor that we're approximating, in this case, is always a tensor train with a fast decay in its singular values, and the approximation error is always relative to the TT-SVD method. This is because for such a tensor it is possible to compute the TT-SVD approximation in a reasonable time. While all models have similar error scaling, we see that OTTS is closest in performance to TT-SVD. We can thus conclude that all these methods have their merits; we can use STTA if we work with a stream of data, OTTS if we want a good approximation (especially for very big tensors), and TT-HMT if we just want a good approximation and care more about speed than quality.
 
 ## Conclusion
 
-![A train](/blog/thesis/chapter-final_compressed.webp#nice-medium)
+![A train](/blog/thesis/chapter-final_compressed.webp)
 
 This sums up, on a high level, what I did in my thesis. There are plenty of things I could still talk about and plenty of details left out, but this blog post is already quite long and technical. If you're interested to learn more, you're welcome to read my thesis or send me a message.
 

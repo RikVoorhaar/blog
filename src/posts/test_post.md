@@ -9,11 +9,24 @@ published: true
 
 <script>
     import Test from "$lib/components/Test.svelte"
+    import Details from "$lib/components/markdown/Details.svelte"
 </script>
 
 <Test>
 Indeed!
 </Test>
+
+--------------------------------
+
+<Details summary="Click here to open/close">
+And here are some details
+
+```python
+with a code block! 
+```
+
+and some `inline code` and _other stuff_. 
+</Details>
 
 # header 1
 

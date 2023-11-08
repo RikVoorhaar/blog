@@ -321,11 +321,10 @@ Let's go back to the beginning of this post. We're dealing with multiple cameras
 
 To paint a clearer picture, I made a little simulation of a keypoint moving around in 3D projcted down to the viewpoint of two cameras. Below you can see two plots showing what each of the two cameras can see. Thanks to he noise I added the cameras don't see a smooth curve at all. This is pretty much what you would get when applying machine learning pose detection algorithms on real footage too.
 
-<details>
-<summary>Click here to see the code for the sumulation</summary>
+<Details summary=Click here to see the code for the sumulation>
 
-{% highlight python %}
 
+```python
 from time import perf_counter
 from typing import Callable
 
@@ -373,12 +372,11 @@ proj_points_obs1 = cam1.project(np.ascontiguousarray(points_rand[0::2])).reshape
 proj_points1 = cam1.project(points).reshape(-1, 2)
 proj_points_obs2 = cam2.project(np.ascontiguousarray(points_rand[1::2])).reshape(-1, 2)
 proj_points2 = cam2.project(points).reshape(-1, 2)
-{% endhighlight %}
+```
 
 We can then plot this simulation:
 
-{% highlight python %}
-
+```python
 plt.figure(figsize=(8, 4))
 plt.subplot(1,2,1)
 plt.plot(\*proj_points_obs1.T)
@@ -391,10 +389,10 @@ plt.plot(\*proj_points_obs2.T)
 plt.xlabel("x")
 plt.ylabel("y")
 plt.title("View from camera #2")
+```
 
-{% endhighlight %}
 
-</details>
+</Details>
     
 ![png](/imgs/ukf/blog_post_3_1.png)
 

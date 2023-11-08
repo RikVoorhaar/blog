@@ -24,11 +24,11 @@ post I will go more into detail in how to mine PDF data like this.
 
 A typical piece of a PDF file looks like this:  
 
-![](/blog/figure_skating/isu-score-example.png)
+![Example of ISU scores](/blog/figure_skating/isu-score-example.png)
 
 Additionally on the website we get the following information regarding the judges presented in a table like this:
 
-![](/blog/figure_skating/isu-score-judges.png)
+![Example of Judge scores from ISU](/blog/figure_skating/isu-score-judges.png)
 
 ## Results
 
@@ -36,13 +36,13 @@ This is all we need. We can now build a table comparing the scoring of a particu
 
 Then this is what we do: for each pair of countries we collect all the cases where a judge from country A judged a skater from country B. Then we record how their scoring was compared to the average scoring of all the judges. Finally we look at the **distribution** of these deviations from the average. Taking the example above, in my data there were 49 cases where a Dutch judge judged a Russian skater, and the distribution looks like this:
 
-![](/blog/figure_skating/isu-score-dist-ned-rus.png)
+![Distribution of score deviation from average for NED judging RUS](/blog/figure_skating/isu-score-dist-ned-rus.png)
 
 Here we see that the distribution is roughly that of a normal distribution. Furthermore the mean is not statistically different from $$0$$; the $$p$$-value is $$0.845$$. For us to conclude that there is a statistically significant bias this value should at the least be below $$0.05$$. Since we have many pairs of countries (2586 to be precise), we might even put this criterion significantly lower (say 1/1000) to avoid false positives. 
 
 We can thus conclude that there is no statistically significant bias when it comes to Dutch judges scoring Russian skaters. But what if we look at say Russian judges scoring their own skaters? Well, then we see a very different story. We have 519 cases of this happening, and the distribution of score deviation looks like this:
 
-![](/blog/figure_skating/isu-score-dist-rus-rus.png)
+![Distribution of score deviation from average for RUS judging RUS](/blog/figure_skating/isu-score-dist-rus-rus.png)
 
 We see that the far majority (82%) of the time, the Russian judges gave higher scores to Russian skaters compared to their peers. In fact the mean deviation is $$0.242$$ (which is quite significant), with a $$p$$-value of $$4.13\times 10^{-68}$$,
 which is most certainly statistically significant. So there you have it, Russian judges tend to score their own athletes significantly higher. But Russia is not the only country of doing this; **every major figure skating country has such a bias**. Out of those, the bias of Japan is the least with $$0.16$$ points, and that of France the highest with $$0.26$$. All of this is for the technical scores, but the component scores paint a very similar picture.

@@ -7,6 +7,9 @@ excerpt: "We recently made a paper about supervised machine learning using tenso
 header: 
     teaser: "/imgs/teasers/discrete-function-tensor.webp"
 ---
+<script>
+    import Output from '$lib/components/markdown/Output.svelte'
+</script>
 
 In [my new paper together with my supervisor](https://arxiv.org/abs/2203.04352), we explain how to use
 discretized functions and tensors to do supervised machine learning. A discretized function is just a function
@@ -293,8 +296,11 @@ print(f"Final test loss: {test_loss:.4f}")
 
 ```
 
-    Final training loss: 0.0252
-    Final test loss: 0.0424
+
+<Output>
+Final training loss: 0.0252
+Final test loss: 0.0424
+</Output>
 
 
 
@@ -323,7 +329,7 @@ print(f"Random forest test loss: {test_loss:.4f}")
 
 ```
 
-    Random forest test loss: 0.0369
+<Output>Random forest test loss: 0.0369</Output>
 
 
 We see that the random forest is a little better than the discretized function. And in fact, most standard machine learning estimators will beat a discretized function like this. This is essentially because the discretized function is very simple, and more complicated estimators can do a better job describing the data.
@@ -544,9 +550,11 @@ print(f"Final training loss: {train_loss:.4f}")
 print(f"Final test loss: {test_loss:.4f}")
 ```
 
-    Dataset has N=1503 samples and d=5 features.
-    Final training loss: 15.3521
-    Final test loss: 54.4698
+<Output>
+Dataset has N=1503 samples and d=5 features.
+Final training loss: 15.3521
+Final test loss: 54.4698
+</Output>
 
 
 
@@ -568,7 +576,7 @@ test_loss = np.mean((y_pred - y_test) ** 2)
 print(f"Random forest test loss: {test_loss:.4f}")
 ```
 
-    Random forest test loss: 3.2568
+<Output>Random forest test loss: 3.2568</Output>
 
 
 The random forest has a loss of around `3.3`, but the discretized function has a loss of around `54.5`! That gap in performance is completely unacceptable. We could try to improve it by increasing the number of grid points, and by tweaking the rank of the tensor train. However, it will still come nowhere close to the performance of a random forest, even with its default parameters. Even the _training error_ of the discretized function is much worse than the _test error_ of the random forest.
@@ -647,8 +655,10 @@ plt.legend()
 plt.yscale("log")
 ```
 
-    TTML test loss: 2.8970
-    Random forest test loss: 3.2568
+<Output>
+TTML test loss: 2.8970
+Random forest test loss: 3.2568
+</Output>
 
 
 
@@ -665,7 +675,7 @@ In fact,the final test loss is better than that of the random forest itself! On 
 print(f"TT uses {tt.ttml_.num_params} parameters")
 ```
 
-    TT uses 1356 parameters
+<Output>TT uses 1356 parameters</Output>
 
 
 Let's compare that to the random forest. If we look under the hood, the scikit-learn implementation of random forests stores 8 parameters per node in each tree in the forest. This is inefficient, and you really only _need_ 2 parameters per node, so let's use that.
@@ -678,7 +688,7 @@ num_params_forest = sum(
 print(f"Forest uses {num_params_forest} parameters")
 ```
 
-    Forest uses 303180 parameters
+<Output>Forest uses 303180 parameters</Output>
 
 
 That's 1356 parameters vs. more than 300,000 parameters! What about my claim of prediction speed? Let's compare the amount of time it takes both estimators to predict 1 million samples. We do this by just concatenating the training data until we get 1 million samples.
@@ -703,9 +713,11 @@ time_taken = (perf_counter_ns() - time_before)/1e6
 print(f"Time taken by Forest: {time_taken:.0f}ms")
 ```
 
-    X_one_million.shape=(1000000, 5)
-    Time taken by TT: 430ms
-    Time taken by Forest: 2328ms
+<Output>
+X_one_million.shape=(1000000, 5)
+Time taken by TT: 430ms
+Time taken by Forest: 2328ms
+</Output>
 
 
 While not by orders of magnitude, we see that the tensor train model is faster. You might be thinking that
@@ -764,8 +776,10 @@ plt.legend();
 
 ```
 
-    TTML test loss (noisy): 7.1980
-    Random forest test loss (noisy): 5.1036
+<Output>
+TTML test loss (noisy): 7.1980
+Random forest test loss (noisy): 5.1036
+</Output>
 
 
 
