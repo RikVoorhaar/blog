@@ -8,6 +8,9 @@ be looking at one such way: GMRES."
 header: 
     teaser: "/blog/teasers/gmres-teaser.webp"
 ---
+<script>
+    import Output from '$lib/components/markdown/Output.svelte'
+</script>
 
 
 Linear algebra is the foundation of modern science, and the fact that computers can do linear algebra _very
@@ -63,8 +66,11 @@ error = np.linalg.norm(A @ x - b) ** 2
 print(f"error for dedicated method: {error:.4e}")
 ```
 
-    error for matrix inversion method: 3.6223e+02
-    error for dedicated method: 2.8275e-08
+
+<Output>
+error for matrix inversion method: 3.6223e+02
+error for dedicated method: 2.8275e-08
+</Output>
 
 
 In this case we took a 20x20 matrix $$A$$ with ones on the diagonals, except for one entry where it has value
@@ -90,10 +96,7 @@ In the case above the condition number is really big:
 np.linalg.cond(A)
 ```
 
-
-
-
-    1.1807555508404976e+16
+<Output>1.1807555508404976e+16</Output>
 
 
 
@@ -185,9 +188,11 @@ error = np.linalg.norm(A_sparse @ x - b) ** 2
 print(f"Using sparse solver: error: {error:.4e} in time {time_taken:.1f}ms")
 ```
 
-    Using dense solver: error: 1.4449e-25 in time 2941.5ms
-    Using matrix inversion: error: 2.4763e+03 in time 507.0ms
-    Using sparse solver: error: 2.5325e-13 in time 6.4ms
+<Output>
+Using dense solver: error: 1.4449e-25 in time 2941.5ms
+Using matrix inversion: error: 2.4763e+03 in time 507.0ms
+Using sparse solver: error: 2.5325e-13 in time 6.4ms
+</Output>
 
 
 As we see above, the sparse matrix solver solves this problem in a fraction of the time, and the difference is just going to get bigger with larger matrices. Above we use the GMRES routine, and it is very simple. It constructs an orthonormal basis of the Krylov subspace $$\mathcal K_m(A,x_0)$$, and then finds the best solution in this subspace by solving a small $$(m+1)\times m$$ linear system. Before figuring out the details, below is a simple implementation:
@@ -235,7 +240,7 @@ error = np.linalg.norm(A_sparse @ x - b) ** 2
 print(f"Using GMRES: error: {error:.4e} in time {time_taken:.1f}ms")
 ```
 
-    Using GMRES: error: 1.1039e-15 in time 12.9ms
+<Output>Using GMRES: error: 1.1039e-15 in time 12.9ms</Output>
 
 
 This clearly works; it's not as fast as the `scipy` implementation of the same algorithm, but we'll do something about that soon. 
@@ -350,11 +355,12 @@ for n_restart in n_restart_list:
     print(f"Best loss for {n_restart} restart frequency is {error:.4e} in {time_taken:.2f}s")
     losses_dict[n_restart] = losses
 ```
-
-    Best loss for 20 restart frequency is 9.3595e-16 in 11.32s
-    Best loss for 50 restart frequency is 2.4392e-22 in 11.71s
-    Best loss for 200 restart frequency is 6.3063e-28 in 17.34s
-    Best loss for 500 restart frequency is 6.9367e-28 in 30.50s
+<Output>
+Best loss for 20 restart frequency is 9.3595e-16 in 11.32s
+Best loss for 50 restart frequency is 2.4392e-22 in 11.71s
+Best loss for 200 restart frequency is 6.3063e-28 in 17.34s
+Best loss for 500 restart frequency is 6.9367e-28 in 30.50s
+</Output>
 
 
 
@@ -479,16 +485,17 @@ print("\nProfiling functions. JAX version:")
 %timeit x = gmres_jit(do_convolution, b, x0, n_restart).block_until_ready()
 ```
 
-    Compiling function:
-    CPU times: user 1.94 s, sys: 578 ms, total: 2.51 s
-    Wall time: 2.01 s
-    
-    Profiling functions. numpy version:
-    263 ms ± 25.3 ms per loop (mean ± std. dev. of 7 runs, 1 loop each)
-    
-    Profiling functions. JAX version:
-    9.16 ms ± 90.7 µs per loop (mean ± std. dev. of 7 runs, 100 loops each)
-
+<Output>
+Compiling function:
+CPU times: user 1.94 s, sys: 578 ms, total: 2.51 s
+Wall time: 2.01 s
+.
+Profiling functions. numpy version:
+263 ms ± 25.3 ms per loop (mean ± std. dev. of 7 runs, 1 loop each)
+.
+Profiling functions. JAX version:
+9.16 ms ± 90.7 µs per loop (mean ± std. dev. of 7 runs, 100 loops each)
+</Output>
 
 With the JAX version running on my GPU, we get a 30x times speedup! Not bad, if you ask me. If we run the same
 code on CPU, we still get a 4x speedup. This means that the version compiled by JAX is already faster in its

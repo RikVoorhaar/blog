@@ -7,6 +7,9 @@ excerpt: "I use last.fm to track my music listening. Let's look at my data to di
 header: 
     teaser: "/blog/lastfm/teasers/lastfm.webp"
 ---
+<script>
+    import Output from '$lib/components/markdown/Output.svelte'
+</script>
 
 Last.fm is a great tool to keep track of the music you listen to. It's also great for analysis!
 
@@ -304,19 +307,18 @@ Now that we have a time series for each genre, let's first of all look what the 
 sorted([(key,len(item)) for key,item in styles_dic.items()],key=lambda x:-x[1])[:10]
 ```
 
-
-
-
-    [('Alternative Rock', 30936),
-     ('Indie Rock', 22703),
-     ('Pop Rock', 20226),
-     ('Psychedelic Rock', 14917),
-     ('Experimental', 13524),
-     ('Rock & Roll', 13502),
-     ('Stoner Rock', 11381),
-     ('Industrial', 10592),
-     ('Hard Rock', 9145),
-     ('Prog Rock', 9035)]
+<Output>
+[('Alternative Rock', 30936),
+('Indie Rock', 22703),
+('Pop Rock', 20226),
+('Psychedelic Rock', 14917),
+('Experimental', 13524),
+('Rock & Roll', 13502),
+('Stoner Rock', 11381),
+('Industrial', 10592),
+('Hard Rock', 9145),
+('Prog Rock', 9035)]
+</Output>
 
 
 

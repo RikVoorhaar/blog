@@ -8,20 +8,13 @@ header:
     teaser: "/blog/bayes_exam/teasers/bayes-exam.webp"
 ---
 
-We widely use exams in education to gauge the level of students. The result of an exam is really
-only indicator of the students actual level, and has a certainly level of uncertainty. In this
-article we will try to model the uncertainty in the grades of an exam through a Bayesian model,
-using the amount of points obtained in each question. Such an analysis may be useful in designing
-good exams, as in principal this error is something we would wish to minimize.
+We widely use exams in education to gauge the level of students. The result of an exam is really only indicator of the students actual level, and has a certainly level of uncertainty. In this article we will try to model the uncertainty in the grades of an exam through a Bayesian model, using the amount of points obtained in each question. Such an analysis may be useful in designing good exams, as in principal this error is something we would wish to minimize.
 
 ## The data
 
-We will use scores for 8 individual questions of a university math exam. We recorded scores of 100
-students. Each question is worth 12 points for a total of 96 points, and students could obtain
-anywhere between 0 and 12 points for each question.  
+We will use scores for 8 individual questions of a university math exam. We recorded scores of 100 students. Each question is worth 12 points for a total of 96 points, and students could obtain anywhere between 0 and 12 points for each question.  
 
-_Notice: this data is modified from the original in multiple ways due to privacy reasons. The
-modifications preserve most qualitative statistical properties._
+> Notice: this data is modified from the original in multiple ways due to privacy reasons. The modifications preserve most qualitative statistical properties._
 
 ## Modeling the data
 

@@ -7,7 +7,9 @@ excerpt: "Cross validation is extremely important, but how should we choose the 
 header: 
     teaser: "/blog/validation_size/teasers/validation-data.webp"
 ---
-
+<script>
+    import Output from '$lib/components/markdown/Output.svelte'
+</script>
 
 In machine learning it is important to split your data into a training, validation and test set. People often use a heuristic like suggesting to split your data into sizes of 50/25/25 or 70/20/10 or something like that. Can we do better than a heuristic?
 
@@ -64,7 +66,7 @@ print(f"mean={rv.mean()}, std={rv.std()}")
 ![svg](/blog/validation_size/validation-size_3_0.svg)
 
 
-    mean=0.9509803921568627, std=0.021274143540891813
+<Output>mean=0.9509803921568627, std=0.021274143540891813</Output>
     
 
 Here we see that the actual value of $$p$$ could be anywhere in the roughly $$92-98\%$$ range, and our estimate of $$p$$ is in fact $$p=95\pm2.1\%$$. The standard deviation of $$\mathrm{Beta}(\alpha,\beta)$$ is given by
@@ -109,7 +111,7 @@ p_value = sum(rv1.rvs(N)>rv2.rvs(N))/N
 print("probability Model A better than Model B", p_value)
 ```
 
-    probability Model A better than Model B 0.184565
+<Output>probability Model A better than Model B 0.184565</Output>
     
 
 There are also several statistical tests out there that do something similar. Two noteworthy ones are the fisher exact probability test, which works well for small sample sizes. And the chi-squared test, which is more efficient but innacurate for small sample sizes.
@@ -216,7 +218,7 @@ error = np.sqrt(accuracy*(1-accuracy)/(len(y_test)+3))
 print(f'Linear SVC error: {accuracy*100:.2f} ± {error*100:.2f}%')
 ```
 
-    Linear SVC error: 87.08 ± 0.37%
+<Output>Linear SVC error: 87.08 ± 0.37%</Output>
     
 
 ## Experimental setup
@@ -270,8 +272,10 @@ svc_pol3.fit(X_train, y_train)
 svc_pol3_acc, svc_pol3_err = print_score_error(svc_pol3.predict(X_val),"SVC with deg 3 polynomial kernel")
 ```
 
-    SVC with rbf kernel error: 97.38 ± 0.25%
-    SVC with deg 3 polynomial kernel error: 96.90 ± 0.27%
+<Output>
+SVC with rbf kernel error: 97.38 ± 0.25%
+SVC with deg 3 polynomial kernel error: 96.90 ± 0.27%
+</Output>
     
 
 Both models perform already much better than the linear SVC, and while the model with rbf kernel is better, this could also be coincidental. We can estimate the chance that the model with the rbf kernel is actually better:
@@ -292,8 +296,9 @@ def compare_models(accuracy1, accuracy2, num_samples, name1="model1", name2="mod
 
 compare_models(svc_rbf_acc, svc_pol3_acc, len(X_val), "(SVC with RBF kernel)", "(SVC with deg 3 polynomial kernel)")
 ```
-
-    Probability (SVC with RBF kernel) is better than (SVC with deg 3 polynomial kernel): 9.16E-01
+<Output>
+Probability (SVC with RBF kernel) is better than (SVC with deg 3 polynomial kernel): 9.16E-01
+</Output>
     
 
 We get a 92% chance that the RBF kernel model is better. That's far from a guarantee, but it's not bad. 
@@ -328,7 +333,7 @@ prediction = np.argmax(fc_model.predict(X_val),axis=1)
 fcnn_acc, fcnn_err = print_score_error(prediction,"Fully connected nn")
 ```
 
-    Fully connected nn error: 92.19 ± 0.41%
+<Output>Fully connected nn error: 92.19 ± 0.41%</Output>
     
 
 ## Convolutional neural net
@@ -363,7 +368,7 @@ prediction = np.argmax(cnn_model.predict(X_val),axis=1)
 covnet_acc, covnet_err = print_score_error(prediction,"Convolutional neural net")
 ```
 
-    Convolutional neural net error: 98.26 ± 0.20%
+<Output>Convolutional neural net error: 98.26 ± 0.20%</Output>
     
 
 Let's compare the convolutional network's scores to the SVC with RBF kernel. We get that the convolutional net is better than the SVC on the validation set with an odds ratio of 1000, which is certainly statistically significant.
@@ -373,7 +378,7 @@ Let's compare the convolutional network's scores to the SVC with RBF kernel. We 
 compare_models(svc_rbf_acc, covnet_acc, len(X_val),"(SVC with RBF kernel)","(Convolutional neural net)")
 ```
 
-    Probability (SVC with RBF kernel) is better than (Convolutional neural net): 9.52E-05
+<Output>Probability (SVC with RBF kernel) is better than (Convolutional neural net): 9.52E-05</Output>
     
 
 ## K-nearest neighbors
@@ -390,12 +395,14 @@ for n_neighbors in range(3,9):
     knn_acc, knn_err = print_score_error(knn.predict(X_val), f"KNN with {n_neighbors} neighbors")
 ```
 
-    KNN with 3 neighbors error: 96.64 ± 0.28%
-    KNN with 4 neighbors error: 96.43 ± 0.29%
-    KNN with 5 neighbors error: 96.64 ± 0.28%
-    KNN with 6 neighbors error: 96.36 ± 0.29%
-    KNN with 7 neighbors error: 96.29 ± 0.29%
-    KNN with 8 neighbors error: 96.17 ± 0.30%
+<Output>
+KNN with 3 neighbors error: 96.64 ± 0.28%
+KNN with 4 neighbors error: 96.43 ± 0.29%
+KNN with 5 neighbors error: 96.64 ± 0.28%
+KNN with 6 neighbors error: 96.36 ± 0.29%
+KNN with 7 neighbors error: 96.29 ± 0.29%
+KNN with 8 neighbors error: 96.17 ± 0.30%
+</Output>
     
 
 ## XGBoost
@@ -419,7 +426,7 @@ preds = bst.predict(dval)
 xgb_acc, xgb_err = print_score_error(preds, f"xgboost")
 ```
 
-    xgboost error: 94.60 ± 0.35%
+<Output>xgboost error: 94.60 ± 0.35%</Output>
     
 
 ## Conclusion
@@ -434,7 +441,7 @@ prediction = np.argmax(cnn_model.predict(X_test),axis=1)
 covnet_acc, covnet_err = print_score_error(prediction,"Convolutional neural net", test_data=y_test)
 ```
 
-    Convolutional neural net error: 98.69 ± 0.18%
+<Output>Convolutional neural net error: 98.69 ± 0.18%</Output>
     
 
 We actually see a slight improvement when evaluating the model on the test set. The difference is roughly two standard deviations, which may be statistically significant. This can indicate a bias in the test or validation set, although in this case it could also be purely coincidental.

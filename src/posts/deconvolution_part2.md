@@ -121,7 +121,7 @@ optimization routine. We therefore need to come up with something better.
 
 ## Non-local similarity based priors
 
-The $$ \ell^1/\ell^2$$ prior is a good starting point, but we can do better with a more complex prior based on _non-local self-similarity_. The idea is to divide the image up in many small patches of $$n\times n$$ pixels with for example $$n=5$$. Then for each patch we can check how many other patches in the image look similar to it.  This concept is called non-local self-similarity, since it's non-local (we compare a patch with patches throughout the entire image, not just in a neighborhood) and uses self-similarity (we look at how similar some parts of the image are to other parts of the same image; we never use an external database of images for example).
+The $$\ell^1/\ell^2$$ prior is a good starting point, but we can do better with a more complex prior based on _non-local self-similarity_. The idea is to divide the image up in many small patches of $$n\times n$$ pixels with for example $$n=5$$. Then for each patch we can check how many other patches in the image look similar to it.  This concept is called non-local self-similarity, since it's non-local (we compare a patch with patches throughout the entire image, not just in a neighborhood) and uses self-similarity (we look at how similar some parts of the image are to other parts of the same image; we never use an external database of images for example).
 
 The full idea is a bit more complicated. Let's denote each $$n\times n$$ patch by 
 

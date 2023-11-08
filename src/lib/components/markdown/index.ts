@@ -1,4 +1,7 @@
 import img from './img.svelte';
 import blockquote from './blockquote.svelte';
 import code from './code.svelte';
-export { img, blockquote, code };
+import a from './a.svelte';
+import Output from './Output.svelte';
+import pre from './pre.svelte';
+export { img, blockquote, code, a, Output ,pre};

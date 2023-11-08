@@ -7,6 +7,9 @@ excerpt: "A lot of data is naturally of 'low rank'. I will explain what this mea
 header: 
     teaser: "/imgs/teasers/st-vitus-rank-10.webp"
 ---
+<script>
+    import Output from '$lib/components/markdown/Output.svelte'
+</script>
 
 Tensor networks are probably the most important tool in my research, and I want
 explain them. Before I can do this however, I should first talk about low-rank
@@ -57,7 +60,7 @@ U, S, V = np.linalg.svd(X, full_matrices=False)
 np.allclose(U @ np.diag(S) @ V, X)
 ```
 
-> ```True```
+<Output>True</Output>
 
 
 
@@ -109,9 +112,10 @@ print(A.shape, B.shape)
 np.allclose(A @ B, X)
 ```
 
-> ```(10, 5) (5, 20)```
->
-> ```True```
+<Output>
+(10, 5) (5, 20)
+True
+</Output>
 
 
 
@@ -233,7 +237,7 @@ plt.title("Singular values")
 print(f"The matrix is approximately of rank: {np.sum(S>1e-12)}")
 ```
 
->   ```The matrix is approximately of rank: 4```
+<Output>The matrix is approximately of rank: 4</Output>
 
 
 
@@ -452,10 +456,9 @@ Ring_), then we compute $$A[2451]\cdot B[:, 179]$$:
 
 ```python
 A[2451] @ B[:, 179]
-
 ```
 
->    ```4.411312294862265```
+<Output>4.411312294862265</Output>
 
 
 
@@ -564,7 +567,6 @@ movies.sort_values("ratings-179", ascending=False)
     </tr>
   </tbody>
 </table>
-<p>17769 rows × 2 columns</p>
 </div>
 
 

@@ -1,6 +1,6 @@
 import adapter from '@sveltejs/adapter-auto';
-import { vitePreprocess } from '@sveltejs/kit/vite';
-// import preprocess from 'svelte-preprocess'
+// import { vitePreprocess } from '@sveltejs/kit/vite';
+import preprocess from 'svelte-preprocess'
 import { mdsvex } from 'mdsvex';
 import  mdsvexConfig  from './mdsvex.config.js';
 
@@ -8,7 +8,7 @@ import  mdsvexConfig  from './mdsvex.config.js';
 const config = {
 	// Consult https://kit.svelte.dev/docs/integrations#preprocessors
 	// for more information about preprocessors
-	preprocess: [vitePreprocess(), mdsvex(mdsvexConfig)],
+	preprocess: [preprocess(), mdsvex(mdsvexConfig)],
 	extensions: ['.svelte', ...mdsvexConfig.extensions],
 
 	kit: {

@@ -7,6 +7,14 @@ categories:
 published: true
 ---
 
+<script>
+    import Test from "$lib/components/Test.svelte"
+</script>
+
+<Test>
+Indeed!
+</Test>
+
 # header 1
 
 ## header 2
@@ -22,6 +30,8 @@ This is markdown text. _italic_ **bold** ~~strikeout~~
     this is indented by 4 spaces
 
 This is `inline_code` in a sentence
+
+Here [is a link to something](rikvoorhaar.com) useful.
 
 This is inline math: $f(x):=\int_0^x\! g(t)\,\mathrm{d}t$, and this is display math:
 
@@ -46,3 +56,9 @@ def hello_world() -> None:
 if __name__ == "__main__":
     hello_world()
 ```
+
+and this is a `pre` block
+
+<pre>
+with text
+</pre>

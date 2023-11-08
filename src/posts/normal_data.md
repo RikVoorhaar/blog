@@ -7,6 +7,9 @@ excerpt: "Normally distributed data is great, but how do you know whether your d
 header: 
     teaser: "/blog/normal_data/teasers/normal-data.webp"
 ---
+<script>
+    import Output from '$lib/components/markdown/Output.svelte'
+</script>
 
 Normally distributed data is great. It is easy to interpet, and many statistical and machine learning method work much better on normally distributed data. But how do we know if our data is actually normally distributed?
 
@@ -93,8 +96,10 @@ print(f"KL divergence of mean brightness {KL_divergence_normal(mean_brightness)}
 print(f"KL divergence of single pixel {KL_divergence_normal(single_pixel)}")
 ```
 
-    KL divergence of mean brightness 0.02243918311004641
-    KL divergence of single pixel 0.6474992150590142
+<Output>
+KL divergence of mean brightness 0.02243918311004641
+KL divergence of single pixel 0.6474992150590142
+</Output>
     
 
 We cleary see that the mean brightness example has a much smaller KL divergence with respect to the best-fit normal distribution than the data for a single pixel, as expected.
@@ -159,8 +164,10 @@ print("Kolmogorov-Smirnov statistic for Mean brightnes: %.4f, with p-value %.3E"
 print("Kolmogorov-Smirnov statistic for single pixel: %.4f, with p-value %.3E"% ks_stat(single_pixel))
 ```
 
-    Kolmogorov-Smirnov statistic for Mean brightnes: 0.0315, with p-value 1.361E-36
-    Kolmogorov-Smirnov statistic for single pixel: 0.2608, with p-value 0.000E+00
+<Output>
+Kolmogorov-Smirnov statistic for Mean brightnes: 0.0315, with p-value 1.361E-36
+Kolmogorov-Smirnov statistic for single pixel: 0.2608, with p-value 0.000E+00
+</Output>
     
 
 Here we see that the mean brigthness data has much lower KS statistic than the single pixel. This function also produces a p-value, assigning a probality to the null-hypothesis that the data is exactly normally distributed. In both cases this p-value is very tiny, which means that we have enough statistical evidence to conclude that even the mean brightness data is not normally distributed. This is mainly because we're basing this computation on 42000 data points, so even though the distance is to the normal distribution is small in this case, it's still statistically significant. Let's try to do the same, but subsample to only 100 points.
@@ -171,8 +178,10 @@ print("Kolmogorov-Smirnov statistic for Mean brightnes (n=100): %.4f, with p-val
 print("Kolmogorov-Smirnov statistic for single pixel (n=100): %.4f, with p-value %.3E"% ks_stat(np.random.choice(single_pixel,size=100)))
 ```
 
-    Kolmogorov-Smirnov statistic for Mean brightnes (n=100): 0.0925, with p-value 0.339
-    Kolmogorov-Smirnov statistic for single pixel (n=100): 0.2624, with p-value 1.449E-06
+<Output>
+Kolmogorov-Smirnov statistic for Mean brightnes (n=100): 0.0925, with p-value 0.339
+Kolmogorov-Smirnov statistic for single pixel (n=100): 0.2624, with p-value 1.449E-06
+</Output>
     
 
 Now we see for both cases a much higher p-value. For the mean brightness case we do not see a statistically significant deviation from a normal distribution.

@@ -7,6 +7,9 @@ excerpt: "Parsing and editing Word documents automatically can be extremely usef
 header: 
     teaser: "/blog/teasers/doc_comparison.webp"
 ---
+<script>
+    import Output from '$lib/components/markdown/Output.svelte'
+</script>
 
 In preparation for the job market, I started polishing my CV. I try to keep the
 CV on my website as up-to-date as possible, but many recruiters and companies
@@ -37,7 +40,7 @@ paragraph = document.paragraphs[0]
 print(paragraph.text)
 ```
 
-    Rik Voorhaar
+<Output>Rik Voorhaar</Output>
 
 
 Turns out the first paragraph contains my name! Editing this text is very easy;
@@ -91,7 +94,7 @@ paragraph.text = "Curriculum Vitae"
 document.save("CV.docx")
 ```
 
-    Resume
+<Output>Resume</Output>
 
 
 If we do this there's no problems with text boxes disappearing, but
@@ -99,7 +102,7 @@ unfortunately the style of this paragraph is still reset when we do this. Let's
 have a look at how the XML changes when we edit this paragraph. Ignoring
 irrelevant information, before changing it looks like this:
 
-```
+```xml
 <w:p>
     <w:r>
     <w:t>R</w:t>
@@ -111,7 +114,7 @@ irrelevant information, before changing it looks like this:
 ```
 
 And afterwards it looks like this:
-```
+```xml
 <w:p>
     <w:r>
     <w:t>Curriculum Vitae</w:t>
@@ -181,7 +184,7 @@ else:
     print("Did not find the paragraph :(")
 ```
 
-    Did not find the paragraph :(
+<Output>Did not find the paragraph :(</Output>
 
 
 Seems like there is unfortunately no matching paragraph! This is because the 
@@ -194,7 +197,7 @@ and the inner structure of Word documents.
 The first step is understanding how text boxes are encoded in the XML. It turns
 out that the structure is something like this:
 
-```
+```xml
 <mc:AlternateContent>
     <mc:Choice Requires="wps">
         <w:drawing>
@@ -317,8 +320,7 @@ document.textboxes
 ```
 
 This gives output:
-
-```
+```python
 [<docx.oxml.textbox.TextBox at 0x7faf395c3bc0>,
 <docx.oxml.textbox.TextBox at 0x7faf395c3100>]
 ```
@@ -343,7 +345,7 @@ textbox, i = find_paragraph(pattern)
 print(textbox.paragraphs[i].text)
 ```
 
-    Skills
+<Output>Skills</Output>
 
 
 Now to insert a new skill, we need to create a new paragraph with the text
