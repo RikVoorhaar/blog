@@ -271,7 +271,7 @@ Specifically, if $$A$$ is a rank-$$\hat r$$ matrix of size $$m\times n$$ and $$x
 If $$A$$ has rank $$\hat r>r$$ however, then $$\mathcal P_{AX}A\neq A$$. Nevertheless, we might hope that these two matrices are close, i.e. we may hope that (with probability 1) we have
 
 $$
-    \|\mathcal P_{AX}A \leq C\|A_{\hat r}-A\|,
+    \|\mathcal P_{AX}A\| \leq C\|A_{\hat r}-A\|,
 $$
 
 for some constant $$C$$ that depends only on $$\hat r$$ and the dimensions of the problem. Recall that here $$A_{\hat r}$$ denotes the best rank-$$\hat r$$ approximation of $$A$$ (which we can compute using the SVD). It turns out that this is true, and it gives a very simple algorithm for computing a low-rank approximation of a matrix using only $$O(mnr)$$ flops -- a huge gain if $$r$$ is much smaller than the size of the matrix. This is known as the Halko-Martinsson-Tropp (HMT) method, and can be implemented in Python like this:

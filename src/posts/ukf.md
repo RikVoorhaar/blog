@@ -35,8 +35,7 @@ We could make an educated guess about the distance based on the average human si
 However, this approach is not foolproof; several sources of uncertainty can compromise the accuracy:
 
 - Cameras might not capture images simultaneously, causing each to deal with a slightly different version of the scene.
-- Identifying keypoints is inherently inexact. Could you determine the exact pixel corresponding to someone's left knee in a photo? Likely not—and neither can machine-learning algorithms.
-  \_ Calibrating the position and orientation of cameras is never perfect; even a minor discrepancy of a centimeter or two can introduce errors.
+- Identifying keypoints is inherently inexact. Could you determine the exact pixel corresponding to someone's left knee in a photo? Likely not—and neither can machine-learning algorithms. Calibrating the position and orientation of cameras is never perfect; even a minor discrepancy of a centimeter or two can introduce errors.
 - Lens distortion is an inevitable aspect of camera technology. While you can correct for it, doing so is never 100% effective.
 
 Adding more cameras could alleviate some of these issues. More lines mean a better intersection point, which can be found by minimizing a (weighted) least squares formula. But if you are like me, then you're probably just about ready to scream the true solution:

@@ -489,10 +489,10 @@ print("\nProfiling functions. JAX version:")
 Compiling function:
 CPU times: user 1.94 s, sys: 578 ms, total: 2.51 s
 Wall time: 2.01 s
-.
+ 
 Profiling functions. numpy version:
 263 ms ± 25.3 ms per loop (mean ± std. dev. of 7 runs, 1 loop each)
-.
+ 
 Profiling functions. JAX version:
 9.16 ms ± 90.7 µs per loop (mean ± std. dev. of 7 runs, 100 loops each)
 </Output>

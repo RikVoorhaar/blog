@@ -20,7 +20,7 @@
 
 
 <div class="my-4">
-	<div on:click={swapState} class="flex align-top flex-auto">
+	<div on:click={swapState} class="flex align-top flex-auto italic font-semibold">
 		<span class={`inline-block transition-transform px-1 pl-0 ${hidden ? 'rotate-90' : ''}`}
 			><ChevronRight /></span
 		>
