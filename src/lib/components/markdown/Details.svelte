@@ -1,7 +1,7 @@
 <script lang="ts">
 	import { onMount } from 'svelte';
 	import { ChevronRight } from 'lucide-svelte';
-	import { blur } from 'svelte/transition';
+	import { fly } from 'svelte/transition';
 	export let summary: string = '';
 	export let id: string = '';
 	export let hidden: boolean = true;
@@ -18,14 +18,17 @@
 	}
 </script>
 
-<p on:click={swapState} class="my-0 py-0">
-	<span class={`inline-block transition-transform ${hidden ? 'rotate-90' : ''}`}
-		><ChevronRight /></span
-	>
-	{summary}
-</p>
-{#if !hidden}
-	<div class="border-l-2 border-l-blue-700 pl-2 my-0 py-0" transition:blur={{amount:10}}>
-		<slot />
+
+<div class="my-4">
+	<div on:click={swapState} class="flex align-top flex-auto">
+		<span class={`inline-block transition-transform px-1 pl-0 ${hidden ? 'rotate-90' : ''}`}
+			><ChevronRight /></span
+		>
+		{summary}
 	</div>
-{/if}
+	{#if !hidden}
+		<div class="border-l-2 border-l-blue-700 pl-2 ml-2 my-0 py-0" transition:fly>
+			<slot />
+		</div>
+	{/if}
+</div>

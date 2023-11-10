@@ -5,8 +5,14 @@ date: "2023-10-07"
 categories: website data-science tools
 excerpt: "In my first dive into Rust, I implemented an unscented Kalman filter in and made it 20x faster than the equivalent Python implementation."
 header:
-  teaser: "/imgs/teasers/setup.svg"
+  teaser: "/blog/teasers/setup.svg"
 ---
+
+<script>
+    import Details from "$lib/components/markdown/Details.svelte"
+    import Output from "$lib/components/markdown/Output.svelte"
+
+</script>
 
 Python is generally fast enough -- until it's not. When you reach that point, there are several ways to speed up your Python code. However, one of the most effective approaches is to rewrite the bottleneck in a different language. Traditionally, that language has been C/C++. But now, there's another contender entering the arena:
 
@@ -18,11 +24,11 @@ That's right; grab your sunglasses. We're about to join the cool kids by re-impl
 
 At my workplace, our primary product uses multiple cameras to track people in 3D in real-time. Each camera is designed to detect keypoints—think head, feet, knees, and so on—for each person in view, multiple times per second. These detections are then sent to a centralized application. Since we know the spatial positioning of the cameras, we can triangulate the position of these keypoints by integrating data from multiple cameras.
 
-![A sketch of a stick figure observed by two cameras](/imgs/ukf/setup.svg)
+![A sketch of a stick figure observed by two cameras](/blog/ukf/setup.svg)
 
 To grasp how we consolidate information from various cameras, let's first look at what we can glean from just one camera. If we detect, for instance, a person's nose in a camera frame (a 2D image), we know the direction in which the nose points from the camera's perspective—but we can't determine how far away it is. In geometric terms, we have a line of possible locations for the person's nose in the 3D world.
 
-![A sketch of a stick figure scaled to different sizes](/imgs/ukf/different-scales.svg)
+![A sketch of a stick figure scaled to different sizes](/blog/ukf/different-scales.svg)
 
 We could make an educated guess about the distance based on the average human size, but that's difficult, error-prone, and imprecise. A more accurate approach is to use multiple cameras. Each camera provides a line of possible locations for a keypoint; thus, by using just two cameras, we can find the intersection of those lines to pinpoint the keypoint's 3D location.
 
@@ -59,7 +65,9 @@ To warm up, let's focus on how to model a single, static keypoint. Imagine we ha
 
 As time passes, our estimated position $$x$$ remains unchanged, but the covariance matrix $$P$$ should grow. To model this, we can turn to Brownian motion and write $$X(t) = X(0) + \eta W(t)$$ where $$W(t)$$ represents a Wiener process (or Brownian motion), and $$\eta>0$$ is the noise level. The expectaton for this is $$\mathbb E(X(t))=X(0)=x$$, while the variance evolves according to:
 
-$$\mathrm{Var}(X(t))= \mathrm{Var}(X(0)))+\mathrm{Var}(W(t))=P+\eta tI.$$
+$$
+\mathrm{Var}(X(t))= \mathrm{Var}(X(0)))+\mathrm{Var}(W(t))=P+\eta tI.
+$$
 
 Things get more complicated when we introduce a velocity parameter $$v\in \mathbb R^3$$. Viewing this from the perspective of a _stochastic differential equation_ (SDE), the original equation was
 
@@ -123,7 +131,7 @@ $$
 
 where $$Q=\mathrm{diag}(\eta_x,\eta_x,\eta_x,\eta_v,\eta_v,\eta_v)$$. We use $$\overline{x_{k-1}}$$ for the _estimate_ of the state at step $$k-1$$, acknowledging that we don't know the actual value. As long as long as our model function $$F_t$$ is linear, this approximation will suffice. However if $$F_t$$ is nonlinear, then we're in trouble, but we'll see more on that later.
 
-![A mathematical diagram explaining the predict step](/imgs/ukf/predict-step.svg)
+![A mathematical diagram explaining the predict step](/blog/ukf/predict-step.svg)
 
 ### Update step
 
@@ -151,7 +159,7 @@ measurement error is exactly Guassian, which is rarely true in practice. Neverth
 these assumptions make for a _good_ model that can actually be used for practical
 computations.
 
-![A mathematical diagram explaining the update step](/imgs/ukf/update-step.svg)
+![A mathematical diagram explaining the update step](/blog/ukf/update-step.svg)
 
 Deriving the optimal value of the Kalman gain $$K$$ is a little tricky, but we can
 relatively easily use the assumptions above to find a formula for the new error estimate
@@ -175,11 +183,15 @@ $$
 
 Now, let's tackle the question of how to calculate the optimal value for the Kalman gain. To do this, we first need to clarify what "optimal" signifies in this setting. In this context optimal refers to the value of $$K$$ that minimizes the _expected residual squared error_ $$\mathbb{E}\|\overline x_k-x_k\|^2$$. Using some tricks from statistics and matrix calculus it turns out that the opimal Kalman gain takes the following fomr:
 
-$$ K = \hat P_kHS_k^{-1}, $$
+$$
+K = \hat P_kHS_k^{-1},
+$$
 
 where
 
-$$ S_k = H\hat P_kH^\top + R, $$
+$$
+S_k = H\hat P_kH^\top + R,
+$$
 
 which is just the covariance matrix of the residual $$z_k-H\hat x_k$$.
 
@@ -321,7 +333,7 @@ Let's go back to the beginning of this post. We're dealing with multiple cameras
 
 To paint a clearer picture, I made a little simulation of a keypoint moving around in 3D projcted down to the viewpoint of two cameras. Below you can see two plots showing what each of the two cameras can see. Thanks to he noise I added the cameras don't see a smooth curve at all. This is pretty much what you would get when applying machine learning pose detection algorithms on real footage too.
 
-<Details summary=Click here to see the code for the sumulation>
+<Details summary="Click here to see the code for the sumulation">
 
 
 ```python
@@ -390,11 +402,10 @@ plt.xlabel("x")
 plt.ylabel("y")
 plt.title("View from camera #2")
 ```
-
-
 </Details>
+
     
-![png](/imgs/ukf/blog_post_3_1.png)
+![Simulated path drawn from the point of view of two cameras](/blog/ukf/blog_post_3_1.png)
 
 
 To model this problem we use a model dimension of $$6$$ (that's position plus vecocity) and a measurement dimension of 2 (the pixels on a screen).
@@ -461,10 +472,9 @@ pos_predictions = predictions[:, :3]
 
 Then finally we are plotting the result below. We see that the Kalman filter is able to track the keypoint quite well in this problem. After taking a bit of time to settle it even gives an accurate estimate of the velocity of the keypoint!
 
-<details>
-<summary> Click to see the code for the plots below</summary>
+<Details summary="Click to see the code for the plots below">
 
-{% highlight python%}
+```python
 plt.figure(figsize=(8, 8))
 plt.subplot(2, 2, 1)
 plt.title("Camera 1 reprojected tracking")
@@ -512,11 +522,11 @@ for i, v in enumerate(velocity.T):
 plt.plot(v, color=colors[i], linestyle="--")
 plt.legend()
 plt.show()
-{% endhighlight %}
+```
 
-</details>
+</Details>
 
-![png](/imgs/ukf/blog_post_11_0.png)
+![png](/blog/ukf/blog_post_11_0.png)
 
 ## Make it blazingly fast
 
@@ -526,10 +536,9 @@ Fortunately it's not a lot of work to make Rust implementations of these functio
 
 Rather than looking at the accuracy, we're just looking at speed.
 
-<details>
-<summary> Click to see the setup code and code for the Rust benchmark</summary>
+<Details summary="Click to see the setup code and code for the Rust benchmark">
 
-{% highlight python %}
+```python
 from time import perf_counter
 
 import matplotlib.pyplot as plt
@@ -589,10 +598,9 @@ lookat_target=np.array([0, 0, 0]),
 fov_x_degrees=90,
 resolution=np.array([640, 480]),
 )
+```
 
-{% endhighlight %}
-
-{% highlight python %}
+```python
 
 hx_rust = CameraProjector([cam1.to_rust(), cam2.to_rust()])
 fx_rust = FirstOrderTransitionFunction(3)
@@ -628,16 +636,15 @@ time_end = perf_counter()
 total_keypoints = n_filters * len(proj_points_obs1) *2
 time_per_keypoint_rust = (time_end - time_begin) / total_keypoints
 print(f"Time per keypoint (Rust): {time_per_keypoint_rust\*1e6:0.1f} µs")
-{% endhighlight %}
+```
+</Details>
 
-</details>
 
-    Time per keypoint (Rust): 8.1 µs
+<Output>Time per keypoint (Rust): 8.1 µs</Output>
 
-<details>
-<summary>Click hee tosee the code for the python benchmark</summary>
+<Details summary="Click hee tosee the code for the python benchmark">
 
-{% highlight python %}
+```python
 
 hx_rust = CameraProjector([cam1.to_rust(), cam2.to_rust()])
 fx_rust = FirstOrderTransitionFunction(3)
@@ -677,12 +684,14 @@ print(f"Time per keypoint (Python): {time_per_keypoint_py\*1e6:0.1f} µs")
 rust_speedup = time_per_keypoint_py / time_per_keypoint_rust
 print(f"Rust speedup: {rust_speedup:0.1f}x")
 
-{% endhighlight %}
+```
 
-</details>
+</Details>
 
-    Time per keypoint (Python}: 120.4 µs
-    Rust speedup: 14.9x
+<Output>
+Time per keypoint (Python}: 120.4 µs
+Rust speedup: 14.9x
+</Output>
 
 That's 15x speedup just for changing out a python functon for a Rust one! Here I used `UKFParallel` which  takes a list of unscented Kalman filters as input, and allows calling the update/predict functions for each Kalman filter in a batch. This is better than than using a for loop in Python, since we can limit the time spent interacting with the GIL.
 
@@ -690,10 +699,9 @@ Originally the idea of `UKFParallel` was to actually evaluate the predict / upda
 
 But more importantly, how does this compare to `filterpy`?
 
-<details>
-<summary>Click here to see the Filterpy code</summary>
+<Details summary="Click here to see the Filterpy code">
 
-{% highlight python %}
+```python
 from filterpy.kalman import UnscentedKalmanFilter
 from filterpy.kalman.sigma_points import MerweScaledSigmaPoints
 
@@ -744,12 +752,14 @@ print(f"Time per keypoint (filterpy): {time_per_keypoint_filterpy*1e6:0.1f} µs"
 
 print(f"Rust speedup: {time_per_keypoint_filterpy / time_per_keypoint_rust:.1f}x")
 
-{% endhighlight %}
+```
 
-</details>
+</Details>
 
-    Time per keypoint (filterpy): 176.4 µs
-    Rust speedup: 21.8x
+<Output>
+Time per keypoint (filterpy): 176.4 µs
+Rust speedup: 21.8x
+</Output>
 
 We see that `filterpy` is around 22x times slower than my implementation using Rust native functions. Furthermore, (on this computer) we would spend around 5ms to process 30 keypoints using the filterpy implementation (without multithreading). In practice this means that if we're processing data from a 30fps camera stream, we would be spending roughly 1/6th of a frame just on the Kalman filter logic. With the Rust implementation this is only 1/137th of a frame -- which gives us much more time for other logic. Since we're processing data from multiple camera streams in parallel, this is a big deal!
 
