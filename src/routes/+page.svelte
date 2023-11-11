@@ -1,18 +1,11 @@
 <script lang="ts">
-	import { formatDate } from '$lib/utils';
-
+	import PostCard from '$lib/components/PostCard.svelte';
 	export let data;
 </script>
 
-<div class="grid grid-cols-3 grid-flow-row gap-4">
+<div class="grid grid-cols-1 grid-flow-row gap-2 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
 	<!-- TODO: media breakpoints -->
 	{#each data.posts as post}
-		<div
-			class="p-4 m-4 rounded bg-gradient-to-r  from-main-100 to-secondary-100 dark:to-secondary-800 dark:from-main-800"
-		>
-			<a href={post.slug} class="text-lg font-bold">{post.title}</a>
-			<p>{formatDate(post.date)}</p>
-			<p class="p-2">{post.excerpt}</p>
-		</div>
+		<PostCard post={post} />
 	{/each}
 </div>
