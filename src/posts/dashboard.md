@@ -3,7 +3,7 @@ layout: posts
 title: "Dev log: interactive website dashboard"
 date: "2023-05-01"
 categories: website data-science tools
-excerpt: "I made an interactive dashboard for this website, [check it out!](https://dashboard.rikvoorhaar.com)"
+excerpt: "I made an interactive dashboard for this website, and here is the story of how I did it."
 header:
   teaser: "/blog/teasers/dashboard.webp"
 ---
