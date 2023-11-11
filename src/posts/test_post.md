@@ -5,6 +5,7 @@ date: '2023-10-23'
 categories:
   - test
 published: true
+teaser: "test.png"
 ---
 
 <script>

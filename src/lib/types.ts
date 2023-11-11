@@ -4,4 +4,5 @@ export type Post = {
 	excerpt: string;
 	date: string;
 	categories: string[];
+	teaser: string;
 };

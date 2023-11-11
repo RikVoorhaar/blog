@@ -4,8 +4,7 @@ title:  "How big should my validation set be?"
 date:   "2020-08-26"
 categories: data-science statistics
 excerpt: "Cross validation is extremely important, but how should we choose the size of our validation and test sets?"
-header: 
-    teaser: "/blog/validation_size/teasers/validation-data.webp"
+teaser: "validation_size.jpg"
 ---
 <script>
     import Output from '$lib/components/markdown/Output.svelte'

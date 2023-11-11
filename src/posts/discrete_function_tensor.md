@@ -4,8 +4,7 @@ title: "Machine learning with discretized functions and tensors"
 date:  "2022-03-10"
 categories: machine-learning mathematics linear-algebra code
 excerpt: "We recently made a paper about supervised machine learning using tensors, here's the gist of how this works."
-header: 
-    teaser: "/imgs/teasers/discrete-function-tensor.webp"
+teaser: "discrete_function_tensor.png"
 ---
 <script>
     import Output from '$lib/components/markdown/Output.svelte'

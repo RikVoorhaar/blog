@@ -4,8 +4,7 @@ title:  "How do my music preferences evolve?"
 date:   "2020-08-12"
 categories: data-science music
 excerpt: "I use last.fm to track my music listening. Let's look at my data to discover how my musical preferences evolve over time."
-header: 
-    teaser: "/blog/lastfm/teasers/lastfm.webp"
+teaser: "lastfm.jpg"
 ---
 <script>
     import Output from '$lib/components/markdown/Output.svelte'

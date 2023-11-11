@@ -4,8 +4,7 @@ title:  "Low-rank matrices: using structure to recover missing data"
 date:   "2021-09-26"
 categories: machine-learning mathematics linear-algebra code
 excerpt: "A lot of data is naturally of 'low rank'. I will explain what this means, and how to exploit this fact."
-header: 
-    teaser: "/imgs/teasers/st-vitus-rank-10.webp"
+teaser: "low_rank_matrix.png"
 ---
 <script>
     import Output from '$lib/components/markdown/Output.svelte'

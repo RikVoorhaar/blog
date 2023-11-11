@@ -3,8 +3,7 @@ layout: posts
 title:  "First post"
 date:   2020-06-19 14:19:44 +0200
 categories: jekyll
-header: 
-    teaser: "/imgs/teasers/first-post.webp"
+teaser: "first_post.jpg"
 excerpt: "My first post in this blog"
 ---
 

@@ -4,8 +4,7 @@ title:  "Is my data normal?"
 date:   "2020-08-10"
 categories: data-science statistics
 excerpt: "Normally distributed data is great, but how do you know whether your data is normally distributed?"
-header: 
-    teaser: "/blog/normal_data/teasers/normal-data.webp"
+teaser: "normal_data.png"
 ---
 <script>
     import Output from '$lib/components/markdown/Output.svelte'

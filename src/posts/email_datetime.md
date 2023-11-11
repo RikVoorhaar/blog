@@ -4,8 +4,7 @@ title:  "Time series analysis of my email traffic"
 date:   "2021-02-13"
 categories: data-science statistics
 excerpt: "I have 15 years worth of email traffic data, let's take a closer look and discover some fascinating patterns."
-header: 
-    teaser: "/blog/email_datetime/teasers/email-time-series.webp"
+teaser: "email_datetime.jpg"
 ---
 
 I've been using gmail since back 2006 -- when it was still an invite-only beta. In these last 15

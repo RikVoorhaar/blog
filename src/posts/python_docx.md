@@ -4,8 +4,7 @@ title:  "How to edit Microsoft Word documents in Python"
 date:   "2021-08-29"
 categories: data-mining code
 excerpt: "Parsing and editing Word documents automatically can be extremely useful, but doing it in Python is not that straightforward."
-header: 
-    teaser: "/blog/teasers/doc_comparison.webp"
+teaser: "python_docx.png"
 ---
 <script>
     import Output from '$lib/components/markdown/Output.svelte'

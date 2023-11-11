@@ -4,8 +4,7 @@ title: "On Kalman filters and how I made them 20x faster using Rust"
 date: "2023-10-07"
 categories: website data-science tools
 excerpt: "In my first dive into Rust, I implemented an unscented Kalman filter in and made it 20x faster than the equivalent Python implementation."
-header:
-  teaser: "/blog/teasers/setup.svg"
+teaser: "ukf.svg"
 ---
 
 <script>

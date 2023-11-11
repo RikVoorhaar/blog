@@ -4,8 +4,7 @@ title: 'My thesis in a nutshell'
 date: '2023-02-26'
 categories: math
 excerpt: "Read this blog post if you're curious what I worked on during my PhD!"
-header:
-  teaser: '/blog/teasers/thesis.webp'
+teaser: "thesis.webp"
 ---
 
 A few months ago, I defended my thesis and earned the title of "doctor." I'm excited to share the contents of my thesis defense with you in this blog post, where you can get a glimpse of the fascinating research I conducted over the past few years. The post is divided into several parts, with the level of technical detail increasing gradually.

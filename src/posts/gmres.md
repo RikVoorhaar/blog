@@ -5,8 +5,7 @@ date:  "2022-03-29"
 categories: mathematics linear-algebra code
 excerpt: "Linear least-squares system pop up everywhere, and there are many fast way to solve them. We'll
 be looking at one such way: GMRES."
-header: 
-    teaser: "/blog/teasers/gmres-teaser.webp"
+teaser: "gmres.png"
 ---
 <script>
     import Output from '$lib/components/markdown/Output.svelte'

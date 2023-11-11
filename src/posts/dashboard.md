@@ -4,8 +4,7 @@ title: "Dev log: interactive website dashboard"
 date: "2023-05-01"
 categories: website data-science tools
 excerpt: "I made an interactive dashboard for this website, and here is the story of how I did it."
-header:
-  teaser: "/blog/teasers/dashboard.webp"
+teaser: "dashboard.png"
 ---
 
 I made a dashboard for exploring the access logs of this website. You can check it out at [dashboard.rikvoorhaar.com](https://dashboard.rikvoorhaar.com). It's a fun little project I've been tinkering with to shed some light on the way people interact with my site.
