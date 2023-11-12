@@ -20,12 +20,13 @@
 
 
 <div class="my-4">
-	<div on:click={swapState} class="flex align-top flex-auto italic font-semibold">
-		<span class={`inline-block transition-transform px-1 pl-0 ${hidden ? 'rotate-90' : ''}`}
+	<button on:click={swapState} class="flex align-top flex-auto italic font-semibold
+	 dark:hover:text-blue-400 hover:text-blue-800 transition-colors duration-500">
+		<span class={`inline-block transition-transform  px-1 pl-0 my-1 ${hidden ? 'rotate-90' : ''}`}
 			><ChevronRight /></span
 		>
 		{summary}
-	</div>
+	</button>
 	{#if !hidden}
 		<div class="border-l-2 border-l-blue-700 pl-2 ml-2 my-0 py-0" transition:fly>
 			<slot />
