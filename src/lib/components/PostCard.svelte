@@ -7,12 +7,12 @@
 	let teaser_url: string = `/blog/teasers/original/${post.teaser}`;
 </script>
 
-<div class="p-4 m-0 rounded relative group">
-	<div class="absolute inset-0 bg-gradient-to-r from-main-100 to-secondary-100 dark:from-blue-800 dark:to-blue-900" />
+<div class="p-4 m-0 relative group w-[320px]">
+	<div class="absolute inset-0 bg-gradient-to-r from-main-100 to-secondary-100 dark:from-blue-800 dark:to-blue-900 rounded-lg" />
 	<div
 		class="absolute inset-0 bg-gradient-to-r from-main-300 to-secondary-300 
 		dark:from-blue-900 dark:to-blue-950
-		opacity-0 group-hover:opacity-100 transition-opacity duration-500"
+		opacity-0 group-hover:opacity-100 transition-opacity duration-500 rounded-lg"
 	/>
 	<div class="relative z-10">
 		<div class="content-center py-2 pb-4">
