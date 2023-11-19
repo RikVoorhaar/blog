@@ -3,11 +3,14 @@
 @tailwind utilities;
 
 
+
 .katex-display {
 	overflow: auto hidden;
 }
 
-.katex { font-size: 1.1em !important; } 
+.katex {
+	font-size: 1.1em !important;
+}
 
 .katex-display::-webkit-scrollbar {
 	height: 0.5rem;
