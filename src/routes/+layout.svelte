@@ -9,6 +9,10 @@
 <div class="dark:text-white">
 	<Header />
 
+	<div class="bg-gradient-to-b from-white dark:from-black to-transparent -z-50 p-10">
+
+	</div>
+
 	<slot />
 
 	<Footer />
