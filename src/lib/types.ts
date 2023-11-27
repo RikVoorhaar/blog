@@ -5,4 +5,5 @@ export type Post = {
 	date: string;
 	categories: string[];
 	teaser: string;
+	url: string;
 };

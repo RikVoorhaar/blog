@@ -1,15 +1,3 @@
-<script lang="ts">
-	import { formatDate } from '$lib/utils';
-	export let data;
-	import Output from '$lib/components/markdown/Output.svelte';
-</script>
-
-<svelte:head>
-	<title>{data.meta.title}</title>
-	<meta property="og:type" content="article" />
-	<meta property="og:title" content={data.meta.title} />
-</svelte:head>
-
 <div class="grid grid-cols-1 place-items-center w-full">
 	<div
 		class="max-w-4xl w-full
@@ -23,17 +11,10 @@
 	prose-h2:mb-2 prose-h2:mt-12
 	prose-h3:mb-1 prose-h3:mt-8
 	prose-h4:mb-1 prose-h4:mt-8
-    min-w-0 p-6 m-4  rounded-xl
+    min-w-0 p-6 m-4 rounded-xl
 	bg-slate-100 dark:bg-zinc-900
     tansition-colors duration-300"
 	>
-		<h1 class="m-1 mb-2">{data.meta.title}</h1>
-		<p class="m-1 pb-12">
-			Published on {formatDate(data.meta.date)}.
-		</p>
-
-		<div>
-			<svelte:component this={data.content} />
-		</div>
+		<slot />
 	</div>
 </div>

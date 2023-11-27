@@ -23,7 +23,7 @@
 	/>
 	<div class="relative z-10">
 		<div class="content-center py-2 pb-4">
-			<a href={post.slug}>
+			<a href={post.url}>
 				<img
 					src={teaser_url}
 					alt="teaser"
@@ -32,7 +32,7 @@
 			</a>
 		</div>
 		<a
-			href={post.slug}
+			href={post.url}
 			class="text-xl font-extrabold leading-5
 			 text-turbo-800 dark:text-turbo-500 hover:text-turbo-700
 			 dark:hover:text-turbo-300 transition-colors tracking-wide">{post.title}</a
@@ -41,7 +41,7 @@
 		<p class="px-2 my-1 border-l-2 border-l-turbo-800 dark:border-l-turbo-500 leading-5">
 			{post.excerpt}
 			<a
-				href={post.slug}
+				href={post.url}
 				class="dark:text-main-300 dark:hover:text-main-100 text-main-700 hover:text-main-800 transition-colors"
 				>read more ...</a
 			>

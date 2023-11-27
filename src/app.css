@@ -5,29 +5,29 @@
 html.light {
 	background-repeat: repeat;
 	background-image: image-set(
-		'backgrounds/background-light-converted/background-light-512.jpg' 1x,
-		'backgrounds/background-light-converted/background-light-1024.jpg' 2x,
-		'backgrounds/background-light-converted/background-light-2048.jpg' 4x,
-		'backgrounds/background-light-converted/background-light-512.webp' 1x,
-		'backgrounds/background-light-converted/background-light-1024.webp' 2x,
-		'backgrounds/background-light-converted/background-light-2048.webp' 4x,
-		'backgrounds/background-light-converted/background-light-512.avif' 1x,
-		'backgrounds/background-light-converted/background-light-1024.avif' 2x,
-		'backgrounds/background-light-converted/background-light-2048.avif' 4x
+		'/backgrounds/background-light-converted/background-light-512.jpg' 1x,
+		'/backgrounds/background-light-converted/background-light-1024.jpg' 2x,
+		'/backgrounds/background-light-converted/background-light-2048.jpg' 4x,
+		'/backgrounds/background-light-converted/background-light-512.webp' 1x,
+		'/backgrounds/background-light-converted/background-light-1024.webp' 2x,
+		'/backgrounds/background-light-converted/background-light-2048.webp' 4x,
+		'/backgrounds/background-light-converted/background-light-512.avif' 1x,
+		'/backgrounds/background-light-converted/background-light-1024.avif' 2x,
+		'/backgrounds/background-light-converted/background-light-2048.avif' 4x
 	);
 }
 html.dark {
 	background-repeat: repeat;
 	background-image: image-set(
-		'backgrounds/background-dark-converted/background-dark-512.jpg' 1x,
-		'backgrounds/background-dark-converted/background-dark-1024.jpg' 2x,
-		'backgrounds/background-dark-converted/background-dark-2048.jpg' 4x,
-		'backgrounds/background-dark-converted/background-dark-512.webp' 1x,
-		'backgrounds/background-dark-converted/background-dark-1024.webp' 2x,
-		'backgrounds/background-dark-converted/background-dark-2048.webp' 4x,
-		'backgrounds/background-dark-converted/background-dark-512.avif' 1x,
-		'backgrounds/background-dark-converted/background-dark-1024.avif' 2x,
-		'backgrounds/background-dark-converted/background-dark-2048.avif' 4x
+		'/backgrounds/background-dark-converted/background-dark-512.jpg' 1x,
+		'/backgrounds/background-dark-converted/background-dark-1024.jpg' 2x,
+		'/backgrounds/background-dark-converted/background-dark-2048.jpg' 4x,
+		'/backgrounds/background-dark-converted/background-dark-512.webp' 1x,
+		'/backgrounds/background-dark-converted/background-dark-1024.webp' 2x,
+		'/backgrounds/background-dark-converted/background-dark-2048.webp' 4x,
+		'/backgrounds/background-dark-converted/background-dark-512.avif' 1x,
+		'/backgrounds/background-dark-converted/background-dark-1024.avif' 2x,
+		'/backgrounds/background-dark-converted/background-dark-2048.avif' 4x
 	);
 }
 

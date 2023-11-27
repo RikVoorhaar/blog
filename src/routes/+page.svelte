@@ -1,10 +1,7 @@
 <script lang="ts">
-	import PostCard from '$lib/components/PostCard.svelte';
-	export let data;
+	import Container from '$lib/components/Container.svelte';
 </script>
 
-<div class="flex flex-auto grow gap-4 flex-wrap justify-center sm:p-8 xl:px-16">
-	{#each data.posts as post}
-		<PostCard post={post} />
-	{/each}
-</div>
+<Container>
+	Hello
+</Container>
