@@ -1,3 +1,7 @@
+<script lang="ts">
+	export let classString: string = '';
+</script>
+
 <div class="grid grid-cols-1 place-items-center w-full">
 	<div
 		class="max-w-4xl w-full
@@ -15,6 +19,8 @@
 	bg-slate-100 dark:bg-zinc-900
     tansition-colors duration-300"
 	>
-		<slot />
+		<div class={classString}>
+			<slot />
+		</div>
 	</div>
 </div>

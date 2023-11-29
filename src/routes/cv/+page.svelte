@@ -3,10 +3,17 @@
 	import Experience from '$lib/components/cv/Experience.svelte';
 	import Education from '$lib/components/cv/Education.svelte';
 	import Skill from '$lib/components/cv/Skill.svelte';
+	import Tool from '$lib/components/cv/Tool.svelte';
+	import { BrainCog, Database, Layout, LucideContainer, Network, Sigma, Building } from 'lucide-svelte';
+	import '/node_modules/flag-icons/css/flag-icons.min.css';
 </script>
 
-<Container>
-	<h1>Work experience</h1>
+<Container
+	classString="prose-h2:mb-4 prose-h2:mt-12 dark:prose-h2:text-zinc-300 prose-h2:text-zinc-700 prose-h2:text-3xl prose-h2:font-extrabold"
+>
+	<div class="prose-h2:mt-0 prose-h2:mb-0">
+		<h2>Work experience</h2>
+	</div>
 	<Experience
 		data={{
 			date_start: 'January 2023',
@@ -60,7 +67,7 @@
 		</p>
 	</Experience>
 
-	<h1>Education</h1>
+	<h2>Education</h2>
 
 	<Education
 		data={{
@@ -89,7 +96,69 @@
 		}}
 	/>
 
-	<h1>Programming skills</h1>
-	<Skill data={{ title: 'Advanced', skills: ['Python'], icons: ['python'] }} />
-	<Skill data={{ title: 'Intermediate', skills: ['LaTeX', 'Mathematica', 'C/C++'], icons: ['latex', 'mathematica', 'cpp'] }} />
+	<h2>Programming skills</h2>
+	<Skill
+		data={{
+			title: 'Languages',
+			skills: [
+				'Python',
+				'LaTeX',
+				'Mathematica',
+				'C/C++',
+				'HTML/CSS',
+				'Typescript/Javascript',
+				'Rust'
+			]
+		}}
+	/>
+
+	<Tool
+		data={{
+			title: 'Data science',
+			tools: ['Matplotlib', 'Pandas', 'Plotly', 'Polars', 'SQL', 'SQLAlchemy']
+		}}><Database /></Tool
+	>
+
+	<Tool data={{ title: 'Frontend', tools: ['Svelte', 'Tailwind'] }}><Layout /></Tool>
+	<Tool
+		data={{ title: 'Machine Learning', tools: ['OpenCV', 'PyTorch', 'Scikit-learn', 'XGboost'] }}
+	>
+		<BrainCog /></Tool
+	>
+	<Tool data={{ title: 'Devops', tools: ['Docker', 'Git', 'Jenkins', 'Linux', 'Vim', 'VSCode'] }}
+		><LucideContainer /></Tool
+	>
+	<Tool data={{ title: 'Numerical', tools: ['CVXPY', 'Cython', 'Numpy', 'SciPy'] }}><Sigma /></Tool>
+	<Tool data={{ title: 'Networking', tools: ['FastAPI', 'Flask'] }}><Network /></Tool>
+
+	<h2>Languages</h2>
+
+	<Skill
+		data={{
+			title: 'Native/bilingual',
+			skills: ['Dutch', 'English'],
+			icons: ['<span class="fi fi-nl"></span>', '<span class="fi fi-us"></span>']
+		}}
+	/>
+
+	<Skill
+		data={{
+			title: 'Intermediate (B1-B2)',
+			skills: ['French'],
+			icons: ['<span class="fi fi-fr"></span>']
+		}}
+	/>
+
+	<Skill
+		data={{
+			title: 'Basic (A1-A2)',
+			skills: ['Japanese', 'Russian', 'Spanish', 'Danish'],
+			icons: [
+				'<span class="fi fi-jp "></span>',
+				'<span class="fi fi-ru"></span>',
+				'<span class="fi fi-es"></span>',
+				'<span class="fi fi-dk"></span>'
+			]
+		}}
+	/>
 </Container>

@@ -21,6 +21,7 @@
 		"eslint": "^8.52.0",
 		"eslint-config-prettier": "^8.5.0",
 		"eslint-plugin-svelte": "^2.30.0",
+		"flag-icons": "^7.0.2",
 		"katex": "^0.16.9",
 		"lucide-svelte": "^0.288.0",
 		"mdsvex": "^0.11.0",
