@@ -1,4 +1,5 @@
 <script lang="ts">
+    import Date from "./Date.svelte";
 	export let data: {
 		date_start: string;
 		date_end: string;
@@ -16,7 +17,7 @@
 		<h3>
 			{@html data.employer}<span class="text-black dark:text-white ml-4">{data.position}</span>
 		</h3>
-		<p class="italic">{data.date_start}&mdash;{data.date_end}</p>
+            <Date>{data.date_start}&mdash;{data.date_end}</Date>
 		<slot />
 	</div>
 </div>
