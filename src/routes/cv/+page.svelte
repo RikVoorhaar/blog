@@ -228,7 +228,7 @@
 			title: 'TTML: tensor trains for general supervised machine learning',
 			url: 'https://doi.org/10.48550/arXiv.2203.04352',
 			coauthors: ['Bart Vandereycken'],
-			info: `We describe how to use tensor trains to parametrize discretized functions, and how to get a useful supervised machine learning estimator out of it. Learning and initializing these tensor trains is a bit tricky, but definitely doable. I also wrote <a href="https://www.rikvoorhaar.com/discrete-function-tensor/">a blog post</a> about this paper, explaining the main ideas in a more accessible way.`
+			info: `We describe how to use tensor trains to parametrize discretized functions, and how to get a useful supervised machine learning estimator out of it. Learning and initializing these tensor trains is a bit tricky, but definitely doable. I also wrote <a href="/blog/discrete_function_tensor">a blog post</a> about this paper, explaining the main ideas in a more accessible way.`
 		}}
 	/>
 	<Publication

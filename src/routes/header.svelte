@@ -13,7 +13,7 @@
 		{config.title}
 	</a>
 
-	<a class={link_class} href="/about">Contact</a>
+	<a class={link_class} href="/contact">Contact</a>
 	<a class={link_class} href="/blog">Blog</a>
 	<a class={link_class} href="/cv">CV</a>
 </div>

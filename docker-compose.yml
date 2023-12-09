@@ -1,0 +1,15 @@
+version: "3"
+
+services:
+  external:
+    container_name: blog
+    image: blog
+    build:
+      context: .
+      dockerfile: Dockerfile
+    user: "node"
+    environment:
+      - NODE_ENV=production
+    restart: unless-stopped
+    ports:
+      - 3000:3000
