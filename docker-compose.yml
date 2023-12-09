@@ -11,5 +11,17 @@ services:
     environment:
       - NODE_ENV=production
     restart: unless-stopped
-    ports:
-      - 3000:3000
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.blog.rule=Host(`blog.rikvoorhaar.com`)"
+      - "traefik.http.routers.blog.entrypoints=websecure"
+      - "traefik.http.routers.blog.tls=true"
+      - "traefik.http.routers.blog.tls.certresolver=myresolver"
+      - "traefik.http.services.blog.loadbalancer.server.port=3000"
+    networks:
+      - internal
+
+networks:
+  internal:
+  web:
+    external: true
