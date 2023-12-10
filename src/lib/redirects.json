@@ -1,0 +1,21 @@
+{
+	"test": "/blog/test",
+	"ukf": "/blog/ukf",
+	"dashboard": "/blog/dashboard",
+	"gmres": "/blog/gmres",
+	"discrete-function-tensor": "/blog/discrete_function_tensor",
+	"low-rank-matrix": "/blog/low_rank_matrix",
+	"python-docx": "/blog/python_docx",
+	"deconvolution-part1": "/blog/deconvolution_part1",
+	"deconvolution-part2": "/blog/deconvolution_part2",
+	"deconvolution-part3": "/blog/deconvolution_part3",
+	"deconvolution-part4": "/blog/deconvolution_part4",
+	"email-time-series": "/blog/email_datetime",
+	"music_2020": "/blog",
+	"bayes_exam": "/blog/bayes_exam",
+	"validation-size": "/blog/validation_size",
+	"lasfm": "/blog/lastfm",
+	"normal-data": "/blog/normal_data",
+	"figure-skating": "/blog/figure_skating",
+	"first-post": "/blog/first_post"
+}

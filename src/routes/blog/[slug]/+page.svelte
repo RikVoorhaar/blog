@@ -1,9 +1,9 @@
 <script lang="ts">
 	import { formatDate } from '$lib/utils';
 	export let data;
-	import Output from '$lib/components/markdown/Output.svelte';
 	import PostCardGallery from '$lib/components/PostCardGallery.svelte';
 	import Container from '$lib/components/Container.svelte';
+	import SmallContainer from '$lib/components/SmallContainer.svelte';
 </script>
 
 <svelte:head>
@@ -23,9 +23,7 @@
 	</div>
 </Container>
 
-<Container>
-	<div class="prose-h2:mt-0">
-		<h2>Other posts</h2>
-	</div>
-</Container>
+<SmallContainer>
+	<h1 class="font-extrabold text-2xl dark:text-main-500 text-main-600 text-center">Other posts you may like</h1>
+</SmallContainer>
 <PostCardGallery />

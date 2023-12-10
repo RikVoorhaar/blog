@@ -9,6 +9,6 @@ export async function load({ params }) {
 			meta: post.metadata
 		};
 	} catch (e) {
-		throw error(404, `Could not find post with slug ${params.slug}`);
+		throw error(404, `I'm sorry. I couldn't find the blog post with the name <span class="font-semibold px-1">${params.slug}</span>`);
 	}
 }
