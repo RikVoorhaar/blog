@@ -9,11 +9,11 @@
 	};
 </script>
 
-<div class="flex">
-	<div class="w-36 mr-6 flex-shrink-0">
-		<img src={data.image} alt={data.employer} class="w-full h-auto" />
+<div class="flex flex-col md:flex-row">
+	<div class="w-24 mr-0 md:mr-6 flex-shrink-0 pb-0">
+		<img src={data.image} alt={data.employer} class="w-full mb-0 h-auto" />
 	</div>
-	<div class="flex-grow">
+	<div class="flex-grow prose-h3:mt-0">
 		<h3>
 			{@html data.employer}<span class="text-black dark:text-white ml-4">{data.position}</span>
 		</h3>

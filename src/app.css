@@ -39,16 +39,16 @@ html.dark {
 	font-size: 1.1em !important;
 }
 
-.katex-display::-webkit-scrollbar {
+*::-webkit-scrollbar {
 	height: 0.5rem;
 }
 
-.katex-display::-webkit-scrollbar-thumb {
+*::-webkit-scrollbar-thumb {
 	background-color: #7aabf1;
 	border-radius: 8px;
 }
 
-.katex-display::-webkit-scrollbar-thumb:hover {
+*::-webkit-scrollbar-thumb:hover {
 	background: #185e97;
 }
 

@@ -12,7 +12,7 @@
 </script>
 
 <Container
-	classString="prose-h2:mb-4 prose-h2:mt-12 dark:prose-h2:text-zinc-300 prose-h2:text-zinc-700 prose-h2:text-3xl prose-h2:font-extrabold"
+	classString="prose-h2:mb-4 prose-h2:mt-12 dark:prose-h2:text-zinc-300 prose-h2:text-zinc-700 prose-h2:text-3xl prose-h2:font-extrabold overflow-x-hidden"
 >
 	<h1>Curriculum Vitae</h1>
 	<SectionHeader>Work experience</SectionHeader>

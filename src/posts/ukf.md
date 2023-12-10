@@ -331,7 +331,7 @@ Let's go back to the beginning of this post. We're dealing with multiple cameras
 
 To paint a clearer picture, I made a little simulation of a keypoint moving around in 3D projcted down to the viewpoint of two cameras. Below you can see two plots showing what each of the two cameras can see. Thanks to he noise I added the cameras don't see a smooth curve at all. This is pretty much what you would get when applying machine learning pose detection algorithms on real footage too.
 
-<Details summary="Click here to see the code for the sumulation">
+<Details summary="Click here to see the code for the sumulation" id="ukf-detail1">
 
 
 ```python
@@ -470,7 +470,7 @@ pos_predictions = predictions[:, :3]
 
 Then finally we are plotting the result below. We see that the Kalman filter is able to track the keypoint quite well in this problem. After taking a bit of time to settle it even gives an accurate estimate of the velocity of the keypoint!
 
-<Details summary="Click to see the code for the plots below">
+<Details summary="Click to see the code for the plots below" id="ukf-detail2">
 
 ```python
 plt.figure(figsize=(8, 8))
@@ -534,7 +534,7 @@ Fortunately it's not a lot of work to make Rust implementations of these functio
 
 Rather than looking at the accuracy, we're just looking at speed.
 
-<Details summary="Click to see the setup code and code for the Rust benchmark">
+<Details summary="Click to see the setup code and code for the Rust benchmark" id="ukf-detail3">
 
 ```python
 from time import perf_counter
@@ -640,7 +640,7 @@ print(f"Time per keypoint (Rust): {time_per_keypoint_rust\*1e6:0.1f} µs")
 
 <Output>Time per keypoint (Rust): 8.1 µs</Output>
 
-<Details summary="Click hee tosee the code for the python benchmark">
+<Details summary="Click hee tosee the code for the python benchmark" id="ukf-detail4">
 
 ```python
 
@@ -697,7 +697,7 @@ Originally the idea of `UKFParallel` was to actually evaluate the predict / upda
 
 But more importantly, how does this compare to `filterpy`?
 
-<Details summary="Click here to see the Filterpy code">
+<Details summary="Click here to see the Filterpy code" id="ukf-detail5">
 
 ```python
 from filterpy.kalman import UnscentedKalmanFilter
