@@ -4,23 +4,23 @@
 
 html.dark {
 	background-image: image-set(
-		'/backgrounds/background-dark-new-converted/background-dark-new-512.jpg' 1x,
-		'/backgrounds/background-dark-new-converted/background-dark-new-1024.jpg' 2x,
-		'/backgrounds/background-dark-new-converted/background-dark-new-512.webp' 1x,
-		'/backgrounds/background-dark-new-converted/background-dark-new-1024.webp' 2x,
-		'/backgrounds/background-dark-new-converted/background-dark-new-512.avif' 1x,
-		'/backgrounds/background-dark-new-converted/background-dark-new-1024.avif' 2x
+		'/backgrounds/perlin-dark-converted/perlin-dark-1024.avif' 1x,
+		'/backgrounds/perlin-dark-converted/perlin-dark-2048.avif' 2x,
+		'/backgrounds/perlin-dark-converted/perlin-dark-1024.webp' 1x,
+		'/backgrounds/perlin-dark-converted/perlin-dark-2048.webp' 2x,
+		'/backgrounds/perlin-dark-converted/perlin-dark-1024.jpg' 1x,
+		'/backgrounds/perlin-dark-converted/perlin-dark-2048.jpg' 2x,
 	);
 	background-repeat: repeat;
 }
 html.light {
 	background-image: image-set(
-		'/backgrounds/background-light-new-converted/background-light-new-512.jpg' 1x,
-		'/backgrounds/background-light-new-converted/background-light-new-1024.jpg' 2x,
-		'/backgrounds/background-light-new-converted/background-light-new-512.webp' 1x,
-		'/backgrounds/background-light-new-converted/background-light-new-1024.webp' 2x,
-		'/backgrounds/background-light-new-converted/background-light-new-512.avif' 1x,
-		'/backgrounds/background-light-new-converted/background-light-new-1024.avif' 2x
+		'/backgrounds/perlin-light-converted/perlin-light-1024.avif' 1x,
+		'/backgrounds/perlin-light-converted/perlin-light-2048.avif' 2x,
+		'/backgrounds/perlin-light-converted/perlin-light-1024.webp' 1x,
+		'/backgrounds/perlin-light-converted/perlin-light-2048.webp' 2x,
+		'/backgrounds/perlin-light-converted/perlin-light-1024.jpg' 1x,
+		'/backgrounds/perlin-light-converted/perlin-light-2048.jpg' 2x,
 	);
 	background-repeat: repeat;
 }

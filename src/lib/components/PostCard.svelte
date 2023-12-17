@@ -13,11 +13,11 @@
 >
 	<div
 		class="absolute inset-0 bg-gradient-to-r
-	from-zinc-200 to-zinc-300
-	opacity-[.85]
-	dark:opacity-[.80]
+	from-zinc-100 to-zinc-300
+	opacity-[.50]
+	dark:opacity-[.60]
 	dark:from-zinc-900 dark:to-zinc-800
-	group-hover:opacity-95
+	group-hover:opacity-[.95]
 	transition-opacity duration-500
 	rounded-xl"
 	/>

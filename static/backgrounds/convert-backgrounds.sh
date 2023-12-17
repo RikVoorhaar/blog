@@ -29,10 +29,10 @@ convert_image() {
 }
 
 # Converting to different sizes and formats
-for size in 512 1024 2048; do
-    convert_image $size "jpg" 60   # Quality is not used for jpg in this script
-    convert_image $size "webp" 65
-    convert_image $size "avif" 50
+for size in 1024 2048; do
+    convert_image $size "jpg" 80
+    convert_image $size "webp" 85
+    convert_image $size "avif" 80
 done
 
 echo "Conversion complete. Files saved in ${output_dir}/"

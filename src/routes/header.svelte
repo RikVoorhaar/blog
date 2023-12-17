@@ -19,5 +19,8 @@
 </div>
 
 <div
-	class="bg-gradient-to-b  from-main-500 to-transparent -z-50 p-64 opacity-40 dark:opacity-100 absolute top-0 left-0 right-0 mix-blend-multiply transition-colors transition-opacity"
+	class="bg-gradient-to-b dark:from-main-500 from-blue-200 from-20% -z-50 p-64 opacity-50 dark:opacity-100
+	absolute top-0 left-0 right-0
+	dark:mix-blend-overlay transition-colors
+	mix-blend-overlay"
 />
