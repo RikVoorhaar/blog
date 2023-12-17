@@ -2,26 +2,68 @@
 @tailwind components;
 @tailwind utilities;
 
+/* html.light {
+	background-repeat: repeat;
+	background-image: image-set(
+		'/backgrounds/background-light-converted/background-light-512.jpg' 1x,
+		'/backgrounds/background-light-converted/background-light-1024.jpg' 2x,
+		'/backgrounds/background-light-converted/background-light-2048.jpg' 4x,
+		'/backgrounds/background-light-converted/background-light-512.webp' 1x,
+		'/backgrounds/background-light-converted/background-light-1024.webp' 2x,
+		'/backgrounds/background-light-converted/background-light-2048.webp' 4x,
+		'/backgrounds/background-light-converted/background-light-512.avif' 1x,
+		'/backgrounds/background-light-converted/background-light-1024.avif' 2x,
+		'/backgrounds/background-light-converted/background-light-2048.avif' 4x
+	);
+}
 html.dark {
-	background-image: url('/backgrounds/background-dark-new.webp'),
+	background-repeat: repeat;
+	background-image: image-set(
+		'/backgrounds/background-dark-converted/background-dark-512.jpg' 1x,
+		'/backgrounds/background-dark-converted/background-dark-1024.jpg' 2x,
+		'/backgrounds/background-dark-converted/background-dark-2048.jpg' 4x,
+		'/backgrounds/background-dark-converted/background-dark-512.webp' 1x,
+		'/backgrounds/background-dark-converted/background-dark-1024.webp' 2x,
+		'/backgrounds/background-dark-converted/background-dark-2048.webp' 4x,
+		'/backgrounds/background-dark-converted/background-dark-512.avif' 1x,
+		'/backgrounds/background-dark-converted/background-dark-1024.avif' 2x,
+		'/backgrounds/background-dark-converted/background-dark-2048.avif' 4x
+	);
+} */
+html.dark {
+	background-image: image-set(
+			'/backgrounds/background-dark-new-converted/background-dark-new-512.jpg' 1x,
+			'/backgrounds/background-dark-new-converted/background-dark-new-1024.jpg' 2x,
+			'/backgrounds/background-dark-new-converted/background-dark-new-512.webp' 1x,
+			'/backgrounds/background-dark-new-converted/background-dark-new-1024.webp' 2x,
+			'/backgrounds/background-dark-new-converted/background-dark-new-512.avif' 1x,
+			'/backgrounds/background-dark-new-converted/background-dark-new-1024.avif' 2x
+		),
 		linear-gradient(
 			to bottom,
 			rgba(255, 230, 0, 255),
 			rgba(255, 230, 0, 0) 800px,
 			transparent 800px
 		);
-	background-repeat: repeat, repeat;
+	background-repeat: repeat, no-repeat;
 	background-blend-mode: multiply;
 }
 html.light {
-	background-image: url('/backgrounds/background-light-new.webp'),
+	background-image: image-set(
+			'/backgrounds/background-light-new-converted/background-light-new-512.jpg' 1x,
+			'/backgrounds/background-light-new-converted/background-light-new-1024.jpg' 2x,
+			'/backgrounds/background-light-new-converted/background-light-new-512.webp' 1x,
+			'/backgrounds/background-light-new-converted/background-light-new-1024.webp' 2x,
+			'/backgrounds/background-light-new-converted/background-light-new-512.avif' 1x,
+			'/backgrounds/background-light-new-converted/background-light-new-1024.avif' 2x
+		),
 		linear-gradient(
 			to bottom,
 			rgba(255, 230, 150, 255),
 			rgba(255, 230, 0, 0) 800px,
 			transparent 800px
 		);
-	background-repeat: repeat, repeat;
+	background-repeat: repeat, no-repeat;
 	background-blend-mode: multiply;
 }
 
