@@ -11,6 +11,7 @@ html.dark {
 		'/backgrounds/perlin-dark-converted/perlin-dark-1024.jpg' 1x,
 		'/backgrounds/perlin-dark-converted/perlin-dark-2048.jpg' 2x,
 	);
+	background-color: #181608;
 	background-repeat: repeat;
 }
 html.light {
@@ -22,6 +23,7 @@ html.light {
 		'/backgrounds/perlin-light-converted/perlin-light-1024.jpg' 1x,
 		'/backgrounds/perlin-light-converted/perlin-light-2048.jpg' 2x,
 	);
+	background-color: #aaaaaa;
 	background-repeat: repeat;
 }
 
