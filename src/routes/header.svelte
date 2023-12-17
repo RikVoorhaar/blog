@@ -18,4 +18,6 @@
 	<a class={link_class} href="/cv">CV</a>
 </div>
 
-<div class="bg-gradient-to-b from-white dark:from-black to-transparent -z-50 dark:p-5 p-2 dark:mb-5 mb-11 opacity-80" />
+<div
+	class="mb-16"
+/>
