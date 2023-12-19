@@ -13,7 +13,7 @@ services:
     restart: unless-stopped
     labels:
       - "traefik.enable=true"
-      - "traefik.http.routers.blog.rule=Host(`blog.rikvoorhaar.com`)"
+      - "traefik.http.routers.blog.rule=Host(`www.rikvoorhaar.com`)"
       - "traefik.http.routers.blog.entrypoints=websecure"
       - "traefik.http.routers.blog.tls=true"
       - "traefik.http.routers.blog.tls.certresolver=myresolver"
