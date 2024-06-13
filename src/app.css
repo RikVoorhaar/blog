@@ -3,27 +3,11 @@
 @tailwind utilities;
 
 html.dark {
-	background-image: image-set(
-		'/backgrounds/perlin-dark-converted/perlin-dark-1024.avif' 1x,
-		'/backgrounds/perlin-dark-converted/perlin-dark-2048.avif' 2x,
-		'/backgrounds/perlin-dark-converted/perlin-dark-1024.webp' 1x,
-		'/backgrounds/perlin-dark-converted/perlin-dark-2048.webp' 2x,
-		'/backgrounds/perlin-dark-converted/perlin-dark-1024.jpg' 1x,
-		'/backgrounds/perlin-dark-converted/perlin-dark-2048.jpg' 2x,
-	);
-	background-color: #181608;
+	background-color: #000000;
 	background-repeat: repeat;
 }
 html.light {
-	background-image: image-set(
-		'/backgrounds/perlin-light-converted/perlin-light-1024.avif' 1x,
-		'/backgrounds/perlin-light-converted/perlin-light-2048.avif' 2x,
-		'/backgrounds/perlin-light-converted/perlin-light-1024.webp' 1x,
-		'/backgrounds/perlin-light-converted/perlin-light-2048.webp' 2x,
-		'/backgrounds/perlin-light-converted/perlin-light-1024.jpg' 1x,
-		'/backgrounds/perlin-light-converted/perlin-light-2048.jpg' 2x,
-	);
-	background-color: #aaaaaa;
+	background-color: #d0d0d0;
 	background-repeat: repeat;
 }
 

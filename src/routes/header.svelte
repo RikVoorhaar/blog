@@ -4,7 +4,7 @@
 	const link_class = `dark:font-semibold hover:text-blue-500 transition-colors`;
 </script>
 
-<div class="flex flex-row gap-4 px-4 py-6 bg-white dark:bg-black mb-16">
+<div class="flex flex-row gap-4 px-4 py-6 bg-white dark:bg-zinc-800 mb-16">
 	<Darkmode />
 	<a
 		href="/"
@@ -17,10 +17,3 @@
 	<a class={link_class} href="/blog">Blog</a>
 	<a class={link_class} href="/cv">CV</a>
 </div>
-
-<div
-	class="bg-gradient-to-b dark:from-main-500 from-blue-200 from-20% -z-50 p-64 opacity-50 dark:opacity-100
-	absolute top-0 left-0 right-0
-	dark:mix-blend-overlay transition-colors
-	mix-blend-overlay"
-/>
