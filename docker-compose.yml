@@ -1,5 +1,3 @@
-version: "3"
-
 services:
   external:
     container_name: blog
@@ -13,7 +11,7 @@ services:
     restart: unless-stopped
     labels:
       - "traefik.enable=true"
-      - "traefik.http.routers.blog.rule=Host(`www.rikvoorhaar.com`)"
+      - "traefik.http.routers.blog.rule=Host(`blog2.rikvoorhaar.com`)"
       - "traefik.http.routers.blog.entrypoints=websecure"
       - "traefik.http.routers.blog.tls=true"
       - "traefik.http.routers.blog.tls.certresolver=myresolver"
