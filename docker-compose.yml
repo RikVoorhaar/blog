@@ -14,7 +14,6 @@ services:
       - "traefik.http.routers.blog.rule=Host(`blog2.rikvoorhaar.com`)"
       - "traefik.http.routers.blog.entrypoints=websecure"
       - "traefik.http.routers.blog.tls=true"
-      - "traefik.http.routers.blog.tls.certresolver=myresolver"
       - "traefik.http.services.blog.loadbalancer.server.port=3000"
     networks:
       - internal
