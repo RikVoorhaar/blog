@@ -20,7 +20,7 @@ jobs:
                   USERNAME: ${{ secrets.USERNAME }}
                   KEY: ${{ secrets.SSH_KEY }}
                   script: |
-                    cd /home/rik/blog
+                    cd /home/rik/infrastructure/blog
                     git pull origin main
                     docker compose build
                     docker compose down
