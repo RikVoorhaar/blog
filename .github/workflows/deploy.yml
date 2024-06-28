@@ -19,6 +19,7 @@ jobs:
                   host: ${{ secrets.HOST }}
                   USERNAME: ${{ secrets.USERNAME }}
                   KEY: ${{ secrets.SSH_KEY }}
+                  command_timeout: 60m
                   script: |
                     cd /home/rik/infrastructure/blog
                     git pull origin main
