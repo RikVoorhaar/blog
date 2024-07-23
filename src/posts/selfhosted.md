@@ -9,20 +9,6 @@ teaser: "selfhosted.svg"
 </script>
 
 
-Things to mention
-- [ ] My website
-- [ ] Cloud storage
-- [ ] Paperless
-- [ ] Backups
-- [ ] Cloudflare
-- [ ] VPS
-- [ ] Traefik
-- [ ] Bitwarden
-- [ ] Docker
-- [ ] Portainer
-- [ ] Github actions
-
-## Introduction
 <ImgSmall src="/blog/selfhosted/a-cloud-inside-a-house.svg">
 </ImgSmall>
 
@@ -32,7 +18,7 @@ Over time I have started to self-host more and more services. For most services 
 In this blog post, I'll give some details on how I have been managing my self-host stack, which you could use as a starting point to host some useful services yourself. First up are the actual services that I'm running:
 
 
-## Services
+## Which things am I now self-hosting?
 
 ### This website
 <ImgSmall src="/blog/selfhosted/the-letters-r-and-v.svg">
@@ -66,28 +52,62 @@ Recently I switched to Vaultwarden, a self-hosted alternative repository compatb
 <div class="clear-both"/>
 
 ### Paperless
-
 <ImgSmall src="/blog/selfhosted/a-book.svg">
 </ImgSmall>
+
+I have a bunch of important documents, like contracts, birth certificates, tax documents, etc. I had originally just put them in a folder structure in my cloud stotrage, but things can still be hard to find. 
+
+Paperless solves this problem by performing OCR on all documents (as well as supporting manual/automatic tags). All you documents are then just searchable, and it becomes incredible easy to find whatever document you're looking for. It also makes it very easy to share documents with other people. I only recently started to use it, but I think it's a great piece of software. 
 
 <div class="clear-both"/>
 
 ### Portainer
-
-
 <ImgSmall src="/blog/selfhosted/container-ship.svg">
 </ImgSmall>
 
+All my self-hosted services run on docker containers (more on that later), and it's really useful to have some tools to monitor the containers remotely. With portainer I can remotely see logs, CPU usage, and other stats. It also allows me to remotely restart a container. I would also be able to do this when SSH'ed into my server, but doing it via a web-browser can be much more convenient. 
+
+Portainer also has tools for deploying and launching the docker stack, but I haven't felt the need for that in my use case. 
+
 <div class="clear-both"/>
 
-### Matoma
+### Matomo
 
 <ImgSmall src="/blog/selfhosted/telescope.svg">
 </ImgSmall>
 
+Some time ago [I made an interactive dashboard](/blog/dashboard) to help understand the visitors to my site better. (Where are they from? How do they use the website? Which pages are more popular than others?). It turns out that this is a lot of work, and there are better solutions. I wanted something that is open source, and doesn't rely on cookies to track people.
+
+This leads to using `matomo` to gather and display usage information of this website. It can track also to some extend how people are using my website (e.g. how much time they spend on the website), which was not possible using just the HTTP access logs of the webiste. I can't say that I end up looking at the data very often, but it's nice to have.
+
 <div class="clear-both"/>
 
-## Hardware
+### What's next?
+
+<ImgSmall src="/blog/selfhosted/a-question-mark.svg">
+</ImgSmall>
+
+There are a lot more things I _could_ be self-hosting. But I just haven't gotten around to it yet. See also [awesome-selfhosted](https://github.com/awesome-selfhosted/awesome-selfhosted) for a large list of useful self-hosted projects. 
+
+- _Jellyfin_. Great media-streaming. I am fine for most of my media needs with YouTube+Netflix and Spotify, but occasionally I want to watch a movie or series that's not on there and its quite a hassle. With Jellyfin I download these and then stream them to _whatever_ device.
+- _Mail_. I am currently using gmail and outlook both as mail server and as web mail client. Since I have my own domain, I could host my own mail server and have an email address like `me@rikvoorhaar.com`. I could even buy the `voorhaar.com` domain (currently on sale for $900) and have `rik@voorhaar.com`. More importantly, I can use a single web-client for all my emails. Hopefully I can find one that supports `vim`-keybindings for writing emails. 
+- _AdGuard Home_. I can run a local DNS server that blocks ads automatically. One can do this with the well-known pi-hole service as well, but I had mixed results with that and got rid of it. I also hear that AdGuard Home is nowadays the better option.
+- _Photos_. 
+- Recipes (Mealie/KitchenOwl)
+- Shopping lists
+
+<div class="clear-both"/>
+
+## How does it all work?
+
+<ImgSmall src="/blog/selfhosted/road.svg">
+</ImgSmall>
+
+To run self-hosted services properly a bunch of infrastructure needs to be in place first. 
+
+<div class="clear-both"/>
+
+### Hardware
 <ImgSmall src="/blog/selfhosted/wrench.svg">
 </ImgSmall>
 
@@ -97,14 +117,7 @@ First, you need a device to run the services on. There are essentially two optio
 
 **Home server**: I bought a second-hand 2015 NUC locally, and upgraded it with more RAM and storage (using parts I had lying around). It has an interesting quirk where the BIOS doesn't support booting of the NVME storage I installed, and it needs to boot from USB or SATA. As a result, it has a USB stick permanently plugged in that will make it boot. Any mini-PC will do just fine because most self-host services are pretty lightweight. You don't even need to use a mini-PC, but since this is a device that's going to run 24/7, it's better to pick something power-efficient. You could use a Raspberry Pi or other mini-PC, but a second-hand device is probably the cheapest. 
 
-<div class="clear-both"/>
 
-## Infrastructure
-
-<ImgSmall src="/blog/selfhosted/road.svg">
-</ImgSmall>
-
-To run self-hosted services properly a bunch of infrastructure needs to be in place first. 
 
 <div class="clear-both"/>
 
