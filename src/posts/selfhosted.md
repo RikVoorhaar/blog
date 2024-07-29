@@ -13,9 +13,11 @@ teaser: "selfhosted.svg"
 </ImgSmall>
 
 
-Over time I have started to self-host more and more services. For most services there are paid alternatives that are better, and I don't really mind paying even. The main reason I like to self-host, is the fact that I learn something in the process. It is fun, and if it saves a buck in the process all the better. 
+Over time I have started to self-host more and more services. For most services, there are paid alternatives, and I don't mind paying even. The main reason I like to self-host is the experience I get from it. It is fun, and if it saves a buck in the process all the better. 
 
-In this blog post, I'll give some details on how I have been managing my self-host stack, which you could use as a starting point to host some useful services yourself. First up are the actual services that I'm running:
+In this blog post, I'll give some details on how I have been managing my self-host stack, which you could use as a starting point to host some useful services yourself. This is mostly a rant, but you'll find something useful here. 
+
+If you want to copy some of my setup, all of my (non-secret) configurations for my self-hosted services [are available on GitHub](https://github.com/RikVoorhaar/infrastructure).
 
 
 ## Which things am I now self-hosting?
@@ -24,19 +26,19 @@ In this blog post, I'll give some details on how I have been managing my self-ho
 <ImgSmall src="/blog/selfhosted/the-letters-r-and-v.svg">
 </ImgSmall>
 
-I made this website myself using `svelte`/`typescript`. The styling is done using Tailwind CSS. I got my icons from `lucide`. The blog posts are rendered from markdown using `mdsvex`, with the math rendered with `katex` and the code blocks using `shiki`. Finally, I'm using `node` inside of a `docker` container to do the actual hosting. It's not the best website you'll ever find, but it's mine and I like it. 
+I made this website myself using `svelte`/`typescript`. The styling is done using Tailwind CSS. I got my icons from `lucide`. The blog posts are rendered from markdown using `mdsvex`, with the math rendered with `katex` and the code blocks using `shiki`. Finally, I'm using `node` inside of a `docker` container to do the actual hosting. It's not the best website you'll ever find, but it's mine and I like it. You can find the source code for this website [here on GitHub](https://github.com/RikVoorhaar/blog).
 
 <div class="clear-both"/>
 
-### Nextcloud
+### Nextcloutd
 <ImgSmall src="/blog/selfhosted/a-cloud.svg">
 </ImgSmall>
 
-Cloud storage is one of the most useful to things to self-host. Not that I do not trust cloud storage providers with my data, but it is nice to have full control over my most important data. 
+Cloud storage is one of the most useful things to self-host. Not that I do not trust cloud storage providers with my data, but it is nice to have full control over my most important data. 
 
-I was using owncloud until recently, which works OK, but the client is a bit outdated and eats CPU cycles like a madman when syncing. I resolved part of that by cutting down on the number of files in my storage, but nextcloud is really just a more modern cloud storage system. It was originally forked from owncloud in fact, but is kept fully open source and has more features (that I don't really need). 
+I was using Owncloud until recently, which works OK, but the client is a bit outdated and eats CPU cycles like a madman when syncing. I resolved part of that by cutting down on the number of files in my storage, but Nextcloud is just a more modern cloud storage system. Nextcloud was originally forked from Owncloud but is kept fully open source and has more features (that I don't need). 
 
-It was surprisingly tricky to get working properly, and the documentation is a bit lacking. Still overall I do think it's an upgrade over owncloud. 
+It was surprisingly tricky to get working properly, and the documentation is a bit lacking. Still, overall I do think it's an upgrade over owncloud. 
 
 
 <div class="clear-both"/>
@@ -45,9 +47,9 @@ It was surprisingly tricky to get working properly, and the documentation is a b
 <ImgSmall src="/blog/selfhosted/a-shield.svg">
 </ImgSmall>
 
-Password managers are surprisingly tricky to get right. I've used LastPass and Keeper, and they're good paid services. I then switched to GNU pass, which is OK and has fantastic CLI tools, but the browser extensions suck and are hard to install and syncing is annoying (especially to my phone). 
+Password managers are surprisingly tricky to get right. I've used LastPass and Keeper, and they're good (but not free) services. I then switched to GNU pass, which is OK and has fantastic CLI tools, but the browser extensions suck and are hard to install and syncing is annoying (especially to my phone). 
 
-Recently I switched to Vaultwarden, a self-hosted alternative repository compatbile with Bitwarden. It is as good as the paid password managers, but gives me full control over the data. It was really easy to set up to. 
+Recently I switched to Vaultwarden, a self-hosted alternative repository compatible with Bitwarden. It is as good as the paid password managers but gives me full control over the data. It was really easy to set up too. 
 
 <div class="clear-both"/>
 
@@ -55,9 +57,9 @@ Recently I switched to Vaultwarden, a self-hosted alternative repository compatb
 <ImgSmall src="/blog/selfhosted/a-book.svg">
 </ImgSmall>
 
-I have a bunch of important documents, like contracts, birth certificates, tax documents, etc. I had originally just put them in a folder structure in my cloud stotrage, but things can still be hard to find. 
+I have a bunch of important documents, like contracts, birth certificates, tax documents, etc. I had originally just put them in a folder structure in my cloud storage, but things can still be hard to find. 
 
-Paperless solves this problem by performing OCR on all documents (as well as supporting manual/automatic tags). All you documents are then just searchable, and it becomes incredible easy to find whatever document you're looking for. It also makes it very easy to share documents with other people. I only recently started to use it, but I think it's a great piece of software. 
+Paperless solves this problem by performing OCR on all documents (as well as supporting manual/automatic tags). All your documents are then just searchable, and it becomes incredibly easy to find whatever document you're looking for. It also makes it very easy to share documents with other people. I only recently started to use it, but I think it's a great piece of software. 
 
 <div class="clear-both"/>
 
@@ -65,7 +67,7 @@ Paperless solves this problem by performing OCR on all documents (as well as sup
 <ImgSmall src="/blog/selfhosted/container-ship.svg">
 </ImgSmall>
 
-All my self-hosted services run on docker containers (more on that later), and it's really useful to have some tools to monitor the containers remotely. With portainer I can remotely see logs, CPU usage, and other stats. It also allows me to remotely restart a container. I would also be able to do this when SSH'ed into my server, but doing it via a web-browser can be much more convenient. 
+All my self-hosted services run on docker containers (more on that later), and it's really useful to have some tools to monitor the containers remotely. With Portainer I can remotely see logs, CPU usage, and other stats. It also allows me to remotely restart a container. I would also be able to do this when SSH'ed into my server, but doing it via a web browser can be much more convenient. 
 
 Portainer also has tools for deploying and launching the docker stack, but I haven't felt the need for that in my use case. 
 
@@ -78,7 +80,7 @@ Portainer also has tools for deploying and launching the docker stack, but I hav
 
 Some time ago [I made an interactive dashboard](/blog/dashboard) to help understand the visitors to my site better. (Where are they from? How do they use the website? Which pages are more popular than others?). It turns out that this is a lot of work, and there are better solutions. I wanted something that is open source, and doesn't rely on cookies to track people.
 
-This leads to using `matomo` to gather and display usage information of this website. It can track also to some extend how people are using my website (e.g. how much time they spend on the website), which was not possible using just the HTTP access logs of the webiste. I can't say that I end up looking at the data very often, but it's nice to have.
+This leads to using `matomo` to gather and display usage information on this website. It can also track to some extent how people are using my website (e.g. how much time they spend on the website), which was not possible using just the HTTP access logs of the website. I can't say that I end up looking at the data very often, but it's nice to have.
 
 <div class="clear-both"/>
 
@@ -89,12 +91,12 @@ This leads to using `matomo` to gather and display usage information of this web
 
 There are a lot more things I _could_ be self-hosting. But I just haven't gotten around to it yet. See also [awesome-selfhosted](https://github.com/awesome-selfhosted/awesome-selfhosted) for a large list of useful self-hosted projects. 
 
-- _Jellyfin_. Great media-streaming. I am fine for most of my media needs with YouTube+Netflix and Spotify, but occasionally I want to watch a movie or series that's not on there and its quite a hassle. With Jellyfin I download these and then stream them to _whatever_ device.
-- _Mail_. I am currently using gmail and outlook both as mail server and as web mail client. Since I have my own domain, I could host my own mail server and have an email address like `me@rikvoorhaar.com`. I could even buy the `voorhaar.com` domain (currently on sale for $900) and have `rik@voorhaar.com`. More importantly, I can use a single web-client for all my emails. Hopefully I can find one that supports `vim`-keybindings for writing emails. 
-- _AdGuard Home_. I can run a local DNS server that blocks ads automatically. One can do this with the well-known pi-hole service as well, but I had mixed results with that and got rid of it. I also hear that AdGuard Home is nowadays the better option.
-- _Photos_. 
-- Recipes (Mealie/KitchenOwl)
-- Shopping lists
+- _Jellyfin_. Great media-streaming. I am fine for most of my media needs with YouTube+Netflix and Spotify, but occasionally I want to watch a movie or series that's not on there and it's quite a hassle. With Jellyfin I download these and then stream them to _whatever_ device.
+- _Mail_. I am currently using Gmail and Outlook both as a mail server and as a webmail client. Since I have my own domain, I could host my own mail server and have an email address like `me@rikvoorhaar.com`. I could even buy the `voorhaar.com` domain (currently on sale for $900) and have `rik@voorhaar.com`. More importantly, I can use a single web client for all my emails. Hopefully, I can find one that supports `vim`-keybindings for writing emails. 
+- _AdGuard Home_. I can run a local DNS server that blocks ads automatically. If set up properly, you shouldn't see any ads on any of your devices connected to your home network. One can do this with the well-known pi-hole service as well, but I had mixed results with that and got rid of it. I also hear that AdGuard Home is nowadays the better option.
+- _Photos_.  All my photos are stored in the Google cloud. This is super convenient; if I have a new phone all the photos I recorded on any of my previous phones are already on there. However, Google doesn't store the photos at the highest fidelity, so there is some loss. I honestly don't care too much about that, but at the same time syncing all my photos automatically to a photo storage service (such as the one that comes with Nextcloud), is not much work. 
+- _Recipes_. I know how to cook a lot of dishes for different cuisines. At the same time, I rarely actually do this. I tend to mostly cook the same foods, out of laziness and convenience. At some point, I had a spreadsheet with all the dishes that I knew how to cook together with some of the most important ingredients. Then when I had an ingredient, I would just look up what kind of dishes I could make with that to get inspired. I should be doing that again, and with self-hosted services like Mealie, KitchenOwl or RecipeSage that is possible. They have the option to search recipes by ingredients, and to add different links to recipes, or scrape instructions and ingredients from an online recipe. Sounds great, but does take a while to set up with >100 recipes. 
+- _Shopping Lists_. Even though I use Obsidian for most of my notes and to-do lists, there is one particular use case that just doesn't work well with it and that's shopping lists. To me, it's very important to be able to add items to my shopping list within a few seconds of opening my phone. It is equally important to mark items as done and remove them from the list when I'm in the shop at a similar speed. Right now I'm using Google Keep for that, and it's excellent. But Google products never last forever it seems, so I could use an alternative. Fortunately, both KitchenOwn and RecipeSage also have shopping list features (that even integrate with the recipe functionalities). That sounds like a great solution for me. 
 
 <div class="clear-both"/>
 
@@ -176,9 +178,20 @@ Self-hosting means keeping a lot of valuable data on a server. Anything can go w
 <ImgSmall src="/blog/selfhosted/workflow-diagram.svg">
 </ImgSmall>
 
+Whenever I want to update my website, I just want to make the required changes on the main git branch, and then my website should simply reflect those changes automatically. This automates the step of SSH'ing into the server, pulling the changes, building the website and restarting the containers. This can be done using services like GitHub Actions. You just have to create a configuration file specifying what scripts/commands to run whenever there is a push to the main branch. In this case, the command goes and SSH'es into my server, so it also requires a secret SSH key to be added. It should also be possible to have a service running on my server that serves as a webhook and runs a script whenever it gets a ping from GitHub. Honestly, however, SSH is much easier to set up and I suppose that I can trust GitHub enough with those secret credentials to my server. 
+
 <div class="clear-both"/>
 
 ### Healthchecks
 
 <ImgSmall src="/blog/selfhosted/stethoscope.svg">
 </ImgSmall>
+
+Services can fail, and for some services, I need to know about it as soon as possible and get notified. For example, if my website is down, then I want to receive a notification so that I can investigate the issue. This is however quite unlikely to fail, and also quite visible if it goes down. The most important service that I must be sure I can rely on is my backups. This is also because it is the least visible if it does fail. To monitor my backups I'm using `healthchecks.io`. My backup scripts send a ping to a specific URL when starting a backup, and another ping when they fail or succeed. Backups should run every two hours, so if no ping is received for a few hours (or a ping indicating an unsuccessful backup) then I immediately get an email. Because this is hosted by a third party, it is quite reliable. I could self-host such a thing as well, but this is inherently less reliable. For example, if I host such a service on my home server and a backup fails because my home server is turned off, then I will never know about it. 
+
+Ideally, I should also get notified if any of my containers are down, specific services are down, or if either of my two servers is down. I haven't set that up yet, however. 
+
+
+## Conclusions
+
+Self-hosting services can be fun, save money and be a great way to learn. I learned about a lot of different technologies in this process. It is also a big time sink, and I have spent more hours on this than I initially intended. It's certainly not for everyone, but I don't regret doing what I did either. 
