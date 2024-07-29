@@ -91,25 +91,35 @@ This leads to using `matomo` to gather and display usage information on this web
 
 There are a lot more things I _could_ be self-hosting. But I just haven't gotten around to it yet. See also [awesome-selfhosted](https://github.com/awesome-selfhosted/awesome-selfhosted) for a large list of useful self-hosted projects. 
 
-- _Jellyfin_. Great media-streaming. I am fine for most of my media needs with YouTube+Netflix and Spotify, but occasionally I want to watch a movie or series that's not on there and it's quite a hassle. With Jellyfin I download these and then stream them to _whatever_ device.
-- _Mail_. I am currently using Gmail and Outlook both as a mail server and as a webmail client. Since I have my own domain, I could host my own mail server and have an email address like `me@rikvoorhaar.com`. I could even buy the `voorhaar.com` domain (currently on sale for $900) and have `rik@voorhaar.com`. More importantly, I can use a single web client for all my emails. Hopefully, I can find one that supports `vim`-keybindings for writing emails. 
-- _AdGuard Home_. I can run a local DNS server that blocks ads automatically. If set up properly, you shouldn't see any ads on any of your devices connected to your home network. One can do this with the well-known pi-hole service as well, but I had mixed results with that and got rid of it. I also hear that AdGuard Home is nowadays the better option.
-- _Photos_.  All my photos are stored in the Google cloud. This is super convenient; if I have a new phone all the photos I recorded on any of my previous phones are already on there. However, Google doesn't store the photos at the highest fidelity, so there is some loss. I honestly don't care too much about that, but at the same time syncing all my photos automatically to a photo storage service (such as the one that comes with Nextcloud), is not much work. 
-- _Recipes_. I know how to cook a lot of dishes for different cuisines. At the same time, I rarely actually do this. I tend to mostly cook the same foods, out of laziness and convenience. At some point, I had a spreadsheet with all the dishes that I knew how to cook together with some of the most important ingredients. Then when I had an ingredient, I would just look up what kind of dishes I could make with that to get inspired. I should be doing that again, and with self-hosted services like Mealie, KitchenOwl or RecipeSage that is possible. They have the option to search recipes by ingredients, and to add different links to recipes, or scrape instructions and ingredients from an online recipe. Sounds great, but does take a while to set up with >100 recipes. 
-- _Shopping Lists_. Even though I use Obsidian for most of my notes and to-do lists, there is one particular use case that just doesn't work well with it and that's shopping lists. To me, it's very important to be able to add items to my shopping list within a few seconds of opening my phone. It is equally important to mark items as done and remove them from the list when I'm in the shop at a similar speed. Right now I'm using Google Keep for that, and it's excellent. But Google products never last forever it seems, so I could use an alternative. Fortunately, both KitchenOwn and RecipeSage also have shopping list features (that even integrate with the recipe functionalities). That sounds like a great solution for me. 
+#### Jellyfin
+Great media-streaming. I am fine for most of my media needs with YouTube+Netflix and Spotify, but occasionally I want to watch a movie or series that's not on there and it's quite a hassle. With Jellyfin I download these and then stream them to _whatever_ device.
+
+#### Mail
+I am currently using Gmail and Outlook both as a mail server and as a webmail client. Since I have my own domain, I could host my own mail server and have an email address like `me@rikvoorhaar.com`. I could even buy the `voorhaar.com` domain (currently on sale for $900) and have `rik@voorhaar.com`. More importantly, I can use a single web client for all my emails. Hopefully, I can find one that supports `vim`-keybindings for writing emails. 
+
+#### AdGuard Home
+I can run a local DNS server that blocks ads automatically. If set up properly, you shouldn't see any ads on any of your devices connected to your home network. One can do this with the well-known pi-hole service as well, but I had mixed results with that and got rid of it. I also hear that AdGuard Home is nowadays the better option.
+
+#### Photos
+All my photos are stored in the Google cloud. This is super convenient; if I have a new phone all the photos I recorded on any of my previous phones are already on there. However, Google doesn't store the photos at the highest fidelity, so there is some loss. I honestly don't care too much about that, but at the same time syncing all my photos automatically to a photo storage service (such as the one that comes with Nextcloud), is not much work. 
+
+#### Recipes
+I know how to cook a lot of dishes for different cuisines. At the same time, I rarely actually do this. I tend to mostly cook the same foods, out of laziness and convenience. At some point, I had a spreadsheet with all the dishes that I knew how to cook together with some of the most important ingredients. Then when I had an ingredient, I would just look up what kind of dishes I could make with that to get inspired. I should be doing that again, and with self-hosted services like Mealie, KitchenOwl or RecipeSage that is possible. They have the option to search recipes by ingredients, and to add different links to recipes, or scrape instructions and ingredients from an online recipe. Sounds great, but does take a while to set up with >100 recipes. 
+
+#### Shopping Lists
+Even though I use Obsidian for most of my notes and to-do lists, there is one particular use case that just doesn't work well with it and that's shopping lists. To me, it's very important to be able to add items to my shopping list within a few seconds of opening my phone. It is equally important to mark items as done and remove them from the list when I'm in the shop at a similar speed. Right now I'm using Google Keep for that, and it's excellent. But Google products never last forever it seems, so I could use an alternative. Fortunately, both KitchenOwn and RecipeSage also have shopping list features (that even integrate with the recipe functionalities). That sounds like a great solution for me. 
 
 <div class="clear-both"/>
 
 ## How does it all work?
 
-<ImgSmall src="/blog/selfhosted/road.svg">
-</ImgSmall>
 
 To run self-hosted services properly a bunch of infrastructure needs to be in place first. 
 
 <div class="clear-both"/>
 
 ### Hardware
+
 <ImgSmall src="/blog/selfhosted/wrench.svg">
 </ImgSmall>
 
@@ -118,8 +128,6 @@ First, you need a device to run the services on. There are essentially two optio
 **VPS**: I'm using Contabo as a VPS. I have been using them for a while, and I can't find anything cheaper with similar specs. Their current cheapest offer is just €4.50/m for a server with 4 cores, 6GB RAM, 400GB SSD storage, and (practically) unlimited traffic. For the things that I'm doing this is more than enough.
 
 **Home server**: I bought a second-hand 2015 NUC locally, and upgraded it with more RAM and storage (using parts I had lying around). It has an interesting quirk where the BIOS doesn't support booting of the NVME storage I installed, and it needs to boot from USB or SATA. As a result, it has a USB stick permanently plugged in that will make it boot. Any mini-PC will do just fine because most self-host services are pretty lightweight. You don't even need to use a mini-PC, but since this is a device that's going to run 24/7, it's better to pick something power-efficient. You could use a Raspberry Pi or other mini-PC, but a second-hand device is probably the cheapest. 
-
-
 
 <div class="clear-both"/>
 
