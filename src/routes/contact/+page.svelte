@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { AtSign, MapPin, Github, Building } from 'lucide-svelte';
+	import { AtSign, MapPin, Github, Building, Linkedin } from 'lucide-svelte';
 	import SmallContainer from '$lib/components/SmallContainer.svelte';
 
 	import ContactItem from '$lib/components/contact/ContactItem.svelte';
@@ -19,5 +19,8 @@
 	</ContactItem>
 	<ContactItem type="work" content="Grazper" href="https://grazper.com">
 		<Building class={iconClass} size={iconSize} />
+	</ContactItem>
+	<ContactItem type="linkedin" content="Rik Voorhaar" href="https://linkedin.com/in/rik-voorhaar">
+		<Linkedin class={iconClass} size={iconSize} />
 	</ContactItem>
 </SmallContainer>

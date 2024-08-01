@@ -9,6 +9,7 @@
 	import Publication from '$lib/components/cv/Publication.svelte';
 	import OpenSource from '$lib/components/cv/OpenSource.svelte';
 	import SectionHeader from '$lib/components/cv/SectionHeader.svelte';
+	import ExperienceBulletpoint from '$lib/components/cv/ExperienceBulletpoint.svelte';
 </script>
 
 <Container
@@ -19,31 +20,21 @@
 	<Experience
 		data={{
 			date_start: 'January 2023',
-			date_end: '',
+			date_end: 'Current',
 			position: 'Software Developer',
 			employer: 'Grazper Technologies',
 			image: '/cv/grazper_circle.svg'
 		}}
 	>
-		<p>
-			Developed an augmented reality system using real-time 3d pose estimation to display holograms
-			on a screen from the correct 3d perspective of a person standing next to it. This is a full
-			stack project, with frontends for calibration procedures and displaying holograms, and
-			backends for interfacing with hardware and numerical algorithms.
-		</p>
+	<ExperienceBulletpoint>Responsible for staying up-to-date with machine learning literature and using this to drive innovation in our products.</ExperienceBulletpoint>
+	<ExperienceBulletpoint>Spearheaded a project for integrating skeleton-based action recognition into the company's product. Performed extensive research, and identified the most viable strategy for implementation.</ExperienceBulletpoint>
+	<ExperienceBulletpoint>Developed benchmarking tools to measure real-life performance of human pose recognition models to determine the best model for the company's use case. This led the identification of better models and a deeper understanding of the product's limitations. </ExperienceBulletpoint>
+	<ExperienceBulletpoint>Invented a novel method for calibrating multi-camera systems, improving accuracy and user-experience, and leading to a patent application.</ExperienceBulletpoint>
+	<ExperienceBulletpoint>Developed a service broker and launching system, with capabilities to monitor and log services. This is now a core part of the product and drastically improved developer experience. </ExperienceBulletpoint>
+	<ExperienceBulletpoint>Maintained and upgraded Jenkins CI/CD pipelines, improving development experience on all the company's Python projects.</ExperienceBulletpoint>
+	<ExperienceBulletpoint>Maintained and improved core systems for deployment of human pose recognition. </ExperienceBulletpoint>
+	<ExperienceBulletpoint>Created a holographic augmented reality system using head tracking and a projector to display a 3D scene from the user's perspective.</ExperienceBulletpoint>
 
-		<p>
-			Developed a 'service broker' system for monitoring and launching all our services, and to
-			allow services to find each other. This system makes it much easier to start up and develop
-			product demos, as well as providing a convenient place to monitor running servces. The backend
-			uses a combination of our own network stack, together with FastAPI, and the frontend is
-			developed in Svelte with Tailwind CSS.
-		</p>
-
-		<p>
-			Maintained and upgraded the Jenkins CI/CD pipeline, improving the workflow for all our Python
-			projects.
-		</p>
 	</Experience>
 	<Experience
 		data={{
@@ -54,19 +45,11 @@
 			image: '/cv/fac_sciences_pant.svg'
 		}}
 	>
-		<p>
-			Performed research in applied mathematics after first studying pure mathematics for 2 years.
-			Focussed on advanced numerical optimization algorithms, particularly for tensors and their
-			applications to machine learning. Developed 3 high-quality numerical software libraries in
-			Python and contributed to 2 open-source projects as part of several research projects
-			resulting in 4 manuscripts.
-		</p>
 
-		<p>
-			Taught 3 courses per year as an assistant, receiving consistently positive feedback from
-			students for clear solutions and lectures. Designed Python programming homework using Jupyter
-			and unit tests for 5 courses well-received by both students and teaching staff.
-		</p>
+    <ExperienceBulletpoint>Initially started a PhD in pure mathematics, later transitioning to applied mathematics (numerical linear algebra).</ExperienceBulletpoint>
+    <ExperienceBulletpoint>Authored 5 papers during PhD, of which 4 have accompanying Python codebases. One paper is in pure mathematics, two in computational algebra, one on numerical linear algebra, and one on machine learning.</ExperienceBulletpoint>
+    <ExperienceBulletpoint>Taught 3 courses per year as an assistant, receiving consistent positive feedback from students.</ExperienceBulletpoint>
+    <ExperienceBulletpoint>Helped as a scientific editor of a science communication journal.</ExperienceBulletpoint>
 	</Experience>
 
 	<SectionHeader>Education</SectionHeader>
@@ -164,43 +147,6 @@
 		}}
 	/>
 
-	<SectionHeader>Online courses</SectionHeader>
-	<Education
-		data={{
-			date_start: '2021/02',
-			entry: [
-				{
-					title: 'Neuroscience and Neuroimaging Specialization',
-					university: 'John Hopkins University',
-					note: '<a href="https://www.coursera.org/account/accomplishments/specialization/REWS86DYU496">Coursera certificate </a>'
-				}
-			]
-		}}
-	/>
-	<Education
-		data={{
-			date_start: '2020/09',
-			entry: [
-				{
-					title: 'Genomic Datascience Specialization',
-					university: 'John Hopkins University',
-					note: '<a href="https://www.coursera.org/account/accomplishments/specialization/NYQNJVCT7XV3">Coursera certificate </a>'
-				}
-			]
-		}}
-	/>
-	<Education
-		data={{
-			date_start: '2019/08',
-			entry: [
-				{
-					title: 'Advanced Machine Learning Specialization',
-					university: 'Higher School of Economics',
-					note: '<a href="https://www.coursera.org/account/accomplishments/specialization/5BM8U5DJJCJN">Coursera certificate </a>'
-				}
-			]
-		}}
-	/>
 
 	<SectionHeader>Publications</SectionHeader>
 	<Publication
@@ -309,6 +255,43 @@
 			url: 'https://scipy.org/',
 			title: 'scipy',
 			info: `Fixed a bug preventing <tt>scipy.linalg.lu_factor</tt> only accepting square matrices. Additionally discovered performance issues with the implementation of the matrix logarithm <tt>scipy.linalg.logm</tt>.`
+		}}
+	/>
+	<SectionHeader>Online courses</SectionHeader>
+	<Education
+		data={{
+			date_start: '2021/02',
+			entry: [
+				{
+					title: 'Neuroscience and Neuroimaging Specialization',
+					university: 'John Hopkins University',
+					note: '<a href="https://www.coursera.org/account/accomplishments/specialization/REWS86DYU496">Coursera certificate </a>'
+				}
+			]
+		}}
+	/>
+	<Education
+		data={{
+			date_start: '2020/09',
+			entry: [
+				{
+					title: 'Genomic Datascience Specialization',
+					university: 'John Hopkins University',
+					note: '<a href="https://www.coursera.org/account/accomplishments/specialization/NYQNJVCT7XV3">Coursera certificate </a>'
+				}
+			]
+		}}
+	/>
+	<Education
+		data={{
+			date_start: '2019/08',
+			entry: [
+				{
+					title: 'Advanced Machine Learning Specialization',
+					university: 'Higher School of Economics',
+					note: '<a href="https://www.coursera.org/account/accomplishments/specialization/5BM8U5DJJCJN">Coursera certificate </a>'
+				}
+			]
 		}}
 	/>
 </Container>

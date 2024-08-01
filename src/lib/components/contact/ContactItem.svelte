@@ -4,7 +4,7 @@
 	export let href: string | undefined = undefined;
 </script>
 
-<p>
+<p class="mb-1">
 	<span class=" dark:text-green-500 text-green-600 mr-1"><slot /></span>
 	<span class="dark:text-main-500 text-main-700 font-semibold">{type}</span>:
 	{#if href}
