@@ -56,7 +56,15 @@ The language also has a notion of scalars such as `1` as opposed to a tensor `[1
 
 An important feature is the reduction operator `/` which has signature `Fn(N,N->N), T -> N`. For example `/+ a` reduces the addition operator to a summation operator, and thus computes the sum of `a`.
 
-> _TODO_ notes about `ijzer::Tensor` and array broadcasting
+The shape of the result of an operation is determined using shape broadcasting [just like in NumPy](https://numpy.org/doc/stable/user/basics.broadcasting.html). For example,
+```
+a = randn [1, 6]
+b = randn [3, 1]
+c = * a b  // Has shape [3, 6]
+```
+
+Broadcasting is a very powerful heuristic to allow applying operations to tensors of different shapes and get intuitive results out.
+
 
 ### How to use `ij`
 
