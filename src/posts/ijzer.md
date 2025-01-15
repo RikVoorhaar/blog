@@ -1,7 +1,7 @@
 ---
 layout: posts
 title: 'Introducing the IJ Programming Language'
-date: '2025-01-20'
+date: '2025-01-15'
 categories: coding
 excerpt: 'I made an array programming language as a language extension to Rust'
 teaser: 'ijzer.svg'
