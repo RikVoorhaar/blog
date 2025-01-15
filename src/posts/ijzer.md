@@ -7,6 +7,8 @@ excerpt: 'I made an array programming language as a language extension to Rust'
 teaser: 'ijzer.svg'
 ---
 
+![IJ logo](/blog/ijzer/ijzer.svg)
+
 Though I have never really used any, I've always been fascinated by the concept of array programming languages like APL, BQN, and J.  
 What I don't like about those languages is that they are meant to be standalone languages, not really integrating well into existing projects. Some problems are beautifully solved by array programming languages, but many things are not.
 
