@@ -257,7 +257,8 @@ To summarize the potential advantages of TTML, consider the following three grap
 
 Based on the results shown in the graphs, it is clear that the TTML model has a significant advantage over other models in terms of size and speed. It is much smaller and faster than other models while maintaining a similar level of test error. However, it is important to note that the performance of the TTML model may depend on the specific dataset used, and in many practical machine learning problems, its test error may not be as impressive as in the experiment shown. That being said, if speed is a crucial factor in a particular application, the TTML model can be a very competitive option.
 
-## Randomized linear algebra
+## Randomized linear algebra <a name="randomized-linear-algebra"></a>
+
 
 ![A train](/blog/thesis/chapter3-2_compressed.webp)
 
