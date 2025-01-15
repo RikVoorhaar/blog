@@ -166,16 +166,49 @@ The `ijzer` macro just panics whenever it encounters an error. There is a basic 
 
 The generated code is also not very human readable, but that's fairly normal when transpiling code from one language into another. Still, some effort can be made to make it easier for humans to debug.
 
-## Thoughts on a future language
 
 ## Technical aspects
 
+Let's now dive a bit deeper in how my implementation of the `ij` language works. 
+
 ### The `ijzer::Tensor` object
 
-### Technical design of macro
+The primitive types of `ij` are tensors and scalars. As you can imagine with a programming language like this, the implementation of the tensor type is pretty important. I opted to go for my own type as opposed to ones existing in other libraries for flexibility. The tensor type is a simple struct defined like this:
+```rust
+pub struct Tensor<T: TensorElement> {
+    data: Box<[T]>,
+    shape: Vec<usize>,
+    strides: Vec<usize>,
+}
+```
+The `Box<[T]>` is just a pointer to the heap with an array of elements of type `T`, which are restricted to be `TensorElement` (which is just any numerical type that can be cloned and supports partial ordering). 
+The struct then in addition to the `data` stores a shape (the shape of the tensor) as a vector of `usize` elements, and the `strides` as a `Vec<usize>`. The stride tell you if you increment one axis, how much you should increment the index into the `data` array. This is necessary to translate usual multi-indexes into an index into the `data` array. For example, if you have a `(4, 6)` matrix, then it has strides `(6,1)`. If we want to access entry `[2,3]` of the matrix, then we need to access `data[2*6+3*1]=data[15]`. 
+
+Usually you would create a `Tensor` using one of the creation operators, such as `Tensor::from_vec`, `Tensor::randn` or `Tensor::zeros`:
+```rust
+let input = vec![
+    1.0, 2.0, 3.0, 4.0, 5.0, 6.0, 7.0, 8.0, 9.0, 10.0, 11.0, 12.0,
+];
+let tensor1 = Tensor::from_vec(input.clone(), Some(vec![4, 3]));
+let tensor2 = Tensor::randn(&[2,3]);
+let tensor3 = Tensor::zeros(&[4,5,2]);
+```
+
+To manipulate tensor you can then use for example `Tensor::map`  which takes a function `T->T` and applies it to all elements, or `Tensor::apply_binary_op` which takes a function `T,T->T ` and another `Tensor<T>` and applies the operation to the two tensors (with shape broadcasting). For example:
+```rust
+let tensor1 = Tensor::<f64>::randn(&[2,3]); 
+let tensor2 = tensor1::map(|x| x*x); // Squares all the elements
+let tensor3 = Tensor::<f64>::ones(&[1,3]);
+let tensor4 = tensor2::apply_binary_op(&tensor3, |x, y| x+y)?; // Adds tensor2 and tensor3
+```
+It might make sense to also define an operation like `tensor2+tensor3` directly. The reaosn I didn't do that it is more convenient to use these more generic functions when generating code with `ijzer`. 
 
 ### How the parser works
 
 ### How the compiler works
+
+### Technical design of macro
+
+## Thoughts on a future language
 
 ## Concluding remarks
