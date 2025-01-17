@@ -17,4 +17,4 @@ jobs:
       - name: Build
         run: |
           docker build -t blog:latest .
-          docker push ghcr.io/RikVoorhaar/blog:latest
+          docker push ghcr.io/rikvoorhaar/blog:latest
