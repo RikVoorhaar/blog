@@ -34,7 +34,7 @@ jobs:
 
   deploy:
     needs: build
-    runs-on: [self-hosted, blog-runner]
+    runs-on: [self-hosted, blog-hoster]
     steps:
       - name: Checkout repository
         uses: actions/checkout@v3
