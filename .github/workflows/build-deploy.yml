@@ -31,3 +31,19 @@ jobs:
           file: Dockerfile
           push: true
           tags: ghcr.io/rikvoorhaar/blog:latest
+
+  deploy:
+    needs: build
+    runs-on: [self-hosted, blog-runner]
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v3
+
+      - name: Pull latest Docker image
+        run: docker pull ghcr.io/rikvoorhaar/blog:latest
+
+      - name: Deploy Containers
+        run: |
+          docker compose down
+          docker compose up -d
+      
