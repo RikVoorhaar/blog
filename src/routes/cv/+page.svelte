@@ -21,20 +21,59 @@
 		data={{
 			date_start: 'January 2023',
 			date_end: 'Current',
-			position: 'Software Developer',
+			position: 'Computer Vision Engineer',
 			employer: 'Grazper Technologies',
 			image: '/cv/grazper_circle.svg'
 		}}
 	>
-	<ExperienceBulletpoint>Responsible for staying up-to-date with machine learning literature and using this to drive innovation in our products.</ExperienceBulletpoint>
-	<ExperienceBulletpoint>Spearheaded a project for integrating skeleton-based action recognition into the company's product. Performed extensive research, and identified the most viable strategy for implementation.</ExperienceBulletpoint>
-	<ExperienceBulletpoint>Developed benchmarking tools to measure real-life performance of human pose recognition models to determine the best model for the company's use case. This led the identification of better models and a deeper understanding of the product's limitations. </ExperienceBulletpoint>
-	<ExperienceBulletpoint>Invented a novel method for calibrating multi-camera systems, improving accuracy and user-experience, and leading to a patent application.</ExperienceBulletpoint>
-	<ExperienceBulletpoint>Developed a service broker and launching system, with capabilities to monitor and log services. This is now a core part of the product and drastically improved developer experience. </ExperienceBulletpoint>
-	<ExperienceBulletpoint>Maintained and upgraded Jenkins CI/CD pipelines, improving development experience on all the company's Python projects.</ExperienceBulletpoint>
-	<ExperienceBulletpoint>Maintained and improved core systems for deployment of human pose recognition. </ExperienceBulletpoint>
-	<ExperienceBulletpoint>Created a holographic augmented reality system using head tracking and a projector to display a 3D scene from the user's perspective.</ExperienceBulletpoint>
-
+		<ExperienceBulletpoint
+			>Filed 3 patent applications and owned dataset/model licensing compliance — including
+			identifying a licensing issue tainting training data and derived models, and driving a
+			full re-annotation remediation.</ExperienceBulletpoint
+		>
+		<ExperienceBulletpoint
+			>Designed a multi-camera 3D pose auto-annotation pipeline: cross-camera association,
+			uncertainty-weighted triangulation in JAX, and optimisation-based temporal filtering. Over
+			95% of frames met or exceeded human annotation quality on many sequences.</ExperienceBulletpoint
+		>
+		<ExperienceBulletpoint
+			>Patched YOLO26 and RTMO to expose per-keypoint uncertainty at inference; calibrated raw
+			outputs to pixel-scale errors for downstream 3D reconstruction.</ExperienceBulletpoint
+		>
+		<ExperienceBulletpoint
+			>Built an internal MLOps platform over PostgreSQL — deterministic, cached, distributed
+			component execution powering annotation, evaluation, and training-data pipelines.</ExperienceBulletpoint
+		>
+		<ExperienceBulletpoint
+			>Owned pose-model training end-to-end: custom dataset loaders, augmentations, and
+			fine-tuning for production conditions.</ExperienceBulletpoint
+		>
+		<ExperienceBulletpoint
+			>Built full-stack internal tools (Python + Svelte): a multi-camera ArUco calibration tool
+			(sub-cm accuracy at 5–10 m, patent filed) and a microservice orchestration manager
+			UI.</ExperienceBulletpoint
+		>
+		<ExperienceBulletpoint
+			>Co-maintained core infrastructure as one of two go-to engineers: PostgreSQL, Docker,
+			GitHub Actions, Grafana, and MLflow.</ExperienceBulletpoint
+		>
+		<ExperienceBulletpoint
+			>Tracked CV/ML literature and presented internal deep-dives on pose estimation, tracking,
+			and monocular 3D methods.</ExperienceBulletpoint
+		>
+	</Experience>
+	<Experience
+		data={{
+			date_start: 'June 2021',
+			date_end: 'Current',
+			position: 'Senior Scientific Editor (volunteer)',
+			employer: 'The Science Breaker',
+			image: '/cv/tsb-logo-small.svg'
+		}}
+	>
+		<ExperienceBulletpoint
+			>Edit layperson summaries of peer-reviewed research for clarity and style.</ExperienceBulletpoint
+		>
 	</Experience>
 	<Experience
 		data={{
@@ -45,11 +84,18 @@
 			image: '/cv/fac_sciences_pant.svg'
 		}}
 	>
-
-    <ExperienceBulletpoint>Initially started a PhD in pure mathematics, later transitioning to applied mathematics (numerical linear algebra).</ExperienceBulletpoint>
-    <ExperienceBulletpoint>Authored 5 papers during PhD, of which 4 have accompanying Python codebases. One paper is in pure mathematics, two in computational algebra, one on numerical linear algebra, and one on machine learning.</ExperienceBulletpoint>
-    <ExperienceBulletpoint>Taught 3 courses per year as an assistant, receiving consistent positive feedback from students.</ExperienceBulletpoint>
-    <ExperienceBulletpoint>Helped as a scientific editor of a science communication journal.</ExperienceBulletpoint>
+		<ExperienceBulletpoint
+			>Pivoted from pure to applied mathematics ~2 years in. Thesis on low-rank tensor methods,
+			randomized linear algebra, and applications to machine learning.</ExperienceBulletpoint
+		>
+		<ExperienceBulletpoint
+			>Published 5 papers; 3 accompanied by open-source Python libraries (computational algebra,
+			numerical linear algebra, and machine learning).</ExperienceBulletpoint
+		>
+		<ExperienceBulletpoint
+			>Taught 3 courses per year as an assistant, receiving consistent positive feedback from
+			students.</ExperienceBulletpoint
+		>
 	</Experience>
 
 	<SectionHeader>Education</SectionHeader>
@@ -58,7 +104,7 @@
 		data={{
 			date_start: '2018/03',
 			date_end: '2022/12',
-			entry: [{ title: 'PhD in Mathematics', university: 'University of Geneva' }]
+			entry: [{ title: 'PhD in Applied Mathematics', university: 'University of Geneva' }]
 		}}
 	/>
 	<Education
@@ -75,8 +121,11 @@
 			date_start: '2012',
 			date_end: '2015',
 			entry: [
-				{ title: 'Bsc. Mathematics', university: 'Utrecht University', note: 'cum laude' },
-				{ title: 'Bsc. Physics and Astronomy', university: 'Utrecht University', note: 'cum laude' }
+				{
+					title: 'Bsc. Mathematics and Physics & Astronomy (double degree)',
+					university: 'Utrecht University',
+					note: 'cum laude'
+				}
 			]
 		}}
 	/>
@@ -85,36 +134,38 @@
 	<Skill
 		data={{
 			title: 'Languages',
-			skills: [
-				'Python',
-				'LaTeX',
-				'Mathematica',
-				'C/C++',
-				'HTML/CSS',
-				'Typescript/Javascript',
-				'Rust'
-			]
+			skills: ['Python', 'TypeScript/JavaScript', 'Rust', 'C/C++', 'SQL', 'LaTeX']
 		}}
 	/>
 
 	<Tool
 		data={{
-			title: 'Data science',
-			tools: ['Matplotlib', 'Pandas', 'Plotly', 'Polars', 'SQL', 'SQLAlchemy']
+			title: 'ML & CV',
+			tools: ['PyTorch', 'JAX', 'Ultralytics', 'ONNX', 'OpenCV', 'SciPy']
+		}}><BrainCog /></Tool
+	>
+
+	<Tool
+		data={{
+			title: 'Data',
+			tools: ['NumPy', 'pandas', 'polars', 'matplotlib', 'plotly']
 		}}><Database /></Tool
 	>
 
+	<Tool data={{ title: 'Backend & database', tools: ['FastAPI', 'Flask', 'PostgreSQL', 'SQLAlchemy'] }}
+		><Network /></Tool
+	>
+
 	<Tool data={{ title: 'Frontend', tools: ['Svelte', 'Tailwind'] }}><Layout /></Tool>
+
 	<Tool
-		data={{ title: 'Machine Learning', tools: ['OpenCV', 'PyTorch', 'Scikit-learn', 'XGboost'] }}
+		data={{
+			title: 'MLOps & infra',
+			tools: ['Docker', 'Linux', 'Git', 'GitHub Actions', 'Grafana', 'MLflow']
+		}}><LucideContainer /></Tool
 	>
-		<BrainCog /></Tool
-	>
-	<Tool data={{ title: 'Devops', tools: ['Docker', 'Git', 'Jenkins', 'Linux', 'Vim', 'VSCode'] }}
-		><LucideContainer /></Tool
-	>
-	<Tool data={{ title: 'Numerical', tools: ['CVXPY', 'Cython', 'Numpy', 'SciPy'] }}><Sigma /></Tool>
-	<Tool data={{ title: 'Networking', tools: ['FastAPI', 'Flask'] }}><Network /></Tool>
+
+	<Tool data={{ title: 'Numerical', tools: ['CVXPY', 'NumPy', 'SciPy'] }}><Sigma /></Tool>
 
 	<SectionHeader>Languages</SectionHeader>
 
@@ -129,24 +180,53 @@
 	<Skill
 		data={{
 			title: 'Intermediate (B1-B2)',
-			skills: ['French'],
-			icons: ['<span class="fi fi-fr"></span>']
+			skills: ['French', 'Danish'],
+			icons: ['<span class="fi fi-fr"></span>', '<span class="fi fi-dk"></span>']
 		}}
 	/>
 
 	<Skill
 		data={{
 			title: 'Basic (A1-A2)',
-			skills: ['Japanese', 'Russian', 'Spanish', 'Danish'],
+			skills: ['Japanese', 'Russian', 'Spanish'],
 			icons: [
 				'<span class="fi fi-jp "></span>',
 				'<span class="fi fi-ru"></span>',
-				'<span class="fi fi-es"></span>',
-				'<span class="fi fi-dk"></span>'
+				'<span class="fi fi-es"></span>'
 			]
 		}}
 	/>
 
+	<SectionHeader>Technical writing</SectionHeader>
+
+	<OpenSource
+		data={{
+			url: '/blog',
+			title: 'rikvoorhaar.com/blog — 19 technical posts',
+			info: `ML/CV, uncertainty quantification, numerical methods, and performance engineering.`
+		}}
+	/>
+	<OpenSource
+		data={{
+			url: '/blog/discrete_function_tensor',
+			title: 'Machine learning with discretized functions and tensors',
+			info: `Accessible explainer of the TTML paper — tensor trains for supervised machine learning.`
+		}}
+	/>
+	<OpenSource
+		data={{
+			url: '/blog/ukf',
+			title: 'Kalman filters and how I made them 20× faster using Rust',
+			info: `High-performance Unscented Kalman Filter in Rust/PyO3 for multi-camera tracking.`
+		}}
+	/>
+	<OpenSource
+		data={{
+			url: '/blog/deconvolution_part1',
+			title: 'Blind deconvolution (4-part series)',
+			info: `Wiener filtering, sparse image priors, Richardson–Lucy, and Bayesian blind deconvolution.`
+		}}
+	/>
 
 	<SectionHeader>Publications</SectionHeader>
 	<Publication
@@ -155,7 +235,7 @@
 			title:
 				'Tensor Train Approximations: Riemannian Methods, Randomized Linear Algebra and Applications to Machine Learning',
 			url: 'https://doi.org/10.13097/archive-ouverte/unige:166308',
-			info: `This is my PhD thesis, which is mostly an extended version of my two papers together with Bart Vandereycken, together with a comphrensive preliminaries section. You can also find slides for my oral defense <a href="https://github.com/RikVoorhaar/website/raw/master/jekyll/_data/presentation.pdf">by clicking here.</a>`
+			info: `This is my PhD thesis, which is mostly an extended version of my two papers together with Bart Vandereycken, together with a comprehensive preliminaries section. You can also find slides for my oral defense <a href="https://github.com/RikVoorhaar/website/raw/master/jekyll/_data/presentation.pdf">by clicking here.</a>`
 		}}
 	/>
 	<Publication
@@ -199,19 +279,12 @@
 	/>
 	<Publication
 		data={{
-			date: 'Ocrober 2018',
+			date: 'October 2018',
 			title: 'Parallel 2-transport and 2-group torsors',
 			url: 'https://arxiv.org/abs/1811.10060',
 			info: `This work is a continuation of my masters thesis. The idea is to study a toy model of principal 2-bundles and 2-transport by restricting to a stricter notion, where the fibers are all strict 2-groups. This allows to get some nice generalizations of the classical theory, which would be harder to proof in the more general setting.`
 		}}
 	/>
-	<!-- <Publication
-		data={{
-			date: 'February 2018 (master thesis)',
-			title: 'Higher Gauge Theory',
-			url: 'https://dspace.library.uu.nl/handle/1874/361953'
-		}}
-	/> -->
 
 	<SectionHeader>Open source contributions</SectionHeader>
 
