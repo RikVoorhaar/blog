@@ -88,3 +88,29 @@ html.light {
 	scrollbar-color: #9e2b2b #ffffff00;
 	scrollbar-width: 0.5rem;
 }
+
+/* Inline code (not inside pre/code blocks handled by Shiki) */
+:not(pre) > code {
+	font-family: ui-monospace, monospace;
+	font-weight: 600;
+	color: var(--color-lime-800, #3f6212);
+	margin-left: 0.25rem;
+	margin-right: 0.25rem;
+}
+
+:is(.dark) :not(pre) > code {
+	color: var(--color-lime-200, #d9f99d);
+}
+
+/* Dataframe table styles (from blog posts with pandas output) */
+.dataframe tbody tr th:only-of-type {
+	vertical-align: middle;
+}
+
+.dataframe tbody tr th {
+	vertical-align: top;
+}
+
+.dataframe thead th {
+	text-align: right;
+}

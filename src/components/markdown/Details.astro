@@ -1,0 +1,59 @@
+---
+interface Props {
+	summary: string;
+	id: string;
+}
+
+const { summary, id } = Astro.props;
+---
+
+<div class="my-4" data-details-id={id}>
+	<button
+		type="button"
+		class="flex align-top flex-auto italic font-semibold dark:hover:text-blue-400 hover:text-blue-800 transition-colors duration-500"
+		data-details-toggle
+	>
+		<span
+			class="inline-block transition-transform px-1 pl-0 my-1 rotate-90"
+			data-details-chevron
+		>
+			<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m9 18 6-6-6-6"/></svg>
+		</span>
+		{summary}
+	</button>
+	<div
+		class="hidden border-l-2 border-l-blue-700 pl-2 ml-2 my-0 py-0"
+		data-details-content
+	>
+		<slot />
+	</div>
+</div>
+
+<script>
+	function initDetails() {
+		document.querySelectorAll<HTMLElement>('[data-details-id]').forEach((container) => {
+			const id = container.dataset.detailsId!;
+			const toggle = container.querySelector<HTMLElement>('[data-details-toggle]')!;
+			const chevron = container.querySelector<HTMLElement>('[data-details-chevron]')!;
+			const content = container.querySelector<HTMLElement>('[data-details-content]')!;
+
+			// Restore state from localStorage
+			const stored = localStorage.getItem(`${id}-state`);
+			const hidden = stored !== null ? stored === 'true' : true;
+
+			if (!hidden) {
+				chevron.classList.remove('rotate-90');
+				content.classList.remove('hidden');
+			}
+
+			toggle.addEventListener('click', () => {
+				const isHidden = content.classList.toggle('hidden');
+				chevron.classList.toggle('rotate-90', isHidden);
+				localStorage.setItem(`${id}-state`, isHidden.toString());
+			});
+		});
+	}
+
+	initDetails();
+	document.addEventListener('astro:page-load', initDetails);
+</script>

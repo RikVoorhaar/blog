@@ -1,15 +1,10 @@
 ---
-layout: posts
 title:  "How do my music preferences evolve?"
 date:   "2020-08-12"
-categories: data-science music
+categories: [data-science, music]
 excerpt: "I use last.fm to track my music listening. Let's look at my data to discover how my musical preferences evolve over time."
 teaser: "lastfm.jpg"
 ---
-<script>
-    import Output from '$lib/components/markdown/Output.svelte'
-</script>
-
 Last.fm is a great tool to keep track of the music you listen to. It's also great for analysis!
 
 In this article I will discuss how to download your listening history, and to annotate the data with genre information
@@ -40,19 +35,6 @@ scrobbles.head()
 
 
 <div>
-<style scoped>
-    .dataframe tbody tr th:only-of-type {
-        vertical-align: middle;
-    }
-
-    .dataframe tbody tr th {
-        vertical-align: top;
-    }
-
-    .dataframe thead th {
-        text-align: right;
-    }
-</style>
 <table border="1" class="dataframe">
   <thead>
     <tr style="text-align: left;">
@@ -127,19 +109,6 @@ masters.head()
 
 
 <div>
-<style scoped>
-    .dataframe tbody tr th:only-of-type {
-        vertical-align: middle;
-    }
-
-    .dataframe tbody tr th {
-        vertical-align: top;
-    }
-
-    .dataframe thead th {
-        text-align: right;
-    }
-</style>
 <table border="1" class="dataframe">
   <thead>
     <tr style="text-align: left;">

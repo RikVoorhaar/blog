@@ -497,7 +497,7 @@ internal dep (vite@7.3.3).
 - The `@tailwindcss/typography` plugin is active via `@plugin` — `.prose` classes work
   out of the box with dark mode via `dark:prose-invert`.
 
-### Phase 3 — Blog posts (FIRST CONTENT STAGE)
+### Phase 3 — Blog posts (FIRST CONTENT STAGE) ✅ **COMPLETED**
 **Goal:** every blog post + the blog index render from content files.
 - Define the `blog` content collection + schema (§4.1); normalize `categories`/`date`.
 - Convert posts to `.mdx`; strip per-file `<script>import>` blocks.
@@ -517,6 +517,85 @@ internal dep (vite@7.3.3).
   count/JS bytes) so later phases — especially Sätteri in Phase 10 — have a real number
   to compare against.
 - **Builds:** `/blog` + all 20 `/blog/<slug>` pages with working code/math/components. ✅
+
+#### Phase 3 — Completion notes ✅ **COMPLETED**
+
+**Content collection** (`src/content.config.ts`):
+- Defined `blog` collection with `glob` loader (`**/*.mdx` in `./src/posts`)
+- Zod schema: `title` (string), `date` (coerced Date), `excerpt` (string), `teaser` (string), `categories` (string[]), `draft` (boolean, default false)
+- `.unpublish` files excluded automatically (glob only matches `.mdx`)
+
+**Post conversion** (22 posts: 20 published + 2 `.unpublish`):
+- Renamed all `.md` → `.mdx` (and `.md.unpublish` → `.mdx.unpublish`)
+- Stripped all `<script>` import blocks (9 posts had Svelte imports for Output/Details/ImgSmall)
+- Stripped all `<style scoped>` blocks (2 posts had dataframe table styles → moved to `app.css`)
+- Normalized frontmatter:
+  - Removed `layout: posts` (legacy SvelteKit layout field)
+  - Converted `categories: string` → `categories: [string, ...]` (YAML array)
+  - Fixed `first_post.md` date: `2020-06-19 14:19:44 +0200` → `"2020-06-19"`
+  - Fixed single-quoted strings in `ijzer.md` and `thesis.md` → double-quoted
+  - Added missing `categories: [website, tools]` to `selfhosted.md`
+
+**MDX math brace issue & resolution**:
+- **Problem:** MDX v3 (used by `@astrojs/mdx` 6.x) parses `{`/`}` inside `$$...$$` math blocks as JSX expressions, causing acorn parse errors ("Expecting Unicode escape sequence \uXXXX")
+- **Solution:** Two-step approach:
+  1. `escape-math-braces.mjs` — preprocessor that replaces `{`/`}` inside math blocks with null-byte placeholder tokens (`\x00LB\x00` / `\x00RB\x00`) that MDX ignores
+  2. `remark-unescape-math.mjs` — remark plugin (runs after `remark-math`) that restores `{`/`}` from placeholders in `math`/`inlineMath` AST nodes, so KaTeX receives proper LaTeX grouping braces
+- Both the `markdown.processor` and MDX (via `extendMarkdownConfig`) use this pipeline
+
+**MDX components** (`src/components/markdown/`):
+| Component | Source | Notes |
+|---|---|---|
+| `Output.astro` | Port of `Output.svelte` | Static component: "Output" header + styled `<pre>` with optional indent |
+| `Details.astro` | Port of `Details.svelte` | Client-interactive: uses inline `<script>` with `localStorage`, no framework dependency. SVG chevron replaces Lucide icon |
+| `a.astro` | Port of `a.svelte` | Styled link with Tailwind classes |
+| `img.astro` | Port of `img.svelte` | Centered image wrapper with rounded corners |
+| `blockquote.astro` | Port of `blockquote.svelte` | Styled blockquote with left border |
+| `ImgSmall.astro` | Port of `imgsmall.svelte` | Small right-floating image (used in `selfhosted.mdx`) |
+- `pre` and `code` intentionally NOT overridden — Shiki handles code blocks, CSS handles inline code (`.prose :not(pre) > code` in `app.css`)
+
+**Components passed to MDX** via `<Content components={{...}}/>` in `[...slug].astro`:
+`Output`, `Details`, `a` (→ A), `img` (→ Img), `blockquote` (→ Blockquote), `ImgSmall`
+
+**Routes created**:
+- `src/pages/blog/[...slug].astro` — dynamic route rendering all non-draft posts. Imports `render` from `astro:content` (Astro 6.x content layer API). Shows publish date + category pills in footer.
+- `src/pages/blog/index.astro` — blog listing sorted by date desc, uses `PostCardGallery`.
+
+**Ported components**:
+- `PostCard.astro` — port of `PostCard.svelte` with Tailwind gradient card, teaser image, formatted date, excerpt
+- `PostCardGallery.astro` — port of `PostCardGallery.svelte`, maps over posts into PostCards
+
+**Blog layout** (`src/layouts/BlogPostLayout.astro`):
+- Shared shell with header nav (Home, Blog), main content area with `.prose dark:prose-invert`, footer
+- Imports `app.css` + KaTeX CSS
+- Content wrapped in `<article class="prose ...">` for typography plugin
+
+**CSS additions** (`src/styles/app.css`):
+- Inline code styling: `:not(pre) > code` with lime colors (dark mode aware)
+- Dataframe table styles (from `lastfm.md` and `low_rank_matrix.md` `<style scoped>` blocks)
+
+**Build baseline** (SSG, 22 pages):
+| Metric | Value |
+|---|---|
+| Build time | 3.69s |
+| Output size | 2.2 MB (`dist/`) |
+| Pages | 22 (1 index + 20 posts + 1 blog index) |
+| JS payload | ~600 bytes inline (Details interactivity only) |
+| KaTeX fonts | 1.3 MB (`dist/_astro/`, 59 font files) |
+| Largest page | `ukf` (117 KB HTML) — 11 Shiki blocks + KaTeX math + 6 Details |
+| No framework JS | Zero framework runtime — pure SSG with inline scripts where needed |
+
+**Verified**:
+- ✅ Shiki highlighting: 11 `astro-code monokai` blocks in `ukf`
+- ✅ KaTeX math: renders correctly in all math-heavy posts (bayes_exam, deconvolution series, discrete_function_tensor, etc.)
+- ✅ Details component: 6 collapsible sections in `ukf`, localStorage persistence, SVG chevron
+- ✅ Output component: 3 outputs in `ukf`, 1 in `lastfm`
+- ✅ ImgSmall: 16 instances in `selfhosted`
+- ✅ Dataframe styles: present in `lastfm` output
+- ✅ Category pills: rendered in post footer
+- ✅ Teaser images: PostCard `src` paths preserved
+- ✅ Draft posts excluded: `music_2020.mdx.unpublish` and `test_post.mdx.unpublish` not built
+- ✅ Clean build: no warnings (after removing deprecated `mdx()` sub-options)
 
 ### Phase 4 — Site shell & core pages
 **Goal:** navigable site (landing, contact, header/footer, dark mode, 404).

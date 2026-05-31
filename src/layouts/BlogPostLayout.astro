@@ -1,0 +1,40 @@
+---
+import '../styles/app.css';
+import 'katex/dist/katex.min.css';
+
+interface Props {
+	title: string;
+	description: string;
+}
+
+const { title, description } = Astro.props;
+---
+
+<html lang="en">
+	<head>
+		<meta charset="utf-8" />
+		<link rel="icon" href="/favicon.ico" />
+		<meta name="viewport" content="width=device-width, initial-scale=1" />
+		<meta name="description" content={description} />
+		<title>{title} — Rik Voorhaar</title>
+	</head>
+	<body>
+		<div class="dark:text-white flex flex-col min-h-screen">
+			<header class="p-4 border-b border-gray-200 dark:border-gray-700">
+				<nav class="max-w-4xl mx-auto flex gap-6">
+					<a href="/" class="font-bold text-main-600 dark:text-main-500 hover:text-main-800 dark:hover:text-main-300 transition-colors">Rik Voorhaar</a>
+					<a href="/blog" class="text-gray-600 dark:text-gray-400 hover:text-main-600 dark:hover:text-main-500 transition-colors">Blog</a>
+				</nav>
+			</header>
+			<main class="flex-1 max-w-4xl mx-auto w-full p-4 sm:p-8">
+				<article class="prose dark:prose-invert prose-slate max-w-none prose-headings:scroll-mt-20">
+					<h1 class="text-3xl font-extrabold text-main-600 dark:text-main-500 not-prose mb-4">{title}</h1>
+					<slot />
+				</article>
+			</main>
+			<footer class="p-4 text-center text-sm text-gray-500 dark:text-gray-400 border-t border-gray-200 dark:border-gray-700">
+				&copy; {new Date().getFullYear()} Rik Voorhaar
+			</footer>
+		</div>
+	</body>
+</html>

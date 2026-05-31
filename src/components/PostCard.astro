@@ -1,0 +1,56 @@
+---
+import type { CollectionEntry } from 'astro:content';
+
+interface Props {
+	post: CollectionEntry<'blog'>;
+}
+
+const { post } = Astro.props;
+const teaserUrl = `/blog/teasers/original/${post.data.teaser}`;
+const date = post.data.date;
+const day = date.getDate();
+const month = new Intl.DateTimeFormat('en', { month: 'long' }).format(date);
+const year = date.getFullYear();
+const ordinal = (d: number): string => {
+	if (d > 3 && d < 21) return 'th';
+	switch (d % 10) {
+		case 1: return 'st';
+		case 2: return 'nd';
+		case 3: return 'rd';
+		default: return 'th';
+	}
+};
+---
+
+<div class="p-4 m-0 relative group w-[320px] shadow-lg">
+	<div
+		class="absolute inset-0 bg-gradient-to-r from-zinc-100 to-zinc-300 opacity-[.50] dark:opacity-[.60] dark:from-zinc-900 dark:to-zinc-800 group-hover:opacity-[.95] transition-opacity duration-500 rounded-xl"
+	></div>
+	<div class="relative z-10">
+		<div class="content-center py-2 pb-4">
+			<a href={`/blog/${post.id}`}>
+				<img
+					src={teaserUrl}
+					alt="teaser"
+					class="m-auto rounded-lg bg-white max-h-52 object-contain"
+				/>
+			</a>
+		</div>
+		<a
+			href={`/blog/${post.id}`}
+			class="text-xl font-extrabold leading-5 text-turbo-800 dark:text-turbo-500 hover:text-turbo-700 dark:hover:text-turbo-300 transition-colors tracking-wide"
+		>
+			{post.data.title}
+		</a>
+		<p class="text-sm">{day}{ordinal(day)} of {month}, {year}</p>
+		<p class="px-2 my-1 border-l-2 border-l-turbo-800 dark:border-l-turbo-500 leading-5">
+			{post.data.excerpt}
+			<a
+				href={`/blog/${post.id}`}
+				class="dark:text-main-300 dark:hover:text-main-100 text-main-700 hover:text-main-800 transition-colors"
+			>
+				read more ...
+			</a>
+		</p>
+	</div>
+</div>

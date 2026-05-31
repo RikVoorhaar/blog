@@ -1,0 +1,52 @@
+---
+import { getCollection, render } from 'astro:content';
+import BlogPostLayout from '../../layouts/BlogPostLayout.astro';
+import Output from '../../components/markdown/Output.astro';
+import Details from '../../components/markdown/Details.astro';
+import A from '../../components/markdown/a.astro';
+import Img from '../../components/markdown/img.astro';
+import Blockquote from '../../components/markdown/blockquote.astro';
+import ImgSmall from '../../components/markdown/ImgSmall.astro';
+
+export async function getStaticPaths() {
+	const posts = await getCollection('blog', ({ data }) => !data.draft);
+	return posts.map((post) => ({
+		params: { slug: post.id },
+		props: { post },
+	}));
+}
+
+const { post } = Astro.props;
+const { Content } = await render(post);
+---
+
+<BlogPostLayout title={post.data.title} description={post.data.excerpt}>
+	<Content
+		components={{
+			Output,
+			Details,
+			a: A,
+			img: Img,
+			blockquote: Blockquote,
+			ImgSmall,
+		}}
+	/>
+	<footer class="mt-12 pt-6 border-t border-gray-200 dark:border-gray-700 not-prose">
+		<p class="text-sm text-gray-500 dark:text-gray-400">
+			Published on {
+				post.data.date.toLocaleDateString('en', {
+					year: 'numeric',
+					month: 'long',
+					day: 'numeric',
+				})
+			}
+		</p>
+		<div class="flex flex-wrap gap-2 mt-2">
+			{post.data.categories.map((cat) => (
+				<span class="px-2 py-1 text-xs rounded-full bg-main-100 dark:bg-main-900 text-main-700 dark:text-main-300">
+					{cat}
+				</span>
+			))}
+		</div>
+	</footer>
+</BlogPostLayout>
