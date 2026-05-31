@@ -1,8 +1,6 @@
 import { defineConfig } from 'astro/config';
-import { unified } from '@astrojs/markdown-remark';
 import mdx from '@astrojs/mdx';
-import remarkMath from 'remark-math';
-import remarkUnescapeMath from './remark-unescape-math.mjs';
+import remarkMdxMath from './remark-mdx-math.mjs';
 import rehypeKatex from 'rehype-katex';
 import rehypeSlug from 'rehype-slug';
 import rehypeAutolinkHeadings from 'rehype-autolink-headings';
@@ -13,17 +11,18 @@ export default defineConfig({
 	output: 'static',
 	site: 'https://rikvoorhaar.com',
 
-	integrations: [mdx()],
-
-	markdown: {
-		processor: unified({
-			remarkPlugins: [remarkMath, remarkUnescapeMath],
+	integrations: [
+		mdx({
+			remarkPlugins: [remarkMdxMath],
 			rehypePlugins: [
 				[rehypeKatex, { fleqn: true, throwOnError: false }],
 				rehypeSlug,
 				rehypeAutolinkHeadings
 			]
-		}),
+		})
+	],
+
+	markdown: {
 		shikiConfig: {
 			theme: 'monokai'
 		}

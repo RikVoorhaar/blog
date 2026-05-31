@@ -537,65 +537,55 @@ internal dep (vite@7.3.3).
   - Added missing `categories: [website, tools]` to `selfhosted.md`
 
 **MDX math brace issue & resolution**:
-- **Problem:** MDX v3 (used by `@astrojs/mdx` 6.x) parses `{`/`}` inside `$$...$$` math blocks as JSX expressions, causing acorn parse errors ("Expecting Unicode escape sequence \uXXXX")
-- **Solution:** Two-step approach:
-  1. `escape-math-braces.mjs` — preprocessor that replaces `{`/`}` inside math blocks with null-byte placeholder tokens (`\x00LB\x00` / `\x00RB\x00`) that MDX ignores
-  2. `remark-unescape-math.mjs` — remark plugin (runs after `remark-math`) that restores `{`/`}` from placeholders in `math`/`inlineMath` AST nodes, so KaTeX receives proper LaTeX grouping braces
-- Both the `markdown.processor` and MDX (via `extendMarkdownConfig`) use this pipeline
+- **Problem:** MDX v3 parses `{`/`}` inside `$$...$$` math blocks as JSX expressions (acorn parse error). `remark-math` is incompatible with MDX v3 — it uses legacy `remark-parse` APIs not available in the MDX parser.
+- **Solution:** Custom `remark-mdx-math.mjs` plugin:
+  1. `escape-math-braces.mjs` — run once on all posts: replaces `{`/`}` inside `$$` blocks with null-byte placeholders that MDX ignores
+  2. `remark-mdx-math.mjs` — scans MDAST text nodes for `$$...$$`, creates `math`/`inlineMath` nodes with proper `data.hProperties.className`, restores `{`/`}` from placeholders
+  3. `rehype-katex` renders the math nodes normally
+- Remark/rehype plugins passed to `mdx({remarkPlugins, rehypePlugins})` — the `markdown.processor` extends to `.md` files but not `.mdx`
 
 **MDX components** (`src/components/markdown/`):
 | Component | Source | Notes |
 |---|---|---|
-| `Output.astro` | Port of `Output.svelte` | Static component: "Output" header + styled `<pre>` with optional indent |
-| `Details.astro` | Port of `Details.svelte` | Client-interactive: uses inline `<script>` with `localStorage`, no framework dependency. SVG chevron replaces Lucide icon |
-| `a.astro` | Port of `a.svelte` | Styled link with Tailwind classes |
-| `img.astro` | Port of `img.svelte` | Centered image wrapper with rounded corners |
-| `blockquote.astro` | Port of `blockquote.svelte` | Styled blockquote with left border |
-| `ImgSmall.astro` | Port of `imgsmall.svelte` | Small right-floating image (used in `selfhosted.mdx`) |
-- `pre` and `code` intentionally NOT overridden — Shiki handles code blocks, CSS handles inline code (`.prose :not(pre) > code` in `app.css`)
+| `Output.astro` | `Output.svelte` | "Output" header + styled `<pre>` with optional indent |
+| `Details.astro` | `Details.svelte` | Interactive: inline `<script>` with `localStorage`, SVG chevron icon |
+| `a.astro` | `a.svelte` | Styled link with Tailwind classes |
+| `img.astro` | `img.svelte` | Centered image wrapper |
+| `blockquote.astro` | `blockquote.svelte` | Styled blockquote with left border |
+| `ImgSmall.astro` | `imgsmall.svelte` | Small right-floating image (used in `selfhosted.mdx`) |
+- `pre` and `code` intentionally NOT overridden — Shiki handles code blocks, CSS handles inline code
 
-**Components passed to MDX** via `<Content components={{...}}/>` in `[...slug].astro`:
-`Output`, `Details`, `a` (→ A), `img` (→ Img), `blockquote` (→ Blockquote), `ImgSmall`
+**Routes**:
+- `src/pages/blog/[...slug].astro` — uses `render()` from `astro:content`, passes components to `<Content />`
+- `src/pages/blog/index.astro` — blog listing sorted by date desc, uses `PostCardGallery`
 
-**Routes created**:
-- `src/pages/blog/[...slug].astro` — dynamic route rendering all non-draft posts. Imports `render` from `astro:content` (Astro 6.x content layer API). Shows publish date + category pills in footer.
-- `src/pages/blog/index.astro` — blog listing sorted by date desc, uses `PostCardGallery`.
+**Ported components**: `PostCard.astro`, `PostCardGallery.astro`, `BlogPostLayout.astro`
 
-**Ported components**:
-- `PostCard.astro` — port of `PostCard.svelte` with Tailwind gradient card, teaser image, formatted date, excerpt
-- `PostCardGallery.astro` — port of `PostCardGallery.svelte`, maps over posts into PostCards
+**CSS additions** (`src/styles/app.css`): inline code styling, dataframe table styles
 
-**Blog layout** (`src/layouts/BlogPostLayout.astro`):
-- Shared shell with header nav (Home, Blog), main content area with `.prose dark:prose-invert`, footer
-- Imports `app.css` + KaTeX CSS
-- Content wrapped in `<article class="prose ...">` for typography plugin
-
-**CSS additions** (`src/styles/app.css`):
-- Inline code styling: `:not(pre) > code` with lime colors (dark mode aware)
-- Dataframe table styles (from `lastfm.md` and `low_rank_matrix.md` `<style scoped>` blocks)
-
-**Build baseline** (SSG, 22 pages):
+**Build baseline** (SSG, 22 pages, clean build):
 | Metric | Value |
 |---|---|
-| Build time | 3.69s |
+| Build time | 4.4s |
 | Output size | 2.2 MB (`dist/`) |
-| Pages | 22 (1 index + 20 posts + 1 blog index) |
+| Pages | 22 (1 root + 1 blog index + 20 posts) |
 | JS payload | ~600 bytes inline (Details interactivity only) |
 | KaTeX fonts | 1.3 MB (`dist/_astro/`, 59 font files) |
-| Largest page | `ukf` (117 KB HTML) — 11 Shiki blocks + KaTeX math + 6 Details |
+| Largest page | `ukf` — 168 KaTeX inline + 21 display + 11 Shiki blocks + 6 Details + 3 Outputs |
 | No framework JS | Zero framework runtime — pure SSG with inline scripts where needed |
 
 **Verified**:
 - ✅ Shiki highlighting: 11 `astro-code monokai` blocks in `ukf`
-- ✅ KaTeX math: renders correctly in all math-heavy posts (bayes_exam, deconvolution series, discrete_function_tensor, etc.)
-- ✅ Details component: 6 collapsible sections in `ukf`, localStorage persistence, SVG chevron
+- ✅ KaTeX math: 36 rendered expressions in `bayes_exam`, 189 in `ukf`
+- ✅ Details component: 6 collapsible sections in `ukf`, localStorage persistence
 - ✅ Output component: 3 outputs in `ukf`, 1 in `lastfm`
 - ✅ ImgSmall: 16 instances in `selfhosted`
 - ✅ Dataframe styles: present in `lastfm` output
 - ✅ Category pills: rendered in post footer
 - ✅ Teaser images: PostCard `src` paths preserved
-- ✅ Draft posts excluded: `music_2020.mdx.unpublish` and `test_post.mdx.unpublish` not built
-- ✅ Clean build: no warnings (after removing deprecated `mdx()` sub-options)
+- ✅ Draft posts excluded: `.unpublish` files not built
+- ✅ Zero null-byte leakage in HTML output
+- ⚠️ Deprecation warning: `remarkPlugins` on `mdx()` is deprecated in Astro 6.x (will need migration to `markdown.processor` when `extendMarkdownConfig` supports it for `.mdx`)
 
 ### Phase 4 — Site shell & core pages
 **Goal:** navigable site (landing, contact, header/footer, dark mode, 404).
