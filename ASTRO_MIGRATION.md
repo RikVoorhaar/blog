@@ -411,6 +411,54 @@ old files survive **for reference**.
 - **Builds:** `astro build` green with a Svelte-free dependency tree; site is just the
   placeholder — **expected to look bare** (buildable, not shippable). ✅
 
+#### Phase 1 — Completion notes ✅ **COMPLETED**
+
+**What was moved to `_reference/`:**
+- `src/routes/**` (all SvelteKit routes: `blog/`, `cv/`, `contact/`, `api/`, `[slug]/`,
+  `+page`, `+layout`, `+error`, `header`, `footer`)
+- `src/lib/components/**` (all `.svelte` components + `cv/cvIcons.ts`, `markdown/index.ts`)
+- `src/mdsvex.svelte`, `src/app.html`, `src/app.d.ts`, `src/app.css`
+
+Kept in `src/lib/` for future reuse: `config.ts`, `index.ts`, `redirects.json`,
+`types.ts`, `utils.ts`.
+
+**Deleted:** `svelte.config.js`, `vite.config.ts`, `mdsvex.config.js`, `.svelte-kit/`.
+
+**`package.json` pruned — removed:** `@sveltejs/*`, `svelte`, `svelte-check`,
+`svelte-preprocess`, `svelte-image`, `mdsvex`, `lucide-svelte`, `eslint-plugin-svelte`,
+`prettier-plugin-svelte`, `rehype-katex-svelte`, `rehype-toc`, `shiki`, `vite`.
+Scripts `dev`/`build`/`preview` now run `astro`, old `astro:*` aliases dropped.
+
+**`tsconfig.json`** rewritten (no more `.svelte-kit/tsconfig.json` extend):
+bundler resolution, `jsx: preserve`, path aliases for `@/*` and `$lib/*`, includes
+`.astro`/`.mdx`, excludes `_reference`.
+
+**`.eslintrc.cjs` / `.prettierrc`** stripped of Svelte overrides/plugins. Lint is
+minimal — `eslint-plugin-astro` / `prettier-plugin-astro` deferred (low priority).
+
+**Build verification:** `npm run build` → 1 page, 1.13s, green. `npm ls svelte`,
+`npm ls @sveltejs/kit`, `npm ls mdsvex` all empty. Vite only present as Astro 6.4.2's
+internal dep (vite@7.3.3).
+
+**Notes for Phase 2:**
+- `rehype-add-classes` is still in `devDependencies` but not wired in Astro's unified
+  pipeline. It was used in mdsvex to inject `pre: 'bg-white'`. Audit CSS depending on
+  that class before removing the package in Phase 2.
+- `autoprefixer`, `postcss`, `tailwindcss@3`, `tailwind.config.js` are still present —
+  all get replaced by Tailwind 4 + `@tailwindcss/vite` in Phase 2.
+- `flag-icons` remains for future contact page; `katex`, `remark-math`, `rehype-*`
+  plugins remain for the content pipeline.
+
+**Notes for Phase 3 (blog posts):**
+- Blueprint Svelte components to port: `_reference/src/lib/components/markdown/`
+  (`Output.svelte`, `Details.svelte`, `a.svelte`, `img.svelte`, `code.svelte`,
+  `pre.svelte`, `blockquote.svelte`), `PostCard.svelte`, `PostCardGallery.svelte`.
+- Blueprint routes: `_reference/src/routes/blog/+page.svelte`,
+  `_reference/src/routes/blog/+page.ts` (data loader),
+  `_reference/src/routes/blog/[slug]/+page.svelte`.
+- `src/lib/redirects.json` and `src/lib/config.ts` remain in place for reference.
+- 20 posts in `src/posts/*.md` (2 `.unpublish` drafts) — untouched, ready for conversion.
+
 ### Phase 2 — Tailwind 4 upgrade (NEW)
 **Goal:** clean, CSS-first styling foundation before any real UI is built.
 - Install `tailwindcss@4` + `@tailwindcss/vite`; add the plugin to `astro.config.mjs`
