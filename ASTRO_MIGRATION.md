@@ -1,8 +1,16 @@
 # Migration Plan: SvelteKit + mdsvex → Astro 6.4
 
-> Status: planning. Target: full migration of `rikvoorhaar.com` from SvelteKit 1.x /
-> mdsvex to Astro 6.4, in independently-buildable phases. Blog posts first. Visual
-> overhaul is explicitly deferred — get content live, then redesign.
+> Status: in progress. Target: full migration of `rikvoorhaar.com` from SvelteKit 1.x /
+> mdsvex to Astro 6.4, in independently-buildable phases.
+>
+> **Phase 0 (scaffold) is done.** Revised plan: before touching content, **rip Svelte /
+> SvelteKit / mdsvex out of the build entirely** (Phase 1) and **upgrade to Tailwind 4**
+> (Phase 2), so the toolchain is clean from here on. Blog posts (Phase 3) follow on that
+> clean foundation. Visual overhaul stays deferred.
+>
+> **Guiding principle: buildable at every stage, not shippable.** Each phase must end
+> with a green `astro build`. Intermediate stages are allowed to look broken/unstyled —
+> only the *final* result has to look good.
 
 ---
 
@@ -14,20 +22,35 @@
 - **Phased**: every phase must produce a site that builds and serves *part* of the site.
 - **Content lives in Markdown / YAML.** No more hand-edited Svelte for data (the CV
   is the motivating pain point).
-- Blog posts can embed Svelte components → treat posts **like MDX**.
+- Posts are authored **as MDX** so they can embed components. (Originally those were
+  Svelte; post-revision the embedded components are plain **Astro** components — see
+  the Svelte decision below.)
 - Maintainable, fast for the user, leans on **Cloudflare's CDN** as much as possible.
 
-**Sequencing the user asked for**
+**Revised sequencing (post Phase 0)**
 
-1. Stand up a *basic* Astro site with the **same content** first.
-2. **Blog posts are stage #1.** Matching the exact CV styling is *not* a priority.
-3. Port the existing visual design *after* content is live.
-4. CI/CD (cache invalidation etc.) is **low priority** — nothing ships until it works
+1. **Excise Svelte/SvelteKit/mdsvex from the build ASAP** (Phase 1) — keep the old
+   `.svelte` files *for reference only*, fully excluded from the build.
+2. **Upgrade to Tailwind 4 ASAP** (Phase 2) — clean, CSS-first config now rather than
+   carrying Tailwind 3 + PostCSS through the whole migration.
+3. Stand up a *basic* Astro site with the **same content**; **blog posts are the first
+   content stage** (Phase 3). Matching the exact CV styling is *not* a priority.
+4. Port the existing visual design *after* content is live (Phase 7).
+5. CI/CD (cache invalidation etc.) is **low priority** — nothing ships until it works
    locally.
+
+**Decision — drop Svelte entirely (no `@astrojs/svelte`).** The interactive bits are
+small enough to do with native HTML + vanilla JS (`Details` → native `<details>`;
+dark-mode toggle → tiny inline script; lucide icons → static SVG). So the migration
+ships **no UI framework at all** — just Astro + MDX. This is consistent with the
+fast-load goal (≈0 JS on content pages) and removes the Svelte 4 vs 5 / `@astrojs/svelte`
+version-matrix headache surfaced in Phase 0. *Escape hatch:* if a future post genuinely
+needs a heavy interactive island, re-add a framework integration at that point — it is
+explicitly out of scope for the migration.
 
 **Non-goals for the early phases**
 
-- Pixel-perfect parity with current styling.
+- Pixel-perfect parity with current styling. (Stages may be ugly/unstyled — that's fine.)
 - Preserving every micro-interaction (e.g. the `Details` localStorage-remembered
   open/closed state — see §4.3).
 
@@ -92,24 +115,23 @@ Consequences threaded through the plan:
 - Redirects → Cloudflare Pages `_redirects` file (and/or Astro `redirects` config).
 - Cache headers → `public/_headers`.
 - The `Dockerfile` / `docker-compose.yml` / Traefik labels become **dead code** to be
-  removed during Phase 7 cleanup.
+  removed during Phase 9 cleanup.
 - DNS for `rikvoorhaar.com` points at Pages; keep the apex/`www` behavior consistent
   with today's Traefik host rules.
 
-Nothing about Phases 1–5 depends on the host, so this only materially matters from
-Phase 6 onward.
+Nothing about Phases 1–7 depends on the host, so this only materially matters from
+Phase 8 onward.
 
 ### 3.3 Integrations
 
-- `@astrojs/mdx` — posts as MDX (Svelte components inside Markdown).
-- `@astrojs/svelte` — reuse existing Svelte components as islands where interactivity
-  is genuinely needed.
-- Tailwind via the **Vite plugin** (`@tailwindcss/vite`, Tailwind 4) *or* keep
-  Tailwind 3 + `@astrojs/tailwind`. **Decision: stay on Tailwind 3 for the migration**
-  to preserve the existing   config/palettes and `@tailwindcss/typography`; revisit
-  Tailwind 4 in Phase 8 (after the redesign is stable).
-- `@astrojs/sitemap` + `@astrojs/rss` (Phase 4).
-- `astro:assets` (built-in, `sharp`) for image optimization (Phase 5/6).
+- `@astrojs/mdx` — posts as MDX (Astro components inside Markdown). **No UI framework
+  integration** (no `@astrojs/svelte` / React / Vue) — see the Svelte decision in §1.
+- **Tailwind 4 via the Vite plugin** (`@tailwindcss/vite`). Upgraded early in Phase 2,
+  replacing the Tailwind 3 + `postcss.config.js` + `autoprefixer` setup left over from
+  Phase 0. (`@astrojs/tailwind` is *not* used — it's deprecated and only targets Astro
+  3–5; the Vite plugin is the Tailwind 4 path.)
+- `@astrojs/sitemap` + `@astrojs/rss` (Phase 6).
+- `astro:assets` (built-in, `sharp`) for image optimization (Phase 7/8).
 
 ### 3.4 Markdown / MDX pipeline
 
@@ -138,7 +160,7 @@ markdown: {
 }
 ```
 
-#### Sätteri (deferred, real Phase 8 opportunity)
+#### Sätteri (deferred, real Phase 10 opportunity)
 
 Astro 6.4 ships **`@astrojs/markdown-satteri`** — a Rust-based Markdown/MDX processor
 (`markdown.processor: satteri()`) that is dramatically faster than the unified pipeline
@@ -146,10 +168,32 @@ Astro 6.4 ships **`@astrojs/markdown-satteri`** — a Rust-based Markdown/MDX pr
 
 **Decision:** stay on `unified()` for the migration, because we depend on
 `remark-math`, `rehype-katex`, `rehype-slug`, and `rehype-autolink-headings`. Revisit
-in Phase 8: Sätteri implements many features (incl. heading IDs) natively and supports
+in Phase 10: Sätteri implements many features (incl. heading IDs) natively and supports
 its own **MDAST/HAST** plugins, so the win is real once math + heading-anchor behavior
 is re-validated or its plugins are ported. This is exactly the build-speed lever to
 pull *after* everything works — not during the migration.
+
+### 3.4b Tailwind 4 (upgraded early, Phase 2)
+
+Tailwind 4 is **CSS-first** and removes most of the JS config / PostCSS plumbing:
+
+- Install `tailwindcss@4` + `@tailwindcss/vite`; register the plugin in
+  `astro.config.mjs` under `vite.plugins`. **Delete `postcss.config.js`, `autoprefixer`,
+  and `postcss`** (Tailwind 4 uses Lightning CSS internally; no autoprefixer needed).
+- In the global stylesheet, replace `@tailwind base; @tailwind components; @tailwind
+  utilities;` with a single `@import "tailwindcss";`.
+- Migrate `tailwind.config.js` into CSS: the four palettes (`turbo`, `puerto-rico`,
+  `main`, `secondary`) become `@theme { --color-turbo-500: …; … }` tokens; load the
+  typography plugin with `@plugin "@tailwindcss/typography";`.
+- Keep the **class-based dark mode** (`html.dark`) with
+  `@custom-variant dark (&:where(.dark, .dark *));` (v4 defaults to `prefers-color-scheme`
+  otherwise). The existing `html.dark` / `html.light` background rules stay.
+- v4 auto-detects template files (the `content` array is gone); legacy `.svelte` files
+  relocated out of `src/` (Phase 1) won't be scanned. Use `@source` only if needed.
+- Run `npx @tailwindcss/upgrade` as a starting point, then hand-fix.
+- **Note:** the Phase-0 `tailwind.config.js` uses `require('@tailwindcss/typography')`
+  in an ESM (`type: module`) project — already a smell; the CSS-first `@plugin` approach
+  removes it.
 
 ### 3.5 Component / element overrides
 
@@ -157,17 +201,19 @@ mdsvex mapped Markdown elements to Svelte components via the layout. Astro's MDX
 this with the **`components` prop** on `<Content />`:
 
 - Map HTML elements (`img`, `a`, `pre`, `code`, `blockquote`) to **Astro** components.
-- Map `Details` / `Output` so posts don't need per-file imports.
+- Map `Details` / `Output` (now Astro components) so posts don't need per-file imports.
 
 **Decision:** convert all posts to **`.mdx`** so the override mechanism is uniform and
-Svelte components work everywhere ("treat like MDX", as requested).
+embedded components work everywhere ("treat like MDX", as requested). The embedded
+components are **Astro** (not Svelte) — the old `import ... .svelte` lines in posts are
+removed during conversion.
 
-> **MDX scope gotcha (verify in Phase 1).** mdsvex injects layout-mapped components
+> **MDX scope gotcha (verify in Phase 3).** mdsvex injects layout-mapped components
 > ambiently, but **MDX requires components used in a file to be in scope** — either
 > imported in the file *or* supplied via the `components` prop on `<Content/>`. We rely
 > on the `components` prop so posts need no per-file imports, which works, but the
 > ~10 posts using `<Details>` / `<Output>` (and all element overrides) must be
-> explicitly checked. This is an acceptance item in Phase 1, not an assumption.
+> explicitly checked. This is an acceptance item in Phase 3, not an assumption.
 
 > **`rehype-add-classes` audit.** The old config injected `pre: 'bg-white'`. Before
 > dropping the plugin in favor of CSS, grep post/global CSS for any rule that depends on
@@ -179,14 +225,15 @@ Most current "components" are presentational and can be **static Astro component
 (zero JS shipped):
 
 - `Output`, `code`, `pre`, `img`, `a`, `blockquote`, all CV components → Astro.
-- `Details` → reimplement with the **native `<details>`/`<summary>`** element (no JS,
-  no Svelte runtime on blog pages). *Trade-off:* loses localStorage open/close memory.
-  Acceptable per the user's "don't sweat the details" stance; can be re-added as a tiny
-  island later if missed.
-- `darkmode` → keep the inline anti-FOUC `<head>` script; the toggle button becomes a
-  tiny vanilla `<script>` or a single `client:load` Svelte island.
+- `Details` → reimplement with the **native `<details>`/`<summary>`** element (no JS).
+  *Trade-off:* loses localStorage open/close memory. Acceptable per the user's "don't
+  sweat the details" stance; if a tiny bit of JS is wanted later it can be a vanilla
+  `<script>`, not a framework island.
+- `darkmode` → keep the inline anti-FOUC `<head>` script; the toggle button is a small
+  **vanilla `<script>`** (no Svelte island — Svelte is removed from the build, §1).
 
-Result: blog/content pages ship **little or no JS**, which is the fast-load win.
+Result: blog/content pages ship **no framework runtime and ~0 JS**, which is the
+fast-load win (and the reason dropping Svelte entirely is cheap).
 
 ### 3.7 Images: use `astro:assets` (`<Image>` / `<Picture>`)
 
@@ -201,7 +248,7 @@ Use Astro's built-in image components wherever an image is rendered, rather than
   optimized too, falling back to a plain `<img>` only for assets that must stay in
   `public/` (e.g. SVGs, PDFs, pre-generated plots).
 - Source images move from `static/` (served as-is) into `src/` where they should be
-  processed; truly static assets stay in `public/`. (Asset triage happens in Phase 6 —
+  processed; truly static assets stay in `public/`. (Asset triage happens in Phase 8 —
   see §7 "Asset volume".)
 
 ---
@@ -211,7 +258,7 @@ Use Astro's built-in image components wherever an image is rendered, rather than
 ### 4.1 Blog posts — content collection
 
 Use Astro Content Collections (Content Layer `glob()` loader) with a Zod schema. Keep
-files in `src/posts/` (or move to `src/content/blog/`; decided in Phase 1).
+files in `src/posts/` (or move to `src/content/blog/`; decided in Phase 3).
 
 ```ts
 // src/content.config.ts (sketch)
@@ -231,12 +278,13 @@ const blog = defineCollection({
 ```
 
 - Drafts: rename `*.md.unpublish` → real files with `draft: true`, or keep them
-  excluded by the glob. (Decided in Phase 1; `draft` flag is cleaner.)
+  excluded by the glob. (Decided in Phase 3; `draft` flag is cleaner.)
 - Fix the `devonvolution_part3` teaser typo (rename asset or correct frontmatter).
 
 ### 4.2 CV — YAML-driven
 
-Replace the hand-written Svelte page with `src/data/cv.yaml` + a YAML data collection
+Replace the hand-written Svelte page (kept as reference under `_reference/`, see Phase 1)
+with `src/data/cv.yaml` + a YAML data collection
 + small Astro render components. Schema mirrors the current component props:
 
 ```yaml
@@ -273,16 +321,18 @@ deliberate `set:html`, or migrate flags to a small component.
 
 | Current | Astro replacement |
 |---|---|
-| `@sveltejs/kit`, `adapter-node` | `astro` 6.4 (static output) |
-| `mdsvex`, `svelte-preprocess` | `@astrojs/mdx` |
-| `svelte`, `lucide-svelte` | `@astrojs/svelte` (islands only) + `lucide` icons as Astro components/SVG |
+| `@sveltejs/kit`, `adapter-node` | `astro` 6.4 (static output) — **removed Phase 1** |
+| `mdsvex`, `svelte-preprocess` | `@astrojs/mdx` — **removed Phase 1** |
+| `svelte`, `@sveltejs/*`, `svelte-check`, `eslint-plugin-svelte`, `prettier-plugin-svelte` | **removed entirely Phase 1** (no UI framework; lint/format via `eslint-plugin-astro` / `prettier-plugin-astro`) |
+| `lucide-svelte` | static `lucide` SVGs as Astro components — **removed Phase 1** |
 | `shiki` (manual) | Astro built-in Shiki |
 | `rehype-katex-svelte` | `rehype-katex` |
 | `remark-math`, `rehype-slug`, `rehype-autolink-headings` | unchanged (Astro markdown plugins) |
 | `rehype-add-classes` (`pre: 'bg-white'`), `rehype-toc` | replace with CSS / `rehype-autolink` options — **audit dependent CSS first** (§3.5) |
-| `svelte-image`, `svimg` | `astro:assets` (`<Image/>`, `sharp`) |
-| `tailwindcss` 3, `@tailwindcss/typography` | keep for now; Tailwind 4 considered in Phase 8 |
-| `vite`, `postcss`, `autoprefixer` | provided by Astro |
+| `svelte-image`, `svimg` | `astro:assets` (`<Image/>` / `<Picture/>`, `sharp`) |
+| `tailwindcss` 3 + `postcss` + `autoprefixer` + `@astrojs`-less PostCSS | **Tailwind 4 + `@tailwindcss/vite`, Phase 2** (drop `postcss.config.js` / `autoprefixer`) |
+| `@tailwindcss/typography` | kept (loaded via `@plugin` in CSS, Phase 2) |
+| `vite` | provided by Astro |
 | SvelteKit `$lib`, `$app/*` | TS path aliases + `import.meta.env` / `Astro` globals |
 
 ---
@@ -313,37 +363,67 @@ intact — the two frameworks coexist (Astro uses `src/pages/`, SvelteKit uses
 - Added `astro:dev`, `astro:build`, `astro:preview` npm scripts.
 - Created `src/env.d.ts` with `/// <reference types="astro/client" />`.
 
-**Decisions & notes for subsequent phases:**
+**Phase-0 leftovers that Phases 1–2 will clean up** (this is the "dependency mess"):
 
-1. **`@astrojs/svelte` NOT installed yet.** The latest `@astrojs/svelte@8` requires
-   Svelte 5, and `@astrojs/svelte@7` (Svelte 4) only supports Astro 5. We have
-   Svelte 4 components to port. Options for Phase 1:
-   - Install `@astrojs/svelte@7` with `--legacy-peer-deps` and test if it works
-     with Astro 6.
-   - Upgrade to Svelte 5 and adapt components.
-   - Use vanilla Astro components for most things, keeping Svelte only for
-     islands that genuinely need it (dark mode toggle, `Details`).
-   *Resolve this in Phase 1 before bulk-converting posts.*
+- `package.json` still defaults `dev` / `build` / `preview` to `vite` (SvelteKit) and
+  still lists the entire Svelte/SvelteKit/mdsvex toolchain in `devDependencies`. Astro
+  lives under separate `astro:*` scripts. → Phase 1 makes Astro the default and prunes
+  the Svelte deps.
+- Both `src/routes/*` (SvelteKit) and `src/pages/*` (Astro) exist; `src/app.html`,
+  `src/app.d.ts`, `src/mdsvex.svelte`, `svelte.config.js`, `vite.config.ts`,
+  `mdsvex.config.js`, `.svelte-kit/` are still present. → Phase 1 relocates the
+  reference-worthy ones and deletes the rest.
+- Duplicate global CSS: `src/app.css` (old) **and** `src/styles/app.css` (new). →
+  consolidate in Phase 1/2.
+- Tailwind 3 currently works via `postcss.config.js` (+ `autoprefixer`), picked up
+  automatically by Astro's Vite. → replaced wholesale by Tailwind 4 in Phase 2.
 
-2. **`@astrojs/tailwind` NOT installed.** Tailwind 3 works natively through
-   PostCSS — Astro's Vite picks up `postcss.config.js` automatically. The
-   existing `tailwind.config.js` + `postcss.config.js` are used as-is.
-   `@astrojs/tailwind@6` only supports Astro 3–5, and Tailwind 4 is deferred
-   to Phase 8 anyway.
+**Resolved decisions (were open in Phase 0):**
 
-3. **PostCSS config preserved.** `postcss.config.js` with `tailwindcss` +
-   `autoprefixer` remains unchanged and is picked up by Astro's Vite build.
+1. **No `@astrojs/svelte`.** The Svelte 4↔5 / Astro 5↔6 version matrix is a trap, and
+   we don't need it: per §1 we drop Svelte entirely and use Astro + vanilla JS. This is
+   why Phase 1 (excise Svelte) is now the immediate next step.
+2. **No `@astrojs/tailwind`.** Go straight to **Tailwind 4 + `@tailwindcss/vite`** in
+   Phase 2 (CSS-first, §3.4b) rather than carrying Tailwind 3 + PostCSS.
+3. **KaTeX/markdown plugin versions** (`remark-math@3`, `rehype-katex@7`) build cleanly
+   on Astro 6's `unified()`; full rendering validation still happens in Phase 3.
 
-4. **`remark-math` and `rehype-katex` versions.** The existing `remark-math@3`
-   and `rehype-katex@7` versions work with Astro 6's unified pipeline.
-   Verified via `astro build` passing (no runtime errors). Full KaTeX
-   rendering validation happens in Phase 1.
+### Phase 1 — Excise Svelte / SvelteKit / mdsvex from the build (NEW, do first)
+**Goal:** Astro is the *only* build system; Svelte is gone from the toolchain but the
+old files survive **for reference**.
+- **Relocate reference files out of the build.** Move the legacy Svelte/SvelteKit tree
+  to a top-level `_reference/` directory (outside `src/`, so Astro routing, Tailwind
+  scanning, and `tsconfig` never see it): `src/routes/**`, `src/lib/components/**.svelte`,
+  `src/mdsvex.svelte`, `src/app.html`, `src/app.d.ts`, and the old `src/app.css`. These
+  are the blueprints for the Astro/vanilla rewrites in Phases 3–7.
+- **Delete dead config:** `svelte.config.js`, `vite.config.ts`, `mdsvex.config.js`,
+  `.svelte-kit/`. Keep `_reference/` **tracked in git** (it's our blueprint) but exclude
+  it from `tsconfig.json` `include`/add to `exclude`, and from any lint globs, so the
+  build/typecheck never touches it.
+- **Prune `package.json`:** remove `@sveltejs/*`, `svelte`, `svelte-check`,
+  `svelte-preprocess`, `svelte-image`, `mdsvex`, `lucide-svelte`, `eslint-plugin-svelte`,
+  `prettier-plugin-svelte`, `rehype-katex-svelte`, `rehype-toc`. Make `dev`/`build`/
+  `preview` run **astro** (drop the `vite`/`svelte-kit` scripts and the `astro:*`
+  aliases). Re-lock; confirm `node_modules` no longer pulls Svelte.
+- **Lint/format:** swap Svelte ESLint/Prettier plugins for `eslint-plugin-astro` /
+  `prettier-plugin-astro` (low priority; can stub out lint if it fights us).
+- Keep `index.astro` as the only page for now (content comes in Phase 3).
+- **Builds:** `astro build` green with a Svelte-free dependency tree; site is just the
+  placeholder — **expected to look bare** (buildable, not shippable). ✅
 
-5. **Tailwind content scanning.** Added `.astro` and `.mdx` extensions to the
-   `tailwind.config.js` content glob so utility classes in Astro/MDX files
-   are included in the production CSS build.
+### Phase 2 — Tailwind 4 upgrade (NEW)
+**Goal:** clean, CSS-first styling foundation before any real UI is built.
+- Install `tailwindcss@4` + `@tailwindcss/vite`; add the plugin to `astro.config.mjs`
+  (`vite.plugins`). Remove `postcss.config.js`, `autoprefixer`, `postcss`,
+  `tailwind.config.js`.
+- Consolidate to one global stylesheet: `@import "tailwindcss";`, palettes → `@theme`
+  tokens, `@plugin "@tailwindcss/typography";`, `@custom-variant dark`, and the existing
+  scrollbar / KaTeX / `html.dark`·`html.light` rules (§3.4b). Drop the duplicate
+  `src/app.css`.
+- Sanity-check a few utility classes + dark variant on `index.astro`.
+- **Builds:** `astro build` green on Tailwind 4; placeholder may look rough — fine. ✅
 
-### Phase 1 — Blog posts (PRIORITY #1)
+### Phase 3 — Blog posts (FIRST CONTENT STAGE)
 **Goal:** every blog post + the blog index render from content files.
 - Define the `blog` content collection + schema (§4.1); normalize `categories`/`date`.
 - Convert posts to `.mdx`; strip per-file `<script>import>` blocks.
@@ -360,35 +440,35 @@ intact — the two frameworks coexist (Astro uses `src/pages/`, SvelteKit uses
   one file. Prove the pipeline on it before bulk-converting the other 19.
 - Minimal layout — readable, *not* final design.
 - **Record a build-time + output-size baseline** (`astro build` duration, `dist/` page
-  count/JS bytes) so later phases — especially Sätteri in Phase 8 — have a real number
+  count/JS bytes) so later phases — especially Sätteri in Phase 10 — have a real number
   to compare against.
 - **Builds:** `/blog` + all 20 `/blog/<slug>` pages with working code/math/components. ✅
 
-### Phase 2 — Site shell & core pages
+### Phase 4 — Site shell & core pages
 **Goal:** navigable site (landing, contact, header/footer, dark mode, 404).
 - `Layout.astro` (header, footer, dark-mode head script + toggle island).
 - **Test the dark-mode anti-FOUC script early.** The inline `<head>` + `localStorage`
   pattern from `darkmode.svelte` must run *before paint* and behave under Astro's
   preview iframe and on Cloudflare Pages. Validate it here (no flash, correct theme on
-  reload) rather than discovering an issue during the Phase 5 redesign.
+  reload) rather than discovering an issue during the Phase 7 redesign.
 - Port `/` landing and `/contact` (content can move to Markdown/data if desired).
 - `src/pages/404.astro` replacing `+error.svelte`.
 - **Builds:** `/`, `/contact`, `/blog`, posts, with shared shell + dark mode. ✅
 
-### Phase 3 — CV from YAML
+### Phase 5 — CV from YAML
 **Goal:** `/cv` rendered from `src/data/cv.yaml`.
 - YAML data collection + schema (§4.2); Astro components for each section.
 - Migrate all current CV content into YAML; handle inline-HTML fields.
 - Styling rough/functional (explicitly not priority).
 - **Builds:** `/cv` from data, fully content-editable. ✅
 
-> **Ordering note (Phase 3 vs 4).** CV precedes redirects/SEO, which is fine for local
-> dev. *If* you do a soft launch on Cloudflare Pages before Phase 4, missing redirects
+> **Ordering note (Phase 5 vs 6).** CV precedes redirects/SEO, which is fine for local
+> dev. *If* you do a soft launch on Cloudflare Pages before Phase 6, missing redirects
 > could break inbound links / search indexing for the old Jekyll dash-slugs. For
-> zero-downtime, do Phase 4 (redirects) **before** any public deploy — easy to flip
+> zero-downtime, do Phase 6 (redirects) **before** any public deploy — easy to flip
 > since the phases are independent.
 
-### Phase 4 — Routing parity (redirects, feeds, SEO)
+### Phase 6 — Routing parity (redirects, feeds, SEO)
 **Goal:** no regressions vs old URLs; discoverability.
 - Port `redirects.json` → Cloudflare Pages `public/_redirects` (301s), optionally
   mirrored in Astro `redirects` config so `astro preview` reflects them locally.
@@ -397,17 +477,17 @@ intact — the two frameworks coexist (Astro uses `src/pages/`, SvelteKit uses
   `+page.svelte` `<svelte:head>`).
 - **Builds:** old slugs 301 to new paths; sitemap + RSS emitted. ✅
 
-### Phase 5 — Visual overhaul (the redesign)
-**Goal:** the new look. *This is where design work happens, not before.*
-- Design system: tokens, typography scale, refined dark mode, component polish.
+### Phase 7 — Visual overhaul (the redesign)
+**Goal:** the new look. *This is where design work happens, not before.* Everything up
+to here was "buildable, not pretty"; this is where it becomes pretty.
+- Design system: tokens (extend the Tailwind 4 `@theme` from Phase 2), typography scale,
+  refined dark mode, component polish.
 - Reapply/replace the old prose styling with the new design.
 - Convert remaining raw `<img>` usages to `<Image>`/`<Picture>` (§3.7) as the design
   settles.
-- (Tailwind 4 upgrade is deferred to Phase 8 — keep Tailwind 3 stable through the
-  redesign.)
 - **Builds:** full site, redesigned. ✅
 
-### Phase 6 — Performance & Cloudflare CDN
+### Phase 8 — Performance & Cloudflare CDN
 **Goal:** fast loads, edge-cached.
 - `astro:assets` `<Image>`/`<Picture>` for teasers + in-post images (responsive, modern
   formats); migrate processable images out of `static/` into `src/` (hashed, immutable,
@@ -415,10 +495,10 @@ intact — the two frameworks coexist (Astro uses `src/pages/`, SvelteKit uses
 - Audit JS: confirm content pages ship ~0 JS; islands only where needed.
 - `public/_headers`: long `Cache-Control` + `immutable` for hashed assets, sensible
   HTML caching (Cloudflare Pages honors `_headers`).
-- Font loading strategy; Lighthouse pass against the Phase 1 baseline.
+- Font loading strategy; Lighthouse pass against the Phase 3 baseline.
 - **Builds:** optimized, CDN-friendly artifact. ✅
 
-### Phase 7 — CI/CD (LOW priority, after it works locally)
+### Phase 9 — CI/CD (LOW priority, after it works locally)
 **Goal:** automated build + deploy on Cloudflare Pages.
 - Connect the repo to **Cloudflare Pages** (build command `astro build`, output `dist`)
   — Git-push deploys with automatic preview deployments per branch/PR.
@@ -432,15 +512,14 @@ intact — the two frameworks coexist (Astro uses `src/pages/`, SvelteKit uses
   `node build` workflow, and `adapter-node` remnants.
 - **Builds:** push-to-deploy with edge caching + preview URLs. ✅
 
-### Phase 8 — Post-migration speedups (optional, after launch)
-**Goal:** pull the build/runtime levers that need a stable baseline first.
+### Phase 10 — Post-migration speedups (optional, after launch)
+**Goal:** pull the remaining build-speed lever once everything is stable.
 - **Sätteri (§3.4):** evaluate `@astrojs/markdown-satteri` for build speed; re-validate
   KaTeX math + heading anchors, porting to MDAST/HAST plugins if needed. Compare against
-  the Phase 1 build-time baseline.
-- **Tailwind 4:** upgrade and reconcile the custom palettes / typography plugin.
-- **Drop `@astrojs/svelte`** entirely if no remaining island needs Svelte (dark-mode
-  toggle can be vanilla; `Details` is native `<details>`), shrinking the toolchain.
-- **Builds:** faster builds / smaller dependency surface, same output. ✅
+  the Phase 3 build-time baseline.
+- (Tailwind 4 and dropping Svelte were pulled forward to Phases 1–2 and are already
+  done by this point.)
+- **Builds:** faster builds, same output. ✅
 
 ---
 
@@ -453,22 +532,33 @@ intact — the two frameworks coexist (Astro uses `src/pages/`, SvelteKit uses
 - **Inline HTML in CV YAML:** `info`/`note`/flag fields need `set:html`; keep an eye on
   trust/escaping (content is self-authored, so acceptable).
 - **MDX component scope:** components used in `.mdx` must be in scope (imported or via
-  the `components` prop) — verify on the `Details`/`Output` posts in Phase 1 (§3.5).
+  the `components` prop) — verify on the `Details`/`Output` posts in Phase 3 (§3.5).
+- **Tailwind 4 migration (Phase 2):** CSS-first `@theme`/`@plugin`/`@custom-variant`,
+  the codemod's edge cases, and class-based dark mode are the riskiest mechanical change
+  — but it's early, on a placeholder page, so breakage is cheap to spot.
+- **Svelte excision completeness (Phase 1):** confirm no `.astro` file imports anything
+  Svelte and that the lockfile no longer resolves `svelte` before pruning is "done".
+- **Embedded components beyond `Details`/`Output`:** before Phase 3, confirm the full
+  set of components used across all posts; each needs an Astro/vanilla equivalent (no
+  framework). If one needs real interactivity, native HTML/vanilla JS first.
 - **Dark-mode anti-FOUC:** inline `<head>` + `localStorage` must paint correctly under
-  Astro preview / Cloudflare Pages — test in Phase 2, not Phase 5.
+  Astro preview / Cloudflare Pages — test in Phase 4, not Phase 7.
 - **`rehype-add-classes` removal:** audit CSS depending on injected classes
   (`pre: 'bg-white'`) before dropping the plugin (§3.5).
-- **Lucide icons:** `lucide-svelte` → use `lucide` SVGs as Astro components (avoid
-  shipping Svelte just for static icons).
+- **Lucide icons:** `lucide-svelte` → use `lucide` static SVGs as Astro components (no
+  framework runtime for icons).
 - **Asset volume:** `static/blog/**` is large (many `.png/.webp/.svg/.pdf`); decide what
   goes through `astro:assets` vs stays in `public/` untouched.
 - **`first_post.md` date** and the `devonvolution_part3` teaser typo must be fixed
-  during Phase 1 normalization.
+  during Phase 3 normalization.
 
 ---
 
-## 8. Suggested first concrete step
+## 8. Suggested next concrete step
 
-Phase 0 + the Phase 1 skeleton for **one** post (e.g. `ukf.mdx`, since it exercises
-Shiki, KaTeX, `Details`, and `Output`) — proving the whole content pipeline end to end
-before bulk-converting the remaining 19 posts.
+Phase 0 is done. **Next: Phase 1 (excise Svelte) then Phase 2 (Tailwind 4)** — both are
+mechanical, low-risk on the current placeholder site, and they clear the dependency mess
+so every later phase builds on a clean Astro-only + Tailwind 4 foundation.
+
+Then, in Phase 3, prove the content pipeline on **one** post first (`ukf.mdx` — it
+exercises Shiki, KaTeX, `Details`, and `Output`) before bulk-converting the other 19.
