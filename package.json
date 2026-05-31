@@ -6,6 +6,9 @@
 		"dev": "vite dev",
 		"build": "vite build",
 		"preview": "vite preview",
+		"astro:dev": "astro dev",
+		"astro:build": "astro build",
+		"astro:preview": "astro preview",
 		"check": "svelte-kit sync && svelte-check --tsconfig ./tsconfig.json",
 		"check:watch": "svelte-kit sync && svelte-check --tsconfig ./tsconfig.json --watch",
 		"lint": "prettier --plugin-search-dir . --check . && eslint .",
@@ -47,5 +50,9 @@
 		"typescript": "^5.2.2",
 		"vite": "^4.5.0"
 	},
-	"type": "module"
+	"type": "module",
+	"dependencies": {
+		"@astrojs/mdx": "^6.0.1",
+		"astro": "^6.4.2"
+	}
 }

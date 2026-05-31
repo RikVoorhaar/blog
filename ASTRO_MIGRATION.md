@@ -292,21 +292,56 @@ deliberate `set:html`, or migrate flags to a small component.
 Each phase ends with a **green `astro build`** and a runnable `astro preview` that
 serves the listed routes.
 
-### Phase 0 — Scaffold & tooling
-**Goal:** empty Astro 6.4 site that builds.
-- Add Astro 6.4 + `@astrojs/mdx` + `@astrojs/svelte`; wire Tailwind 3 config & palettes.
-- `astro.config.mjs`: `output: 'static'`, `site`, markdown pipeline (Shiki monokai,
-  remark-math, rehype-katex, slug, autolink), TS aliases (`@/*`, `$lib` shim).
-- Global CSS: `app.css` (Tailwind layers, scrollbars, KaTeX overrides) + KaTeX CSS.
-- One placeholder `index.astro`.
-- **Avoid routing collisions with the old SvelteKit tree.** SvelteKit's `src/routes`
-  and Astro's `src/pages` differ, so they won't clash directly, but keeping both apps in
-  one working dir invites confusion (shared `src/lib`, `static/` vs `public/`, two
-  configs). Cleanest: build the Astro app at the repo root on this `experiment/astro`
-  branch and **delete the SvelteKit-specific files as each phase supersedes them**
-  (routes in P1–P3, configs/Docker in P7), rather than running two frameworks in
-  parallel long-term. The git branch already gives us the "parallel" safety net.
-- **Builds:** a single placeholder page. ✅
+### Phase 0 — Scaffold & tooling ✅ **COMPLETED**
+
+**Result:** `astro build` produces `dist/index.html` with working Tailwind 3
+processing. `astro preview` serves on `localhost:4321`. All SvelteKit files
+intact — the two frameworks coexist (Astro uses `src/pages/`, SvelteKit uses
+`src/routes/`).
+
+**What was done:**
+- Installed `astro@6.4.2`, `@astrojs/mdx@6.0.1`.
+- Created `astro.config.mjs`: `output: 'static'`, `site: 'https://rikvoorhaar.com'`,
+  markdown processor via `unified()` (`remark-math`, `rehype-katex` with `fleqn`,
+  `rehype-slug`, `rehype-autolink-headings`), Shiki `monokai`, Vite aliases
+  (`@` → `/src`, `$lib` → `/src/lib`).
+- Created `src/pages/index.astro` — placeholder page importing Tailwind + KaTeX CSS.
+- Migrated global CSS to `src/styles/app.css` (Tailwind `@tailwind` directives,
+  scrollbar styles, KaTeX overrides, dark/light html background colors).
+- Updated `tailwind.config.js` content glob to include `.astro` and `.mdx` files.
+- Updated `.gitignore` with `/.astro` and `/dist` entries.
+- Added `astro:dev`, `astro:build`, `astro:preview` npm scripts.
+- Created `src/env.d.ts` with `/// <reference types="astro/client" />`.
+
+**Decisions & notes for subsequent phases:**
+
+1. **`@astrojs/svelte` NOT installed yet.** The latest `@astrojs/svelte@8` requires
+   Svelte 5, and `@astrojs/svelte@7` (Svelte 4) only supports Astro 5. We have
+   Svelte 4 components to port. Options for Phase 1:
+   - Install `@astrojs/svelte@7` with `--legacy-peer-deps` and test if it works
+     with Astro 6.
+   - Upgrade to Svelte 5 and adapt components.
+   - Use vanilla Astro components for most things, keeping Svelte only for
+     islands that genuinely need it (dark mode toggle, `Details`).
+   *Resolve this in Phase 1 before bulk-converting posts.*
+
+2. **`@astrojs/tailwind` NOT installed.** Tailwind 3 works natively through
+   PostCSS — Astro's Vite picks up `postcss.config.js` automatically. The
+   existing `tailwind.config.js` + `postcss.config.js` are used as-is.
+   `@astrojs/tailwind@6` only supports Astro 3–5, and Tailwind 4 is deferred
+   to Phase 8 anyway.
+
+3. **PostCSS config preserved.** `postcss.config.js` with `tailwindcss` +
+   `autoprefixer` remains unchanged and is picked up by Astro's Vite build.
+
+4. **`remark-math` and `rehype-katex` versions.** The existing `remark-math@3`
+   and `rehype-katex@7` versions work with Astro 6's unified pipeline.
+   Verified via `astro build` passing (no runtime errors). Full KaTeX
+   rendering validation happens in Phase 1.
+
+5. **Tailwind content scanning.** Added `.astro` and `.mdx` extensions to the
+   `tailwind.config.js` content glob so utility classes in Astro/MDX files
+   are included in the production CSS build.
 
 ### Phase 1 — Blog posts (PRIORITY #1)
 **Goal:** every blog post + the blog index render from content files.
