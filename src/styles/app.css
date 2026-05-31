@@ -1,6 +1,58 @@
-@tailwind base;
-@tailwind components;
-@tailwind utilities;
+@import 'tailwindcss';
+
+@plugin "@tailwindcss/typography";
+
+@custom-variant dark (&:where(.dark, .dark *));
+
+@theme {
+	--color-turbo-50: #feffe7;
+	--color-turbo-100: #faffc1;
+	--color-turbo-200: #f9ff86;
+	--color-turbo-300: #feff41;
+	--color-turbo-400: #fff40d;
+	--color-turbo-500: #ffe600;
+	--color-turbo-600: #d1aa00;
+	--color-turbo-700: #a67b02;
+	--color-turbo-800: #895f0a;
+	--color-turbo-900: #744e0f;
+	--color-turbo-950: #442904;
+
+	--color-puerto-rico-50: #e5fff9;
+	--color-puerto-rico-100: #bdfff2;
+	--color-puerto-rico-200: #85ffe9;
+	--color-puerto-rico-300: #41fbdf;
+	--color-puerto-rico-400: #16dfc4;
+	--color-puerto-rico-500: #00b8a2;
+	--color-puerto-rico-600: #00998c;
+	--color-puerto-rico-700: #02796f;
+	--color-puerto-rico-800: #075f59;
+	--color-puerto-rico-900: #0b4c48;
+	--color-puerto-rico-950: #002928;
+
+	--color-main-50: #feffe7;
+	--color-main-100: #faffc1;
+	--color-main-200: #f9ff86;
+	--color-main-300: #feff41;
+	--color-main-400: #fff40d;
+	--color-main-500: #ffe600;
+	--color-main-600: #d1aa00;
+	--color-main-700: #a67b02;
+	--color-main-800: #895f0a;
+	--color-main-900: #744e0f;
+	--color-main-950: #442904;
+
+	--color-secondary-50: #f0f9fb;
+	--color-secondary-100: #d9eff4;
+	--color-secondary-200: #b8dfe9;
+	--color-secondary-300: #86c7da;
+	--color-secondary-400: #4ea7c2;
+	--color-secondary-500: #328ba8;
+	--color-secondary-600: #2d728f;
+	--color-secondary-700: #2a5c74;
+	--color-secondary-800: #2a4e60;
+	--color-secondary-900: #274252;
+	--color-secondary-950: #152a37;
+}
 
 html.dark {
 	background-color: #000000;

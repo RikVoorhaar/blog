@@ -440,12 +440,12 @@ minimal — `eslint-plugin-astro` / `prettier-plugin-astro` deferred (low priori
 `npm ls @sveltejs/kit`, `npm ls mdsvex` all empty. Vite only present as Astro 6.4.2's
 internal dep (vite@7.3.3).
 
-**Notes for Phase 2:**
-- `rehype-add-classes` is still in `devDependencies` but not wired in Astro's unified
+**Notes for Phase 2 (resolved in Phase 2 ✅):**
+- ~~`rehype-add-classes` is still in `devDependencies` but not wired in Astro's unified
   pipeline. It was used in mdsvex to inject `pre: 'bg-white'`. Audit CSS depending on
-  that class before removing the package in Phase 2.
-- `autoprefixer`, `postcss`, `tailwindcss@3`, `tailwind.config.js` are still present —
-  all get replaced by Tailwind 4 + `@tailwindcss/vite` in Phase 2.
+  that class before removing the package in Phase 2.~~ → Removed. No dependent CSS.
+- ~~`autoprefixer`, `postcss`, `tailwindcss@3`, `tailwind.config.js` are still present —
+  all get replaced by Tailwind 4 + `@tailwindcss/vite` in Phase 2.~~ → Replaced.
 - `flag-icons` remains for future contact page; `katex`, `remark-math`, `rehype-*`
   plugins remain for the content pipeline.
 
@@ -459,7 +459,7 @@ internal dep (vite@7.3.3).
 - `src/lib/redirects.json` and `src/lib/config.ts` remain in place for reference.
 - 20 posts in `src/posts/*.md` (2 `.unpublish` drafts) — untouched, ready for conversion.
 
-### Phase 2 — Tailwind 4 upgrade (NEW)
+### Phase 2 — Tailwind 4 upgrade ✅ **COMPLETED**
 **Goal:** clean, CSS-first styling foundation before any real UI is built.
 - Install `tailwindcss@4` + `@tailwindcss/vite`; add the plugin to `astro.config.mjs`
   (`vite.plugins`). Remove `postcss.config.js`, `autoprefixer`, `postcss`,
@@ -470,6 +470,32 @@ internal dep (vite@7.3.3).
   `src/app.css`.
 - Sanity-check a few utility classes + dark variant on `index.astro`.
 - **Builds:** `astro build` green on Tailwind 4; placeholder may look rough — fine. ✅
+
+#### Phase 2 — Completion notes ✅ **COMPLETED**
+- **Installed:** `tailwindcss@4.3.0`, `@tailwindcss/vite@4.3.0`, `@tailwindcss/typography@0.5.19`
+  (latest — compatible with Tailwind v4).
+- **Removed:** `autoprefixer`, `postcss`, `tailwindcss@3` (old), `rehype-add-classes`
+  (audited — no CSS depended on its injected `pre: 'bg-white'` class; `bg-white` usages
+  in `_reference/` are hand-written utility classes).
+- **Deleted files:** `tailwind.config.js`, `postcss.config.js`.
+- **`astro.config.mjs`:** Added `@tailwindcss/vite` plugin to `vite.plugins`.
+- **`src/styles/app.css`:** Migrated from `@tailwind` directives to `@import "tailwindcss"`,
+  added `@theme` block with all four palettes (`turbo`, `puerto-rico`, `main`, `secondary`),
+  `@plugin "@tailwindcss/typography"`, `@custom-variant dark (&:where(.dark, .dark *))`.
+  No duplicate `src/app.css` existed (only `_reference/src/app.css` remains).
+- **`src/pages/index.astro`:** Added sanity-check blocks exercising all four palettes,
+  dark variants, and `.prose` / `.dark:prose-invert`.
+- **Build (final):** `1 page(s) built in 864ms` ✅ (~80KB generated CSS + KaTeX fonts).
+
+**Notes for Phase 3:**
+- Tailwind v4 auto-detects template files — no `content` array needed. `_reference/` is
+  outside `src/` so it won't be scanned.
+- `flag-icons` retained for future contact page.
+- When porting markdown overrides (`Output`, `Details`, `a`, `img`, `code`, `pre`,
+  `blockquote`), use Tailwind v4 utilities; the palette tokens (`text-main-600`, etc.)
+  are available as `@theme` CSS variables.
+- The `@tailwindcss/typography` plugin is active via `@plugin` — `.prose` classes work
+  out of the box with dark mode via `dark:prose-invert`.
 
 ### Phase 3 — Blog posts (FIRST CONTENT STAGE)
 **Goal:** every blog post + the blog index render from content files.
@@ -581,9 +607,9 @@ to here was "buildable, not pretty"; this is where it becomes pretty.
   trust/escaping (content is self-authored, so acceptable).
 - **MDX component scope:** components used in `.mdx` must be in scope (imported or via
   the `components` prop) — verify on the `Details`/`Output` posts in Phase 3 (§3.5).
-- **Tailwind 4 migration (Phase 2):** CSS-first `@theme`/`@plugin`/`@custom-variant`,
+- ~~**Tailwind 4 migration (Phase 2):** CSS-first `@theme`/`@plugin`/`@custom-variant`,
   the codemod's edge cases, and class-based dark mode are the riskiest mechanical change
-  — but it's early, on a placeholder page, so breakage is cheap to spot.
+  — but it's early, on a placeholder page, so breakage is cheap to spot.~~ → ✅ Resolved.
 - **Svelte excision completeness (Phase 1):** confirm no `.astro` file imports anything
   Svelte and that the lockfile no longer resolves `svelte` before pruning is "done".
 - **Embedded components beyond `Details`/`Output`:** before Phase 3, confirm the full
@@ -591,8 +617,8 @@ to here was "buildable, not pretty"; this is where it becomes pretty.
   framework). If one needs real interactivity, native HTML/vanilla JS first.
 - **Dark-mode anti-FOUC:** inline `<head>` + `localStorage` must paint correctly under
   Astro preview / Cloudflare Pages — test in Phase 4, not Phase 7.
-- **`rehype-add-classes` removal:** audit CSS depending on injected classes
-  (`pre: 'bg-white'`) before dropping the plugin (§3.5).
+- ~~**`rehype-add-classes` removal:** audit CSS depending on injected classes
+  (`pre: 'bg-white'`) before dropping the plugin (§3.5).~~ → ✅ Removed. No dependent CSS.
 - **Lucide icons:** `lucide-svelte` → use `lucide` static SVGs as Astro components (no
   framework runtime for icons).
 - **Asset volume:** `static/blog/**` is large (many `.png/.webp/.svg/.pdf`); decide what

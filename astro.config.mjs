@@ -5,6 +5,7 @@ import remarkMath from 'remark-math';
 import rehypeKatex from 'rehype-katex';
 import rehypeSlug from 'rehype-slug';
 import rehypeAutolinkHeadings from 'rehype-autolink-headings';
+import tailwindcss from '@tailwindcss/vite';
 
 // https://astro.build/config
 export default defineConfig({
@@ -19,20 +20,21 @@ export default defineConfig({
 			rehypePlugins: [
 				[rehypeKatex, { fleqn: true, throwOnError: false }],
 				rehypeSlug,
-				rehypeAutolinkHeadings,
-			],
+				rehypeAutolinkHeadings
+			]
 		}),
 		shikiConfig: {
-			theme: 'monokai',
-		},
+			theme: 'monokai'
+		}
 	},
 
 	vite: {
+		plugins: [tailwindcss()],
 		resolve: {
 			alias: {
 				'@': '/src',
-				'$lib': '/src/lib',
-			},
-		},
-	},
+				$lib: '/src/lib'
+			}
+		}
+	}
 });
