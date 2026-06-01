@@ -587,16 +587,65 @@ internal dep (vite@7.3.3).
 - ✅ Zero null-byte leakage in HTML output
 - ⚠️ Deprecation warning: `remarkPlugins` on `mdx()` is deprecated in Astro 6.x (will need migration to `markdown.processor` when `extendMarkdownConfig` supports it for `.mdx`)
 
-### Phase 4 — Site shell & core pages
-**Goal:** navigable site (landing, contact, header/footer, dark mode, 404).
-- `Layout.astro` (header, footer, dark-mode head script + toggle island).
-- **Test the dark-mode anti-FOUC script early.** The inline `<head>` + `localStorage`
-  pattern from `darkmode.svelte` must run *before paint* and behave under Astro's
-  preview iframe and on Cloudflare Pages. Validate it here (no flash, correct theme on
-  reload) rather than discovering an issue during the Phase 7 redesign.
-- Port `/` landing and `/contact` (content can move to Markdown/data if desired).
-- `src/pages/404.astro` replacing `+error.svelte`.
-- **Builds:** `/`, `/contact`, `/blog`, posts, with shared shell + dark mode. ✅
+### Phase 4 — Site shell & core pages ✅ **COMPLETED**
+
+#### Phase 4 — Completion notes ✅ **COMPLETED**
+
+**Site shell** (`src/layouts/Layout.astro`):
+- Full `<html>` / `<head>` / `<body>` structure shared by all pages
+- **Anti-FOUC dark-mode script** (`is:inline` in `<head>`): reads `localStorage.theme` or
+  `prefers-color-scheme`, sets `document.documentElement.classList` before first paint.
+  Exact port of the `darkmode.svelte` inline head script.
+- Header nav: Home, Blog, CV, Contact — matching old header.svelte styles exactly
+- Footer: gradient spacer + copyright bar (ported from footer.svelte)
+- `<slot />` for page content, `<slot name="head" />` for per-page head additions
+- Imports `app.css` and `katex/dist/katex.min.css` globally (matches old `+layout.svelte`)
+
+**Dark mode toggle** (`src/components/DarkMode.astro`):
+- Button with inline Lucide Sun/Moon SVG icons (no `lucide-svelte` dependency)
+- `<script>` (Astro-bundled) handles toggle: flips `localStorage.theme` + `classList` + icons
+- NOT a `client:load` island — Astro components can't use hydration directives; the
+  `<script>` inside `.astro` components is auto-bundled by Astro
+
+**Refactored `BlogPostLayout.astro`**: now delegates to `Layout.astro` instead of having
+its own `<html>` structure. Wraps content in prose `<article>`. CSS imports removed
+(inherited from `Layout.astro`).
+
+**Landing page** (`src/pages/index.astro`): full port of `+page.svelte` — Hello heading,
+5 hobby sections (Reading, Cooking, Music, Coding, Gaming) with inline Lucide SVGs,
+About this website section. Uses `Layout` + `SmallContainer` + `SectionHeader` +
+`LandingSection`.
+
+**Contact page** (`src/pages/contact.astro`): 5 `ContactItem` components (email,
+location, github, work, linkedin) with inline Lucide SVG icons. Uses `Layout` +
+`SmallContainer`.
+
+**404 page** (`src/pages/404.astro`): replaces `+error.svelte`. Zap icon + error
+message. Uses `Layout` + `SmallContainer`.
+
+**Ported components**: `SmallContainer.astro`, `SectionHeader.astro`,
+`landing/LandingSection.astro`, `contact/ContactItem.astro` (all Svelte → Astro).
+
+**Build** (SSG, 24 pages, 4.5s): landing + contact + 404 + blog index + 20 posts.
+Anti-FOUC script present on all pages. Theme toggle on all pages. Zero framework
+runtime JS.
+
+**Design decisions**: (1) No icon library — all Lucide icons are inline SVGs.
+(2) `Layout.astro` is the single `<html>` root; `BlogPostLayout` delegates to it.
+(3) Dark mode toggle is plain JS, not a framework island.
+
+**Handoff for Phase 5 (CV)**: CV link in header exists but page doesn't — Phase 5
+creates `src/pages/cv.astro`. `SectionHeader.astro` already built and reusable. CV
+data model defined in §4.2 — YAML at `src/data/cv.yaml`. Old Svelte CV page at
+`_reference/src/routes/cv/+page.svelte`.
+
+**Handoff for Phase 6 (redirects/feeds/SEO)**: `src/lib/redirects.json` exists from
+old build. RSS/Atom feeds from old SvelteKit build need porting. Phase 6 should be
+done before any public Cloudflare Pages deploy to avoid breaking old inbound links.
+
+**Handoff for Phase 7 (visual overhaul)**: dark-mode system fully functional and tested.
+All components use Tailwind 4 utility classes — redesign changes are localized to
+class strings. Icon SVGs are inline — a shared icon component could simplify Phase 7.
 
 ### Phase 5 — CV from YAML
 **Goal:** `/cv` rendered from `src/data/cv.yaml`.

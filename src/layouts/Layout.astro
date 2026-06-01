@@ -1,0 +1,83 @@
+---
+import '../styles/app.css';
+import 'katex/dist/katex.min.css';
+import DarkMode from '../components/DarkMode.astro';
+
+export interface Props {
+	title: string;
+	description?: string;
+}
+
+const { title, description } = Astro.props;
+---
+
+<html lang="en">
+	<head>
+		<meta charset="utf-8" />
+		<link rel="icon" href="/favicon.ico" />
+		<meta name="viewport" content="width=device-width, initial-scale=1" />
+		{description && <meta name="description" content={description} />}
+		<title>{title} — Rik Voorhaar</title>
+
+		<!-- Anti-FOUC dark mode script: runs before first paint -->
+		<script is:inline>
+			let theme;
+			if (
+				localStorage.theme === 'light' ||
+				(!('theme' in localStorage) && window.matchMedia('(prefers-color-scheme: light)').matches)
+			) {
+				theme = 'light';
+			} else {
+				theme = 'dark';
+			}
+			localStorage.theme = theme;
+			document.documentElement.classList.add(theme);
+			document.documentElement.classList.remove(theme === 'dark' ? 'light' : 'dark');
+		</script>
+
+		<slot name="head" />
+	</head>
+	<body>
+		<div class="dark:text-white flex flex-col min-h-screen">
+			<!-- Header -->
+			<div class="flex flex-row gap-4 px-4 py-6 bg-white dark:bg-zinc-800 mb-16 items-center">
+				<DarkMode />
+				<a
+					href="/"
+					class="dark:font-extrabold font-semibold dark:text-main-500 hover:text-main-600 dark:hover:text-main-200 text-main-700 transition-colors"
+				>
+					Rik Voorhaar
+				</a>
+				<a
+					href="/blog"
+					class="dark:font-semibold hover:text-blue-500 transition-colors"
+				>
+					Blog
+				</a>
+				<a
+					href="/cv"
+					class="dark:font-semibold hover:text-blue-500 transition-colors"
+				>
+					CV
+				</a>
+				<a
+					href="/contact"
+					class="dark:font-semibold hover:text-blue-500 transition-colors"
+				>
+					Contact
+				</a>
+			</div>
+
+			<!-- Main content -->
+			<main class="flex-1">
+				<slot />
+			</main>
+
+			<!-- Footer -->
+			<div class="bg-gradient-to-b to-white dark:to-zinc-800 from-transparent -z-20 dark:p-5 p-2 opacity-80"></div>
+			<div class="px-4 py-4 bg-white dark:bg-zinc-800 opacity-80">
+				<p>Rik Voorhaar &copy; {new Date().getFullYear()}</p>
+			</div>
+		</div>
+	</body>
+</html>
