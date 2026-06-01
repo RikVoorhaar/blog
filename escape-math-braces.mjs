@@ -8,11 +8,12 @@ for (const filename of files) {
 	const filepath = join(postsDir, filename);
 	let content = readFileSync(filepath, 'utf-8');
 
-	// Replace { and } inside $$...$$ display math blocks and $...$ inline math
-	// with placeholder tokens, so MDX doesn't parse them as JSX expressions.
-	// The remark-unescape-math plugin will restore them during rendering.
+	// Replace special characters inside math blocks with placeholder tokens,
+	// otherwise MDX will parse them as JSX expressions (braces) or markdown
+	// formatting (underscores interpreted as italics). The remark-mdx-math
+	// plugin restores them during rendering.
 	const escaped = content.replace(/(\$\$[\s\S]*?\$\$|\$[^$\n]+?\$)/g, (match) =>
-		match.replace(/\{/g, '\x00LB\x00').replace(/\}/g, '\x00RB\x00')
+		match.replace(/\{/g, 'LB').replace(/\}/g, 'RB').replace(/_/g, 'US').replace(/\*/g, 'ST')
 	);
 
 	if (escaped !== content) {

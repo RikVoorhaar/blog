@@ -13,12 +13,12 @@ const { type, content, href } = Astro.props;
 	<span style="color: var(--color-teal-500);">
 		<slot />
 	</span>
-	<span class="font-semibold" style="color: var(--color-accent-500);">{type}</span>:
+	<span class="font-semibold" style="color: var(--text-accent);">{type}</span>:
 	{href ? (
 		<a
 			href={href}
-			class="font-semibold transition-colors duration-150"
-			style="color: var(--color-link-300);"
+			class="font-semibold link-underline"
+			style="color: var(--text-link);"
 		>
 			{content}
 		</a>
@@ -26,9 +26,3 @@ const { type, content, href } = Astro.props;
 		<span>{content}</span>
 	)}
 </p>
-
-<style>
-	html.light a {
-		color: var(--color-link-700);
-	}
-</style>

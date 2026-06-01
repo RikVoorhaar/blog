@@ -1,7 +1,7 @@
 <a
 	href={Astro.props.href}
 	class="font-semibold no-underline transition-all duration-150"
-	style="color: var(--color-link-300);"
+	style="color: var(--text-link);"
 >
 	<slot />
 </a>
@@ -16,8 +16,5 @@
 	}
 	a:hover {
 		background-size: 100% 1px;
-	}
-	html.light a {
-		color: var(--color-link-700);
 	}
 </style>

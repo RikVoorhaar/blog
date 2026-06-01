@@ -20,7 +20,7 @@ import cv from '../data/cv';
 		>
 			<h1
 				class="text-3xl font-extrabold mb-4 tracking-tight"
-				style="color: var(--color-accent-500);"
+				style="color: var(--text-accent);"
 			>
 				Curriculum Vitae
 			</h1>
@@ -28,16 +28,17 @@ import cv from '../data/cv';
 			<div class="prose max-w-none">
 				<SectionHeader>Work experience</SectionHeader>
 			</div>
-			{cv.experience.map((exp) => (
-				<Experience
-					position={exp.position}
-					employer={exp.employer}
-					image={exp.image}
-					date_start={exp.date_start}
-					date_end={exp.date_end}
-					bullets={exp.bullets}
-				/>
-			))}
+			{cv.experience.map((exp, i) => (
+					<Experience
+						position={exp.position}
+						employer={exp.employer}
+						image={exp.image}
+						date_start={exp.date_start}
+						date_end={exp.date_end}
+						bullets={exp.bullets}
+						first={i === 0}
+					/>
+				))}
 
 			<div class="prose max-w-none">
 				<SectionHeader>Education</SectionHeader>

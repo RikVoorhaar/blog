@@ -86,7 +86,7 @@ const navLinks = [
 				<a
 					href="/"
 					class="font-extrabold text-lg tracking-tight transition-colors duration-150 flex-shrink-0"
-					style="color: var(--color-accent-500);"
+					style="color: var(--text-accent);"
 				>
 					Rik Voorhaar
 				</a>
@@ -99,13 +99,14 @@ const navLinks = [
 							<a
 								href={link.href}
 								class:list={[
-									'px-2 py-1 text-sm font-medium rounded transition-colors duration-150',
+									'px-2 py-1 text-sm font-medium rounded transition-all duration-200',
+									'hover:underline hover:underline-offset-4',
 									{
 										'underline underline-offset-4 decoration-2': active,
 									},
 								]}
 								style={active
-									? `color: var(--color-accent-500); text-decoration-color: var(--color-accent-500);`
+									? `color: var(--text-accent); text-decoration-color: var(--text-accent);`
 									: `color: var(--text-muted);`}
 								aria-current={active ? 'page' : undefined}
 							>

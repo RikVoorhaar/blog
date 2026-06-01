@@ -1,7 +1,12 @@
 import { visit } from 'unist-util-visit';
 
-const LB = '\x00LB\x00';
-const RB = '\x00RB\x00';
+// Sentinel tokens for escaped characters inside math blocks.
+// Must match escape-math-braces.mjs.
+// Note: null bytes are stripped by MDX parser, so we use plain text.
+const LB = 'LB'; // { (left brace — prevents MDX JSX expression parsing)
+const RB = 'RB'; // } (right brace)
+const US = 'US'; // _ (underscore — prevents markdown italic parsing)
+const ST = 'ST'; // * (asterisk — prevents markdown emphasis parsing)
 
 /**
  * Custom remark plugin that replaces remark-math for .mdx files.
@@ -27,26 +32,42 @@ export default function remarkMdxMath() {
 					newNodes.push({ type: 'text', value: value.slice(lastIndex, match.index) });
 				}
 
-				const mathValue = match[1].replaceAll(LB, '{').replaceAll(RB, '}');
+				const mathValue = match[1]
+					.replaceAll(LB, '{')
+					.replaceAll(RB, '}')
+					.replaceAll(US, '_')
+					.replaceAll(ST, '*');
 				const isDisplay = match.index > 0 && value.charCodeAt(match.index - 1) === 10;
 
 				if (isDisplay && /^\s*\n/.test(value.slice(match.index + match[0].length))) {
 					newNodes.push({
 						type: 'math',
 						value: mathValue.trim(),
-						data: { hName: 'div', hProperties: { className: ['math', 'math-display'] } }
+						data: {
+							hName: 'div',
+							hProperties: { className: ['math', 'math-display'] },
+							hChildren: [{ type: 'text', value: mathValue.trim() }]
+						}
 					});
 				} else if (match[1].includes('\n')) {
 					newNodes.push({
 						type: 'math',
 						value: mathValue.trim(),
-						data: { hName: 'div', hProperties: { className: ['math', 'math-display'] } }
+						data: {
+							hName: 'div',
+							hProperties: { className: ['math', 'math-display'] },
+							hChildren: [{ type: 'text', value: mathValue.trim() }]
+						}
 					});
 				} else {
 					newNodes.push({
 						type: 'inlineMath',
 						value: mathValue.trim(),
-						data: { hName: 'span', hProperties: { className: ['math', 'math-inline'] } }
+						data: {
+							hName: 'span',
+							hProperties: { className: ['math', 'math-inline'] },
+							hChildren: [{ type: 'text', value: mathValue.trim() }]
+						}
 					});
 				}
 

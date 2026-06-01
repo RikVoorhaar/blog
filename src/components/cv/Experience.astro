@@ -9,12 +9,13 @@ export interface Props {
 	date_start: string;
 	date_end: string;
 	bullets: string[];
+	first?: boolean;
 }
 
-const { position, employer, image, date_start, date_end, bullets } = Astro.props;
+const { position, employer, image, date_start, date_end, bullets, first = false } = Astro.props;
 ---
 
-<div class="flex flex-col md:flex-row mb-4">
+<div class={`flex flex-col md:flex-row mb-6 pt-4 ${first ? '' : 'border-t'}`} style={first ? undefined : 'border-color: var(--border-subtle);'}>
 	<div class="w-20 mr-0 md:mr-6 flex-shrink-0 pb-0">
 		<img src={image} alt={employer} class="w-full mb-0 h-auto" />
 	</div>

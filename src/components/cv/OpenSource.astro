@@ -1,6 +1,6 @@
 ---
 // Open source contribution or technical writing entry
-// With collapsible "More info" toggle
+// With collapsible "More info" toggle (data-attribute delegation, no per-instance script)
 export interface Props {
 	title: string;
 	url: string;
@@ -8,7 +8,6 @@ export interface Props {
 }
 
 const { title, url, info } = Astro.props;
-const uid = title.replace(/[^a-zA-Z0-9]/g, '-').toLowerCase();
 ---
 
 <div class="mb-2">
@@ -16,26 +15,26 @@ const uid = title.replace(/[^a-zA-Z0-9]/g, '-').toLowerCase();
 	<span class="pl-1 inline">
 		<a
 			class="text-lg font-bold pr-2 transition-colors duration-150"
-			style="color: var(--color-accent-500);"
+			style="color: var(--text-accent);"
 			href={url}
 		>
 			{title}
 		</a>
 	</span>
 	{info && (
-		<div class="pl-4 mt-1">
+		<div class="pl-4 mt-1" data-cv-toggle-group>
 			<button
-				id={`btn-${uid}`}
+				data-cv-toggle-btn
 				class="flex align-top flex-auto italic font-semibold transition-colors duration-200 cursor-pointer border-0 bg-transparent p-0"
 				style="color: var(--text-primary);"
 			>
-				<span id={`chevron-${uid}`} class="inline-block transition-transform duration-200 px-1 pl-0 my-1 rotate-90">
+				<span data-cv-toggle-chevron class="inline-block transition-transform duration-200 px-1 pl-0 my-1 rotate-90">
 					<svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m9 18 6-6-6-6" /></svg>
 				</span>
 				More info
 			</button>
 			<div
-				id={`info-${uid}`}
+				data-cv-toggle-content
 				class="pl-2 ml-2 my-0 py-0 hidden"
 				style="border-left: 2px solid var(--color-teal-500);"
 			>
@@ -45,18 +44,23 @@ const uid = title.replace(/[^a-zA-Z0-9]/g, '-').toLowerCase();
 	)}
 </div>
 
-{info && (
-	<script>
-		(() => {
-			const btn = document.getElementById('btn-{uid}');
-			const infoEl = document.getElementById('info-{uid}');
-			const chevron = document.getElementById('chevron-{uid}');
-			if (btn && infoEl && chevron) {
-				btn.addEventListener('click', () => {
-					const hidden = infoEl.classList.toggle('hidden');
-					chevron.style.transform = hidden ? 'rotate(90deg)' : 'rotate(0deg)';
-				});
-			}
-		})();
-	</script>
-)}
+<script>
+	function initCvToggles() {
+		document.querySelectorAll('[data-cv-toggle-group]').forEach((group) => {
+			const btn = group.querySelector('[data-cv-toggle-btn]');
+			const chevron = group.querySelector('[data-cv-toggle-chevron]');
+			const content = group.querySelector('[data-cv-toggle-content]');
+			if (!btn || !chevron || !content) return;
+			if ((btn as HTMLElement).dataset.cvBound === '1') return;
+			(btn as HTMLElement).dataset.cvBound = '1';
+
+			btn.addEventListener('click', () => {
+				const hidden = content.classList.toggle('hidden');
+				(chevron as HTMLElement).style.transform = hidden ? 'rotate(90deg)' : 'rotate(0deg)';
+			});
+		});
+	}
+
+	initCvToggles();
+	document.addEventListener('astro:page-load', initCvToggles);
+</script>

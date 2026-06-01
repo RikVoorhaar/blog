@@ -26,42 +26,42 @@ samp {
 }
 
 @theme {
-	/* ---- Accent: electric yellow (canonical; replaces turbo + main) ---- */
-	--color-accent-50: #feffe7;
-	--color-accent-100: #faffc1;
-	--color-accent-200: #f9ff86;
-	--color-accent-300: #feff41;
-	--color-accent-400: #fff40d;
-	--color-accent-500: #ffe600;
-	--color-accent-600: #d1aa00;
-	--color-accent-700: #a67b02;
-	--color-accent-800: #895f0a;
-	--color-accent-900: #744e0f;
-	--color-accent-950: #442904;
+	/* ---- Accent: crimson / rose ---- */
+	--color-accent-50: #fff1f2;
+	--color-accent-100: #ffe4e6;
+	--color-accent-200: #fecdd3;
+	--color-accent-300: #fda4af;
+	--color-accent-400: #fb7185;
+	--color-accent-500: #f43f5e;
+	--color-accent-600: #e11d48;
+	--color-accent-700: #be123c;
+	--color-accent-800: #9f1239;
+	--color-accent-900: #881337;
+	--color-accent-950: #4c0519;
 
 	/* Backward-compat aliases (remove post-Phase 7 cleanup) */
-	--color-turbo-50: #feffe7;
-	--color-turbo-100: #faffc1;
-	--color-turbo-200: #f9ff86;
-	--color-turbo-300: #feff41;
-	--color-turbo-400: #fff40d;
-	--color-turbo-500: #ffe600;
-	--color-turbo-600: #d1aa00;
-	--color-turbo-700: #a67b02;
-	--color-turbo-800: #895f0a;
-	--color-turbo-900: #744e0f;
-	--color-turbo-950: #442904;
-	--color-main-50: #feffe7;
-	--color-main-100: #faffc1;
-	--color-main-200: #f9ff86;
-	--color-main-300: #feff41;
-	--color-main-400: #fff40d;
-	--color-main-500: #ffe600;
-	--color-main-600: #d1aa00;
-	--color-main-700: #a67b02;
-	--color-main-800: #895f0a;
-	--color-main-900: #744e0f;
-	--color-main-950: #442904;
+	--color-turbo-50: #fff1f2;
+	--color-turbo-100: #ffe4e6;
+	--color-turbo-200: #fecdd3;
+	--color-turbo-300: #fda4af;
+	--color-turbo-400: #fb7185;
+	--color-turbo-500: #f43f5e;
+	--color-turbo-600: #e11d48;
+	--color-turbo-700: #be123c;
+	--color-turbo-800: #9f1239;
+	--color-turbo-900: #881337;
+	--color-turbo-950: #4c0519;
+	--color-main-50: #fff1f2;
+	--color-main-100: #ffe4e6;
+	--color-main-200: #fecdd3;
+	--color-main-300: #fda4af;
+	--color-main-400: #fb7185;
+	--color-main-500: #f43f5e;
+	--color-main-600: #e11d48;
+	--color-main-700: #be123c;
+	--color-main-800: #9f1239;
+	--color-main-900: #881337;
+	--color-main-950: #4c0519;
 
 	/* ---- Teal: secondary (replaces puerto-rico) ---- */
 	--color-teal-50: #e5fff9;
@@ -127,6 +127,8 @@ html:not(.light) {
 	--border-strong: #3f3f46;
 	--text-primary: #fafafa;
 	--text-muted: #a1a1aa;
+	--text-accent: var(--color-accent-500);
+	--text-link: var(--color-link-300);
 }
 
 html.light {
@@ -138,6 +140,8 @@ html.light {
 	--border-strong: #d4d4d8;
 	--text-primary: #18181b;
 	--text-muted: #52525b;
+	--text-accent: var(--color-accent-700);
+	--text-link: var(--color-link-700);
 }
 
 html.dark {
@@ -160,7 +164,7 @@ html.light {
 		border: 1px solid var(--border-strong);
 	}
 	.glow-accent {
-		box-shadow: 0 0 0 1px rgba(255, 230, 0, 0.4), 0 0 24px -6px rgba(255, 230, 0, 0.3);
+		box-shadow: 0 0 0 1px rgba(244, 63, 94, 0.4), 0 0 24px -6px rgba(244, 63, 94, 0.3);
 	}
 }
 
@@ -275,4 +279,17 @@ pre {
 
 .dataframe thead th {
 	text-align: right;
+}
+
+/* ---- Text link underline animation ---- */
+
+.link-underline {
+	background-image: linear-gradient(currentColor, currentColor);
+	background-position: 0% 100%;
+	background-repeat: no-repeat;
+	background-size: 0% 1px;
+	transition: background-size 200ms cubic-bezier(0.2, 0, 0, 1);
+}
+.link-underline:hover {
+	background-size: 100% 1px;
 }

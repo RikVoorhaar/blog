@@ -7,7 +7,7 @@ import SmallContainer from '../components/SmallContainer.astro';
 	<SmallContainer>
 		<h1
 			class="font-extrabold text-4xl mb-4 flex items-center gap-3 tracking-tight"
-			style="color: var(--color-accent-500);"
+			style="color: var(--text-accent);"
 		>
 			<!-- Zap icon -->
 			<svg xmlns="http://www.w3.org/2000/svg" width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
@@ -20,16 +20,10 @@ import SmallContainer from '../components/SmallContainer.astro';
 		</p>
 		<a
 			href="/"
-			class="font-semibold transition-colors duration-150"
-			style="color: var(--color-link-300);"
+			class="font-semibold link-underline"
+			style="color: var(--text-link);"
 		>
 			Go back home →
 		</a>
 	</SmallContainer>
 </Layout>
-
-<style>
-	html.light a {
-		color: var(--color-link-700);
-	}
-</style>
