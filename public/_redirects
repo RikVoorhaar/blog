@@ -1,0 +1,6 @@
+# Cloudflare Pages redirects
+# Phase 6 — mirrors Astro redirects config for edge CDN.
+# Generated at build time; each line is: <source> <destination> <status>
+/resume       /cv           301
+/posts        /blog         301
+/articles     /blog         301

@@ -711,6 +711,61 @@ class strings. Icon SVGs are inline — a shared icon component could simplify P
   `+page.svelte` `<svelte:head>`).
 - **Builds:** old slugs 301 to new paths; sitemap + RSS emitted. ✅
 
+#### Phase 6 — Completion notes ✅
+
+**What was built / changed:**
+
+- **Redirects:** created `public/_redirects` for Cloudflare Pages (`/resume` → `/cv`,
+  `/posts` → `/blog`, `/articles` → `/blog`). Mirrored in Astro `redirects` config for
+  local `astro preview` (each emits an HTML page with `<meta http-equiv="refresh">`).
+- **`trailingSlash`:** set to `'ignore'` (SvelteKit default). During SSG this generates
+  `/path/index.html` per route — both `/path` and `/path/` resolve correctly.
+- **Sitemap:** installed `@astrojs/sitemap`; outputs `sitemap-index.xml` +
+  `sitemap-0.xml` with all 25 pages and full canonical URLs.
+- **RSS:** installed `@astrojs/rss`; `src/pages/rss.xml.ts` emits all non-draft posts
+  sorted by date with title, description, link, and pubDate. RSS autodiscovery
+  `<link>` added to `<head>`.
+- **OG / Twitter Card tags:** added to `Layout.astro` (title, description, type,
+  url, image, site_name + Twitter summary card). Default `og:image` is `/favicon.png`;
+  blog posts override with their `teaser` image and `og:type="article"`.
+  `BlogPostLayout.astro` passes `ogImage`/`ogType` through to `Layout`.
+- **Meta descriptions:** added to landing (`index.astro`), contact, and CV pages.
+- **Landing page title:** changed from "Rik Voorhaar" to "Home" to avoid the
+  double-suffix "Rik Voorhaar — Rik Voorhaar" (Layout appends ` — Rik Voorhaar`).
+
+**Build baseline:**
+
+| Metric | Value |
+|---|---|
+| Build time |~4.5s |
+| Total pages | 25 (plus 3 redirect targets, 1 RSS, 2 sitemap files) |
+| New generated routes vs Phase 5 | 6 (3 redirects + RSS + 2 sitemap entries) |
+| Framework JS | Zero |
+| Errors/warnings | None (only known MDX deprecation + Node module deprecation) |
+
+**Design decisions:**
+
+1. The old SvelteKit `redirects.json` + catch-all `[slug]` route is replaced by
+   Cloudflare Pages `_redirects` (for CDN) + Astro `redirects` config (for local
+   preview). The original `redirects.json` content was not in the `_reference/`
+   snapshot; the three redirects added cover the most obvious legacy paths.
+   Additional redirects can be added later by editing both `astro.config.mjs`
+   (`redirects` block) and `public/_redirects`.
+2. `trailingSlash: 'ignore'` matches the old SvelteKit behavior and is the safest
+   default — it generates directory-based output (`/path/index.html`) that works
+   with both `/path` and `/path/`.
+3. OG image defaults to `/favicon.png` (the square icon); blog posts use their
+   frontmatter `teaser` field path. No dedicated social-card images exist yet —
+   that's a Phase 7+ opportunity.
+4. The RSS endpoint is an Astro endpoint (`rss.xml.ts`) returning XML, not a
+   standalone `.xml` file. Same output, but generated at build time from the
+   content collection.
+
+**Handoff for Phase 7:** the visual overhaul. All routes, redirects, feeds, and SEO
+metadata are in place. Phase 7 can focus purely on design: Tailwind token extension,
+typography scale, dark mode polish, `<Image>`/`<Picture>` for teaser images,
+component polish. No further routing or plumbing work needed.
+
 ### Phase 7 — Visual overhaul (the redesign)
 **Goal:** the new look. *This is where design work happens, not before.* Everything up
 to here was "buildable, not pretty"; this is where it becomes pretty.

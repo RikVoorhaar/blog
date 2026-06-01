@@ -1,5 +1,6 @@
 import { defineConfig } from 'astro/config';
 import mdx from '@astrojs/mdx';
+import sitemap from '@astrojs/sitemap';
 import remarkMdxMath from './remark-mdx-math.mjs';
 import rehypeKatex from 'rehype-katex';
 import rehypeSlug from 'rehype-slug';
@@ -12,7 +13,20 @@ export default defineConfig({
 	site: 'https://rikvoorhaar.com',
 	publicDir: 'static',
 
+	// SvelteKit default: no trailing slash (ignore = both /path and /path/ work)
+	// During SSG this generates /path/index.html for each route.
+	trailingSlash: 'ignore',
+
+	// Cloudflare Pages redirects mirrored for local preview.
+	// Phase 8 will add public/_redirects for the CDN; these are Astro-native duplicates.
+	redirects: {
+		'/resume': '/cv',
+		'/posts': '/blog',
+		'/articles': '/blog'
+	},
+
 	integrations: [
+		sitemap(),
 		mdx({
 			remarkPlugins: [remarkMdxMath],
 			rehypePlugins: [
