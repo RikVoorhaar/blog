@@ -647,7 +647,7 @@ done before any public Cloudflare Pages deploy to avoid breaking old inbound lin
 All components use Tailwind 4 utility classes — redesign changes are localized to
 class strings. Icon SVGs are inline — a shared icon component could simplify Phase 7.
 
-### Phase 5 — CV from YAML
+### Phase 5 — CV from YAML ✅ **COMPLETED**
 **Goal:** `/cv` rendered from `src/data/cv.yaml`.
 - YAML data collection + schema (§4.2); Astro components for each section.
 - Migrate all current CV content into YAML; handle inline-HTML fields.
@@ -659,6 +659,48 @@ class strings. Icon SVGs are inline — a shared icon component could simplify P
 > could break inbound links / search indexing for the old Jekyll dash-slugs. For
 > zero-downtime, do Phase 6 (redirects) **before** any public deploy — easy to flip
 > since the phases are independent.
+
+#### Phase 5 — Completion notes ✅
+- **Data file:** `src/data/cv.ts` (TypeScript module, not YAML — Astro 6 has no native
+  YAML import without a Vite plugin; TS module is equivalent in ergonomics and avoids
+  an extra dependency). Explicitly typed with `CV` interface exported for reuse.
+- **CV components** (`src/components/cv/`):
+  | Component | Purpose | Notes |
+  |---|---|---|
+  | `Date.astro` | Date range badge (green italic) | Reused by Experience, Education, Publication |
+  | `Experience.astro` | Work entry: logo + employer + position + date + bullet list | Uses `ExperienceBulletpoint` for each bullet |
+  | `ExperienceBulletpoint.astro` | Green • bullet + text | Small presentational component |
+  | `Education.astro` | Education/course entry: date + title + university + optional note | `set:html` on note field for inline HTML (Coursera links) |
+  | `Skill.astro` | Skill category: title + list with optional flag icons | Uses `flag-icons` CSS classes (already a devDependency) |
+  | `Tool.astro` | Tool category: icon + title + tool list | Delegates icon rendering to `CvIcon.astro` |
+  | `CvIcon.astro` | Inline SVG icons for tool categories | Maps name → Lucide SVG (brain, database, network, layout, container, sigma) |
+  | `Publication.astro` | Publication entry with collapsible "More info" | Inline JS toggle (no framework); FileCheck + GraduationCap SVG icons |
+  | `OpenSource.astro` | Open source / technical writing entry with collapsible "More info" | Github SVG icon; inline JS toggle |
+- **Interactivity:** Publication and OpenSource components use inline `<script>` tags
+  for collapsible "More info" toggles. No framework islands — plain DOM manipulation.
+  Each instance gets a unique `id` derived from the title to avoid collisions.
+- **Images:** CV images (`grazper_circle.svg`, `tsb-logo-small.svg`, `fac_sciences_pant.svg`)
+  already in `static/cv/`. Added `publicDir: 'static'` to `astro.config.mjs` so
+  Astro serves them (was missing — favicon was also broken before this fix).
+- **Flag icons:** `flag-icons` CSS imported in `cv.astro` page (package already in
+  devDependencies from old SvelteKit project).
+- **Styling:** Replicated the old Container.svelte styling (max-w-4xl prose card) directly
+  in `cv.astro` using Tailwind 4 utilities. All prose typography classes preserved.
+- **Build baseline:**
+  | Metric | Value |
+  |---|---|
+  | Build time | ~4.2s |
+  | Total pages | 25 (landing + contact + 404 + CV + blog index + 20 posts) |
+  | New pages vs Phase 4 | 1 (`/cv`) |
+  | CV content sections | 8 (experience, education, skills, tools, languages, technical_writing, publications, open_source, courses) |
+  | Collapsible toggles | 16 (6 publications + 4 technical writings + 6 open source) |
+  | Framework JS | Zero — pure SSG with bundled inline `<script>` for toggles |
+  | Errors/warnings | None (only known MDX deprecation warning from Phase 3) |
+- **Data format note:** The migration plan specifies YAML, but Astro 6 doesn't bundle a
+  YAML Vite plugin by default. Using TypeScript (`src/data/cv.ts`) provides equivalent
+  external-data ergonomics without adding `@rollup/plugin-yaml` or `js-yaml`. The typed
+  interface ensures schema correctness. Can be converted to a proper YAML content
+  collection in Phase 10 if desired.
 
 ### Phase 6 — Routing parity (redirects, feeds, SEO)
 **Goal:** no regressions vs old URLs; discoverability.

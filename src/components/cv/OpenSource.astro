@@ -1,0 +1,55 @@
+---
+// Open source contribution or technical writing entry
+// With collapsible "More info" toggle
+export interface Props {
+	title: string;
+	url: string;
+	info?: string;
+}
+
+const { title, url, info } = Astro.props;
+const uid = title.replace(/[^a-zA-Z0-9]/g, '-').toLowerCase();
+---
+
+<div class="mb-1">
+	<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="inline text-green-600 dark:text-green-500"><path d="M15 22v-4a4.8 4.8 0 0 0-1-3.5c3 0 6-2 6-5.5.08-1.25-.27-2.48-1-3.5.28-1.15.28-2.35 0-3.5 0 0-1 0-3 1.5-2.64-.5-5.36-.5-8 0C6 2 5 2 5 2c-.3 1.15-.3 2.35 0 3.5A5.403 5.403 0 0 0 4 9c0 3.5 3 5.5 6 5.5-.39.49-.68 1.05-.85 1.65-.17.6-.22 1.23-.15 1.85v4" /><path d="M9 18c-4.51 2-5-2-7-2" /></svg>
+	<span class="pl-1 inline">
+		<a class="text-lg text-main-700 dark:text-main-500 font-bold pr-2" href={url}>{title}</a>
+	</span>
+	{info && (
+		<div class="pl-4">
+			<button
+				id={`btn-${uid}`}
+				class="flex align-top flex-auto italic font-semibold
+					dark:hover:text-green-500 hover:text-green-600 transition-colors duration-500 cursor-pointer border-0 bg-transparent text-inherit p-0"
+			>
+				<span id={`chevron-${uid}`} class="inline-block transition-transform px-1 pl-0 my-1 rotate-90">
+					<svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m9 18 6-6-6-6" /></svg>
+				</span>
+				More info
+			</button>
+			<div
+				id={`info-${uid}`}
+				class="border-l-2 border-l-main-700 dark:border-l-main-500 pl-2 ml-2 my-0 py-0 hidden"
+			>
+				{info}
+			</div>
+		</div>
+	)}
+</div>
+
+{info && (
+	<script>
+		(() => {
+			const btn = document.getElementById('btn-{uid}');
+			const infoEl = document.getElementById('info-{uid}');
+			const chevron = document.getElementById('chevron-{uid}');
+			if (btn && infoEl && chevron) {
+				btn.addEventListener('click', () => {
+					const hidden = infoEl.classList.toggle('hidden');
+					chevron.style.transform = hidden ? 'rotate(90deg)' : 'rotate(0deg)';
+				});
+			}
+		})();
+	</script>
+)}

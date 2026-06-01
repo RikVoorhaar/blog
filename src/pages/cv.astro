@@ -1,0 +1,92 @@
+---
+import Layout from '../layouts/Layout.astro';
+import SectionHeader from '../components/SectionHeader.astro';
+import Experience from '../components/cv/Experience.astro';
+import Education from '../components/cv/Education.astro';
+import Skill from '../components/cv/Skill.astro';
+import Tool from '../components/cv/Tool.astro';
+import Publication from '../components/cv/Publication.astro';
+import OpenSource from '../components/cv/OpenSource.astro';
+import 'flag-icons/css/flag-icons.min.css';
+
+import cv from '../data/cv';
+---
+
+<Layout title="CV">
+	<div class="grid grid-cols-1 place-items-center w-full">
+		<div
+			class="max-w-4xl w-full dark:text-white prose dark:prose-invert lg:prose-lg prose-zinc prose-p:mb-4 prose-p:mt-0 prose-p:leading-normal prose-li:my-0 prose-li:leading-normal prose-ul:py-0 prose-h1:text-main-600 dark:prose-h1:text-main-500 prose-h2:text-main-700 dark:prose-h2:text-main-400 prose-h3:text-main-800 dark:prose-h3:text-main-300 prose-h4:text-main-800 dark:prose-h4:text-main-300 prose-h2:mb-2 prose-h2:mt-12 prose-h3:mb-1 prose-h3:mt-8 prose-h4:mb-1 prose-h4:mt-8 min-w-0 p-6 m-4 rounded-xl bg-slate-100 dark:bg-zinc-900 transition-colors duration-300"
+		>
+			<div
+				class="prose-h2:mb-4 prose-h2:mt-12 dark:prose-h2:text-zinc-300 prose-h2:text-zinc-700 prose-h2:text-3xl prose-h2:font-extrabold overflow-x-hidden"
+			>
+				<h1>Curriculum Vitae</h1>
+
+				<SectionHeader>Work experience</SectionHeader>
+				{cv.experience.map((exp) => (
+					<Experience
+						position={exp.position}
+						employer={exp.employer}
+						image={exp.image}
+						date_start={exp.date_start}
+						date_end={exp.date_end}
+						bullets={exp.bullets}
+					/>
+				))}
+
+				<SectionHeader>Education</SectionHeader>
+				{cv.education.map((ed) => (
+					<Education
+						date_start={ed.date_start}
+						date_end={ed.date_end}
+						entries={ed.entries}
+					/>
+				))}
+
+				<SectionHeader>Programming skills</SectionHeader>
+				{cv.skills.map((sk) => (
+					<Skill title={sk.title} skills={sk.skills} />
+				))}
+				{cv.tools.map((tool) => (
+					<Tool title={tool.title} icon={tool.icon} tools={tool.tools} />
+				))}
+
+				<SectionHeader>Languages</SectionHeader>
+				{cv.languages.map((lang) => (
+					<Skill title={lang.title} skills={lang.skills} flags={lang.flags} />
+				))}
+
+				<SectionHeader>Technical writing</SectionHeader>
+				{cv.technical_writing.map((tw) => (
+					<OpenSource title={tw.title} url={tw.url} info={tw.info} />
+				))}
+
+				<SectionHeader>Publications</SectionHeader>
+				{cv.publications.map((pub) => (
+					<Publication
+						date={pub.date}
+						title={pub.title}
+						url={pub.url}
+						published={pub.published}
+						coauthors={pub.coauthors}
+						info={pub.info}
+					/>
+				))}
+
+				<SectionHeader>Open source contributions</SectionHeader>
+				{cv.open_source.map((os) => (
+					<OpenSource title={os.title} url={os.url} info={os.info} />
+				))}
+
+				<SectionHeader>Online courses</SectionHeader>
+				{cv.courses.map((course) => (
+					<Education
+						date_start={course.date_start}
+						date_end={course.date_end}
+						entries={course.entries}
+					/>
+				))}
+			</div>
+		</div>
+	</div>
+</Layout>

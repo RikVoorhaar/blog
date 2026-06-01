@@ -1,0 +1,26 @@
+---
+// Skill category: title + list of skills with optional flag icons
+export interface Props {
+	title: string;
+	skills: string[];
+	flags?: string[];
+}
+
+const { title, skills, flags } = Astro.props;
+---
+
+<div class="mt-2">
+	<span class="text-lg text-main-700 dark:text-main-500 font-bold">{title}</span>
+	{skills.map((skill, i) => (
+		<div class="flex items-center pl-4 pb-1">
+			<span class="dark:text-green-500 text-green-600">
+				{flags && flags[i]
+					? <span class={`fi fi-${flags[i]}`}></span>
+					: (
+						<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5" /></svg>
+					)}
+			</span>
+			<span class="pl-2 font-semibold">{skill}</span>
+		</div>
+	))}
+</div>

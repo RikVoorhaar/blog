@@ -1,0 +1,31 @@
+---
+import Date from './Date.astro';
+
+interface Entry {
+	title: string;
+	university: string;
+	note?: string;
+}
+
+export interface Props {
+	date_start: string;
+	date_end?: string;
+	entries: Entry[];
+}
+
+const { date_start, date_end, entries } = Astro.props;
+---
+
+<p>
+	<Date start={date_start} end={date_end} />
+	<br />
+	{entries.map((entry, i) => (
+		<>
+			{i > 0 && <br />}
+			<span class="text-lg text-main-700 dark:text-main-500 font-bold pr-2 pl-4">{entry.title}</span>
+			|
+			<span class="font-semibold pl-2">{entry.university}</span>
+			{entry.note && <span class="italic" set:html={`(${entry.note})`} />}
+		</>
+	))}
+</p>

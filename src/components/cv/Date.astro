@@ -1,0 +1,13 @@
+---
+// Date badge: styled date range for CV entries
+export interface Props {
+	start: string;
+	end?: string;
+}
+
+const { start, end } = Astro.props;
+---
+
+<span class="italic dark:text-green-500 text-green-600 font-semibold">
+	{start}{end ? `—${end}` : ''}
+</span>

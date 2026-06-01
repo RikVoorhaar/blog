@@ -10,6 +10,7 @@ import tailwindcss from '@tailwindcss/vite';
 export default defineConfig({
 	output: 'static',
 	site: 'https://rikvoorhaar.com',
+	publicDir: 'static',
 
 	integrations: [
 		mdx({

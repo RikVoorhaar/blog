@@ -1,0 +1,22 @@
+---
+// Tool category: icon + title + tool list
+import CvIcon from './CvIcon.astro';
+
+export interface Props {
+	title: string;
+	icon?: string;
+	tools: string[];
+}
+
+const { title, icon, tools } = Astro.props;
+---
+
+<div class="mt-2">
+	<span class="text-lg text-main-700 dark:text-main-500 font-bold">{title}</span>
+	<div class="flex items-center pl-4 flex-wrap">
+		<span class="dark:text-green-500 text-green-600">
+			<CvIcon name={icon} />
+		</span>
+		{tools.map((tool) => <span class="pl-2 font-semibold">{tool}</span>)}
+	</div>
+</div>
