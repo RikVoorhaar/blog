@@ -1,4 +1,5 @@
 ---
+import { Image } from 'astro:assets';
 import type { CollectionEntry } from 'astro:content';
 
 interface Props {
@@ -6,7 +7,20 @@ interface Props {
 }
 
 const { post } = Astro.props;
-const teaserSrc = `/blog/teasers/original/${post.data.teaser}`;
+
+// Map teaser filenames to imported images (astro:assets)
+const teaserImages = import.meta.glob<{ default: ImageMetadata }>(
+	'../assets/teasers/*.{png,jpg,jpeg,webp}',
+	{ eager: true },
+);
+
+// Resolve teaser: try multiple key formats
+const teaserFilename = post.data.teaser;
+const keys = Object.keys(teaserImages);
+const teaserKey = keys.find((k) => k.endsWith('/' + teaserFilename));
+const teaserMeta = teaserKey ? teaserImages[teaserKey]?.default : undefined;
+const teaserSrc = `/blog/teasers/original/${teaserFilename}`;
+
 const date = post.data.date;
 const day = date.getDate();
 const month = new Intl.DateTimeFormat('en', { month: 'long' }).format(date);
@@ -29,13 +43,24 @@ const ordinal = (d: number): string => {
 	<!-- Teaser image -->
 	<a href={`/blog/${post.id}`} class="overflow-hidden" style="border-radius: var(--radius-md) var(--radius-md) 0 0;">
 		<div class="aspect-[16/10] overflow-hidden" style="border-radius: var(--radius-md) var(--radius-md) 0 0;">
-			<img
-				src={teaserSrc}
-				alt={`Teaser for ${post.data.title}`}
-				loading="lazy"
-				class="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
-				style="border-radius: var(--radius-md) var(--radius-md) 0 0;"
-			/>
+			{teaserMeta ? (
+				<Image
+					src={teaserMeta}
+					alt={`Teaser for ${post.data.title}`}
+					loading="lazy"
+					class="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
+					style="border-radius: var(--radius-md) var(--radius-md) 0 0;"
+					sizes="(max-width: 640px) 90vw, (max-width: 1024px) 45vw, 22rem"
+				/>
+			) : (
+				<img
+					src={teaserSrc}
+					alt={`Teaser for ${post.data.title}`}
+					loading="lazy"
+					class="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
+					style="border-radius: var(--radius-md) var(--radius-md) 0 0;"
+				/>
+			)}
 		</div>
 	</a>
 

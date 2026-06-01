@@ -1,7 +1,38 @@
-<img
-	src={Astro.props.src}
-	alt={Astro.props.alt ?? ''}
-	loading="lazy"
-	class="block ml-4 my-0 max-w-32 md:float-right"
-	style="border-radius: var(--radius-md);"
-/>
+---
+import { Image } from 'astro:assets';
+
+const { src, alt = '' } = Astro.props;
+
+// Look up imported images (astro:assets); SVGs stay as plain <img>
+const images = import.meta.glob<{ default: ImageMetadata }>(
+	'../../assets/blog/**/*.{png,jpg,jpeg,webp,avif}',
+	{ eager: true },
+);
+
+const imgMeta = (() => {
+	for (const [key, mod] of Object.entries(images)) {
+		if (src.endsWith(key.replace('../../assets', ''))) {
+			return mod.default;
+		}
+	}
+	return null;
+})();
+---
+
+{imgMeta ? (
+	<Image
+		src={imgMeta}
+		alt={alt}
+		loading="lazy"
+		class="block ml-4 my-0 max-w-32 md:float-right"
+		style="border-radius: var(--radius-md);"
+	/>
+) : (
+	<img
+		src={src}
+		alt={alt}
+		loading="lazy"
+		class="block ml-4 my-0 max-w-32 md:float-right"
+		style="border-radius: var(--radius-md);"
+	/>
+)}

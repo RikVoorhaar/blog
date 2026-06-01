@@ -840,6 +840,74 @@ to here was "buildable, not pretty"; this is where it becomes pretty.
 - Font loading strategy; Lighthouse pass against the Phase 3 baseline.
 - **Builds:** optimized, CDN-friendly artifact. ✅
 
+#### Phase 8 — Completion notes ✅
+
+**What was built / changed:**
+- **Image asset triage:** Moved 18 teaser originals and ~127 in-post raster images from
+  `static/` to `src/assets/teasers/` and `src/assets/blog/<post>/` respectively.
+  SVGs (79 files — plots, diagrams, icons) remain in `static/` as they don't benefit
+  from raster processing.
+- **`astro:assets` `<Image>` integration:** Updated `PostCard.astro`, `img.astro`,
+  `ImgSmall.astro`, and `[...slug].astro` with `import.meta.glob({ eager: true })` to
+  lazy-resolve imported images at build time. Raster images automatically converted to
+  WebP with responsive `srcset` via `<Image>`. SVGs fall through to plain `<img>` tags.
+- **`static/_headers`:** Cloudflare Pages CDN cache rules — `/_astro/*` immutable
+  (1 year), `/fonts/*` weekly cache, `/rss.xml` hourly, HTML pages `max-age=0`
+  (auto-purged on deploy).
+- **Self-hosted fonts:** Installed `@fontsource/space-grotesk` (400/500/600/700, latin
+  subset) and `@fontsource/jetbrains-mono` (400/600, latin subset). Base `font-family`
+  rules in `app.css`. Fonts are hashed, 16–24KB each. Preload `<link>` for the 700
+  weight heading font in `Layout.astro` to minimize CLS on first paint.
+  `font-display: swap` is built into the `@fontsource` CSS files.
+- **JS audit:** Confirmed **zero** framework JS in `dist/` — 0 `.js` files. Only
+  pre-existing vanilla inline scripts (dark mode toggle, Details panels).
+- **OG images fixed:** Blog post OG meta now uses the processed `astro:assets` URL
+  (e.g., `/_astro/bayes_exam.CivO7mlM.jpg`) with the full site URL.
+
+**Build baseline:**
+| Metric | Value |
+|---|---|
+| Build time | ~5.3s (cold) / ~4.8s (cached images) |
+| Total pages | 25 |
+| Images processed | 98 (82 in-post + 16 teasers) |
+| Framework JS | Zero |
+| Errors/warnings | None (MDX remarkPlugins deprecation known) |
+| Font payload | Space Grotesk 64KB(4 weights) + JetBrains Mono 48KB(2 weights) = 112KB total |
+| Dist size | ~210MB (22MB images, HTML/CSS/fonts) |
+
+**Image processing results (notable):**
+| Image | Before | After | Reduction |
+|---|---|---|---|
+| `photo-of-tt-nice.png` | 4447KB | 298KB | 93% |
+| `lastfm.jpg` (teaser) | 1652KB | 430KB | 74% |
+| `dashboard.png` (teaser) | 939KB | 56KB | 94% |
+| `part2_1_0.png` | 453KB | 66KB | 85% |
+
+**Design decisions:**
+1. `import.meta.glob({ eager: true })` was used over individual imports — it scales to
+   127 images across 19 posts without manual per-file import lists. The glob keys are
+   relative to the component file, not the project root (critical path bug caught).
+2. `endsWith()` substring matching instead of exact key matching for the glob lookup —
+   avoids path format issues between Vite's internal representation and public URLs.
+3. SVG images intentionally excluded from `astro:assets` processing — they're already
+   optimal (vector), and `<Image>` is raster-only.
+4. `@fontsource` chosen over Google Fonts CDN — self-hosting eliminates render-blocking
+   third-party requests, and the hashed filenames get CDN `immutable` caching.
+5. No `<Picture>` with multiple formats yet — `astro:assets` `<Image>` auto-generates
+   WebP (universally supported in modern browsers) and includes width/height for
+   aspect-ratio stability.
+6. Background images (`static/backgrounds/`) left in place — they're not referenced by
+   any current component (removed in Phase 7 redesign). Can be deleted in cleanup.
+7. Old `static/blog/teasers/*.webp` pre-converted teasers are now dead weight (superseded
+   by `astro:assets` output). Left in place for now; delete in cleanup pass.
+
+**Handoff for Phase 9:**
+- CI/CD pipeline: connect GitHub repo to Cloudflare Pages, configure build command
+  (`astro build`, output `dist`).
+- Delete dead infra: `Dockerfile`, `docker-compose.yml`, Traefik labels, old
+  `adapter-node` remnants.
+- Optional: caching headers for `_redirects` (Cloudflare Pages-specific).
+
 ### Phase 9 — CI/CD (LOW priority, after it works locally)
 **Goal:** automated build + deploy on Cloudflare Pages.
 - Connect the repo to **Cloudflare Pages** (build command `astro build`, output `dist`)

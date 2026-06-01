@@ -1,9 +1,42 @@
+---
+import { Image } from 'astro:assets';
+
+const { src, alt = '' } = Astro.props;
+
+// Look up imported images (astro:assets); SVGs stay as plain <img>
+const images = import.meta.glob<{ default: ImageMetadata }>(
+	'../../assets/blog/**/*.{png,jpg,jpeg,webp,avif}',
+	{ eager: true },
+);
+
+const imgMeta = (() => {
+	for (const [key, mod] of Object.entries(images)) {
+		// key: '../../assets/blog/bayes_exam/bayes_exam_11_0.png'
+		// src:  '/blog/bayes_exam/bayes_exam_11_0.png'
+		if (src.endsWith(key.replace('../../assets', ''))) {
+			return mod.default;
+		}
+	}
+	return null;
+})();
+---
+
 <div class="w-full flex justify-center">
-	<img
-		src={Astro.props.src}
-		alt={Astro.props.alt ?? ''}
-		loading="lazy"
-		class="block mx-auto my-2 max-w-full h-auto"
-		style="border-radius: var(--radius-md);"
-	/>
+	{imgMeta ? (
+		<Image
+			src={imgMeta}
+			alt={alt}
+			loading="lazy"
+			class="block mx-auto my-2 max-w-full h-auto"
+			style="border-radius: var(--radius-md);"
+		/>
+	) : (
+		<img
+			src={src}
+			alt={alt}
+			loading="lazy"
+			class="block mx-auto my-2 max-w-full h-auto"
+			style="border-radius: var(--radius-md);"
+		/>
+	)}
 </div>

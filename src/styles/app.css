@@ -1,8 +1,29 @@
 @import 'tailwindcss';
 
+/* Self-hosted fonts (latin subset, font-display: swap built-in) */
+@import '@fontsource/space-grotesk/latin-400.css';
+@import '@fontsource/space-grotesk/latin-500.css';
+@import '@fontsource/space-grotesk/latin-600.css';
+@import '@fontsource/space-grotesk/latin-700.css';
+@import '@fontsource/jetbrains-mono/latin-400.css';
+@import '@fontsource/jetbrains-mono/latin-600.css';
+
 @plugin "@tailwindcss/typography";
 
 @custom-variant dark (&:where(.dark, .dark *));
+
+/* ---- Base typography ---- */
+
+html {
+	font-family: 'Space Grotesk', ui-sans-serif, system-ui, sans-serif;
+}
+
+pre,
+code,
+kbd,
+samp {
+	font-family: 'JetBrains Mono', ui-monospace, monospace;
+}
 
 @theme {
 	/* ---- Accent: electric yellow (canonical; replaces turbo + main) ---- */
@@ -200,13 +221,11 @@ pre {
 	border-radius: var(--radius-md);
 	padding: 1rem 1.25rem;
 	overflow-x: auto;
-	font-family: ui-monospace, monospace;
 }
 
 /* ---- Inline code ---- */
 
 :not(pre) > code {
-	font-family: ui-monospace, monospace;
 	font-weight: 600;
 	color: var(--text-primary);
 	background: var(--surface-overlay);

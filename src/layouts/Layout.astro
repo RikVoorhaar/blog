@@ -3,6 +3,9 @@ import '../styles/app.css';
 import 'katex/dist/katex.min.css';
 import DarkMode from '../components/DarkMode.astro';
 
+// Preload the heading font weight to minimize CLS on first paint
+import headingFontWoff2 from '@fontsource/space-grotesk/files/space-grotesk-latin-700-normal.woff2?url';
+
 export interface Props {
 	title: string;
 	description?: string;
@@ -50,6 +53,9 @@ const navLinks = [
 
 		<!-- RSS autodiscovery -->
 		<link rel="alternate" type="application/rss+xml" title="Rik Voorhaar Blog" href="/rss.xml" />
+
+		<!-- Preload heading font (woff2, display swap handles fallback) -->
+		<link rel="preload" href={headingFontWoff2} as="font" type="font/woff2" crossorigin />
 
 		<!-- Anti-FOUC dark mode script: runs before first paint -->
 		<script is:inline>

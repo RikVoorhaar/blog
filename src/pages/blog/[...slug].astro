@@ -18,12 +18,20 @@ export async function getStaticPaths() {
 
 const { post } = Astro.props;
 const { Content } = await render(post);
+
+// Resolve teaser image for OG meta (astro:assets)
+const teaserImages = import.meta.glob<{ default: ImageMetadata }>(
+	'../../assets/teasers/*.{png,jpg,jpeg,webp}',
+	{ eager: true },
+);
+const teaserMeta = teaserImages[`../../assets/teasers/${post.data.teaser}`]?.default;
+const ogImage = teaserMeta ? teaserMeta.src : `/blog/teasers/original/${post.data.teaser}`;
 ---
 
 <BlogPostLayout
 	title={post.data.title}
 	description={post.data.excerpt}
-	ogImage={post.data.teaser}
+	ogImage={ogImage}
 	ogType="article"
 >
 	<Content
