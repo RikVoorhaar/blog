@@ -17,17 +17,17 @@ previous blog posts.
 The linear least-squares problem is one of the most common minimization problems we encounter. It takes the following form:
 
 $$
-    \minUSx \|Ax-b\|^2
+    \min_x \|Ax-b\|^2
 $$
 
-Here $$A$$ is an $$n\times n$$ matrix, and $$x,b\in\mathbb R^LBnRB$$ are vectors. If $$A$$ is invertible, then this
-problem has a simple, unique solution: $$x = A^LB-1RBb$$. However, there are two big reasons why we should _almost never_
-use $$A^LB-1RB$$ to solve the least-squares problem in practice:
-1. It is expensive to compute $$A^LB-1RB$$.
+Here $A$ is an $n\times n$ matrix, and $x,b\in\mathbb R^{n}$ are vectors. If $A$ is invertible, then this
+problem has a simple, unique solution: $x = A^{-1}b$. However, there are two big reasons why we should _almost never_
+use $A^{-1}$ to solve the least-squares problem in practice:
+1. It is expensive to compute $A^{-1}$.
 2. This solution numerically unstable.
 
-Assuming $$A$$ doesn't have any useful structure, point 1. is not that bad. Solving the least-squares problem in
-a smart way costs $$O(n^3)$$, and doing it using matrix-inversion also costs $$O(n^3)$$, just with a larger hidden
+Assuming $A$ doesn't have any useful structure, point 1. is not that bad. Solving the least-squares problem in
+a smart way costs $O(n^3)$, and doing it using matrix-inversion also costs $O(n^3)$, just with a larger hidden
 constant. The real killer is the instability. To see this in action, let's take a matrix that is _almost
 singular_, and see what happens when we solve the least-squares problem.
 
@@ -66,20 +66,20 @@ error for dedicated method: 2.8275e-08
 </Output>
 
 
-In this case we took a 20x20 matrix $$A$$ with ones on the diagonals, except for one entry where it has value
-``1e-20``, and then we shuffled everything around by multiplying by a random matrix. The entries of $$A$$ are
-not so big, but the entries of $$A^LB-1RB$$ will be _gigantic_. This results in the fact that the solution
-obtained as $$x=A^LB-1RBb$$ does not satisfy $$Ax=b$$ in practice. The solution found by using the `np.linalg.lstsq`
+In this case we took a 20x20 matrix $A$ with ones on the diagonals, except for one entry where it has value
+``1e-20``, and then we shuffled everything around by multiplying by a random matrix. The entries of $A$ are
+not so big, but the entries of $A^{-1}$ will be _gigantic_. This results in the fact that the solution
+obtained as $x=A^{-1}b$ does not satisfy $Ax=b$ in practice. The solution found by using the `np.linalg.lstsq`
 routine is much better. 
 
 The reason that the inverse-matrix method fails badly in this case can be summarized using the _condition
-number_ $$\kappa(A)$$. It expresses how much the error $$\|Ax-b\|$$ with $$x=A^LB-1RBb$$ is going to change if we
-change $$b$$ slightly, in the worst case. The condition number gives a notion of how much numerical errors get
+number_ $\kappa(A)$. It expresses how much the error $\|Ax-b\|$ with $x=A^{-1}b$ is going to change if we
+change $b$ slightly, in the worst case. The condition number gives a notion of how much numerical errors get
 amplified when we solve the linear system. We can compute it as the ratio between the smallest and largest
-singular values of the matrix $$A$$:
+singular values of the matrix $A$:
 
 $$
-    \kappa(A) = \sigmaUS1(A) / \sigmaUSn(A) 
+    \kappa(A) = \sigma_1(A) / \sigma_n(A) 
 $$
 
 In the case above the condition number is really big:
@@ -100,10 +100,10 @@ numerically unstable methods the problem is a lot worse.
 
 While the numerical stability of algorithms is a fascinating topic, it is not what we came here for today.
 Instead, let's revisit the first reason why using matrix inversion for solving linear problems is bad. I
-mentioned that matrix inversion and better alternatives take $$O(n^3)$$ to solve the least squares problem
-$$\minUSa\|Ax-b\|^2$$, _if there is no extra structure on_ $$A$$ _that we can exploit_. 
+mentioned that matrix inversion and better alternatives take $O(n^3)$ to solve the least squares problem
+$$\min_a\|Ax-b\|^2$$, _if there is no extra structure on_ $$A$$ _that we can exploit_. 
 
-What if there _is_ such structure? For example, what if $$A$$ is a huge sparse matrix? For example the Netflix
+What if there _is_ such structure? For example, what if $A$ is a huge sparse matrix? For example the Netflix
 dataset we considered [in this blog post](/low-rank-matrix/) is of size 480,189 x 17,769. Putting aside the
 fact that it is not square, inverting matrices of that kind of size is infeasible. Moreover, the inverse
 matrix isn't necessarily sparse anymore, so we lose that valuable structure as well. 
@@ -111,25 +111,25 @@ matrix isn't necessarily sparse anymore, so we lose that valuable structure as w
 Another example arose in my [first post on deconvolution](/deconvolution-part1/). There we tried to solve the linear problem
 
 $$
-\minUSx \|k ST x -y\|^2
+\min_x \|k * x -y\|^2
 $$
 
-where $$k ST x$$ denotes _convolution_. Convolution is a linear operation, but requires only $$O(n\log n)$$ to
-compute, whereas writing it out as a matrix would require $$n\times n$$ entries, which can quickly become too
+where $k * x$ denotes _convolution_. Convolution is a linear operation, but requires only $O(n\log n)$ to
+compute, whereas writing it out as a matrix would require $n\times n$ entries, which can quickly become too
 large.
 
-In situations like this, we have no choice but to devise an algorithm that makes use of the structure of $$A$$.
-What the two situations above have in common is that storing $$A$$ as a dense matrix is expensive, but computing
-matrix-vector products $$Ax$$ is cheap. The algorithm we are going to come up with is going to be _iterative_;
-we start with some initial guess $$xUS0$$, and then improve it until we find a solution of the desired accuracy.
+In situations like this, we have no choice but to devise an algorithm that makes use of the structure of $A$.
+What the two situations above have in common is that storing $A$ as a dense matrix is expensive, but computing
+matrix-vector products $Ax$ is cheap. The algorithm we are going to come up with is going to be _iterative_;
+we start with some initial guess $x_0$, and then improve it until we find a solution of the desired accuracy.
 
-We don't have much to work with; we have a vector $$xUS0$$ and the ability fo compute matrix-vector products.
-Crucially, we assumed our matrix $$A$$ is _square_. This means that $$xUS0$$ and $$AxUS0$$ have the same shape, and
-therefore we can also compute $$A^2xUS0$$, or in fact $$A^rxUS0$$ for any $$r$$. The idea is then to try to express
+We don't have much to work with; we have a vector $x_0$ and the ability fo compute matrix-vector products.
+Crucially, we assumed our matrix $A$ is _square_. This means that $x_0$ and $Ax_0$ have the same shape, and
+therefore we can also compute $A^2x_0$, or in fact $A^rx_0$ for any $r$. The idea is then to try to express
 the solution to the least-squares problem as linear combination of the vectors 
 
 $$
-\mathcal KUSr(A,xUS0):=\LBxUS0, AxUS0,A^2xUS0,\ldots,A^LBr-1RBxUS0\RB.
+\mathcal K_r(A,x_0):=\{x_0, Ax_0,A^2x_0,\ldots,A^{r-1}x_0\}.
 $$
 
 This results in a class of algorithms known as _Krylov subspace methods_. Before diving further into how they work, let's see one in action. We take a 2500 x 2500 sparse matrix with 5000 non-zero entries (which includes the entire diagonal).
@@ -188,7 +188,7 @@ Using sparse solver: error: 2.5325e-13 in time 6.4ms
 </Output>
 
 
-As we see above, the sparse matrix solver solves this problem in a fraction of the time, and the difference is just going to get bigger with larger matrices. Above we use the GMRES routine, and it is very simple. It constructs an orthonormal basis of the Krylov subspace $$\mathcal KUSm(A,xUS0)$$, and then finds the best solution in this subspace by solving a small $$(m+1)\times m$$ linear system. Before figuring out the details, below is a simple implementation:
+As we see above, the sparse matrix solver solves this problem in a fraction of the time, and the difference is just going to get bigger with larger matrices. Above we use the GMRES routine, and it is very simple. It constructs an orthonormal basis of the Krylov subspace $\mathcal K_m(A,x_0)$, and then finds the best solution in this subspace by solving a small $(m+1)\times m$ linear system. Before figuring out the details, below is a simple implementation:
 
 
 ```python
@@ -238,65 +238,65 @@ print(f"Using GMRES: error: {error:.4e} in time {time_taken:.1f}ms")
 
 This clearly works; it's not as fast as the `scipy` implementation of the same algorithm, but we'll do something about that soon. 
 
-Let's take a more detailed look at what the GMRES algorithm is doing. We iteratively define an orthonormal basis $$VUSm = \LBvUS0,vUS1,\dots,vUSLBm-1RB\RB$$. We start with $$vUS0 = rUS0 / \|rUS0\|$$, where $$rUS0 = b-AxUS0$$ is the _residual_ of the initial guess $$xUS0$$. In each iteration we then set $$w = A vUSj$$, and take $$vUSLBj+1RB = w - \sumUSi (w^\top vUSLBiRB)vUSi$$; i.e. we ensure $$vUSLBj+1RB$$ is orthogonal to all previous $$vUS0,\dots,vUSj$$. Therefore $$VUSm$$ is an orthonormal basis of the Krylov subspace $$\mathcal KUSm(A,rUS0)$$. 
+Let's take a more detailed look at what the GMRES algorithm is doing. We iteratively define an orthonormal basis $V_m = \{v_0,v_1,\dots,v_{m-1}\}$. We start with $v_0 = r_0 / \|r_0\|$, where $r_0 = b-Ax_0$ is the _residual_ of the initial guess $x_0$. In each iteration we then set $w = A v_j$, and take $v_{j+1} = w - \sum_i (w^\top v_{i})v_i$; i.e. we ensure $v_{j+1}$ is orthogonal to all previous $v_0,\dots,v_j$. Therefore $V_m$ is an orthonormal basis of the Krylov subspace $\mathcal K_m(A,r_0)$. 
 
 Once we have this basis, we want to solve the minimization problem:
 
 $$
-\minUSLBx\in \mathcal KUSm(A,rUS0)RB \|A(xUS0+x)-b\|
+\min_{x\in \mathcal K_m(A,r_0)} \|A(x_0+x)-b\|
 $$
 
-Since $$VUSm$$ is a basis, we can write $$x = VUSm y$$ for some $$y\in \mathbb R^m$$. Also note that in this basis $$b-AxUS0 = rUS0 = \beta vUS0 = \beta VUSm eUS1$$ where $$\beta = \|rUS0\|$$ and $$eUS1= (1,0,\dots,0)$$. This allows us to rewrite the minimization problem:
+Since $V_m$ is a basis, we can write $x = V_m y$ for some $y\in \mathbb R^m$. Also note that in this basis $b-Ax_0 = r_0 = \beta v_0 = \beta V_m e_1$ where $\beta = \|r_0\|$ and $e_1= (1,0,\dots,0)$. This allows us to rewrite the minimization problem:
 
 $$
-\minUSLBy\in\mathbb R^mRB \|AVUSmy - \beta VUSmeUS1\|
+\min_{y\in\mathbb R^m} \|AV_my - \beta V_me_1\|
 $$
 
-To solve this minimization problem we need one more trick. In the algorithm we computed a matrix $$H$$, it is defined like this:
+To solve this minimization problem we need one more trick. In the algorithm we computed a matrix $H$, it is defined like this:
 
 $$
-    HUSLBijRB = vUSi^\top (AvUSj-\sumUSk HUSLBkjRBvUSk) = vUSi^\top A vUSj
+    H_{ij} = v_i^\top (Av_j-\sum_k H_{kj}v_k) = v_i^\top A v_j
 $$
 
-These are precisely the coefficients of the Gram-Schmidt orthogonalization, and hence $$A vUSj = \sumUSLBi=1RB^LBj+1RB HUSLBijRBvUSi$$, giving the matrix equality $$AVUSm = HVUSm$$. Now we can rewrite the minimization problem even further and get
+These are precisely the coefficients of the Gram-Schmidt orthogonalization, and hence $A v_j = \sum_{i=1}^{j+1} H_{ij}v_i$, giving the matrix equality $AV_m = HV_m$. Now we can rewrite the minimization problem even further and get
 
 $$
-\minUSLBy\in\mathbb R^mRB \|VUSm (Hy - \beta eUS1)\| = \minUSLBy\in\mathbb R^mRB \|Hy - \beta eUS1\|
+\min_{y\in\mathbb R^m} \|V_m (Hy - \beta e_1)\| = \min_{y\in\mathbb R^m} \|Hy - \beta e_1\|
 $$
 
-The minimization problem is therefore reduced to an $$(m+1)\times m$$ problem! The cost of this is $$O(m^3)$$, and as long as we don't use too many steps $$m$$, this cost can be very reasonable. After solving for $$y$$, we then get the estimate $$x = xUS0 + VUSm y$$.
+The minimization problem is therefore reduced to an $(m+1)\times m$ problem! The cost of this is $O(m^3)$, and as long as we don't use too many steps $m$, this cost can be very reasonable. After solving for $y$, we then get the estimate $x = x_0 + V_m y$.
 
 ## Restarting
 
-In the current implementation of GMRES we specify the number of steps in advance, which is not ideal. If we converge to the right solution in less steps, then we are doing unnecessary work. If we don't get a satisfying solution after the specified number of steps, we might need to start over. This is however not a big problem; we can use the output $$x=xUS0+VUSmy$$ as new initialization when we restart.
+In the current implementation of GMRES we specify the number of steps in advance, which is not ideal. If we converge to the right solution in less steps, then we are doing unnecessary work. If we don't get a satisfying solution after the specified number of steps, we might need to start over. This is however not a big problem; we can use the output $x=x_0+V_my$ as new initialization when we restart.
 
-This gives a nice recipe for _GMRES with restarting_. We run GMRES for $$m$$ steps with $$xUSi$$ as initialization to get a new estimate $$xUSLBi+1RB$$. We then check if $$xUSLBi+1RB$$ is good enough, if not, we repeat the GMRES procedure for another $$m$$ steps. 
+This gives a nice recipe for _GMRES with restarting_. We run GMRES for $m$ steps with $x_i$ as initialization to get a new estimate $x_{i+1}$. We then check if $x_{i+1}$ is good enough, if not, we repeat the GMRES procedure for another $m$ steps. 
 
-It is possible to get a good estimate of the residual norm after _each_ step of GMRES, not just every $$m$$ steps. However, this is relatively technical to implement, so we will just consider the variation of GMRES with restarting.
+It is possible to get a good estimate of the residual norm after _each_ step of GMRES, not just every $m$ steps. However, this is relatively technical to implement, so we will just consider the variation of GMRES with restarting.
 
 How often should we restart? This really depends on the problem we're trying to solve, since there is a
 trade-off. More steps in between each restart will typically result in convergence in fewer steps, _but_ it is
-more expensive and also requires more memory. The computational cost scales as $$O(m^3)$$, and the memory cost
-scales linearly in $$m$$ (if the matrix size $$n$$ is much bigger than $$m$$). Let's see this trade-off in action on a model problem.
+more expensive and also requires more memory. The computational cost scales as $O(m^3)$, and the memory cost
+scales linearly in $m$ (if the matrix size $n$ is much bigger than $m$). Let's see this trade-off in action on a model problem.
 
 ## Deconvolution
 
 Recall that the deconvolution problem is of the following form:
 
 $$
-\minUSx \|k ST x -y\|^2
+\min_x \|k * x -y\|^2
 $$
 
-for a fixed _kernel_ $$k$$ and signal $$y$$. The convolution operation $$kSTx$$ is linear in $$x$$, and we can
-therefore treat this as a linear least-squares problem and solve it using GMRES. The operation $$kSTx$$ can be
-written in matrix form as $$Kx$$, where $$K$$ is a matrix. For large images or signals, the matrix $$K$$ can be
-gigantic, and we never want to explicitly store $$K$$ in memory. Fortunately, GMRES only cares about
-matrix-vector products $$Kx$$, making this a very good candidate to solve with GMRES.
+for a fixed _kernel_ $k$ and signal $y$. The convolution operation $k*x$ is linear in $x$, and we can
+therefore treat this as a linear least-squares problem and solve it using GMRES. The operation $k*x$ can be
+written in matrix form as $Kx$, where $K$ is a matrix. For large images or signals, the matrix $K$ can be
+gigantic, and we never want to explicitly store $K$ in memory. Fortunately, GMRES only cares about
+matrix-vector products $Kx$, making this a very good candidate to solve with GMRES.
 
 Let's consider the problem of sharpening (deconvolving) a 128x128 picture blurred using Gaussian blur. To make
-the problem more interesting, the kernel $$k$$ used for deconvolution will be slightly different from the kernel
-used for blurring. This is inspired by the blind deconvolution problem, where we not only have to find $$x$$,
-but also the kernel $$k$$ itself.
+the problem more interesting, the kernel $k$ used for deconvolution will be slightly different from the kernel
+used for blurring. This is inspired by the blind deconvolution problem, where we not only have to find $x$,
+but also the kernel $k$ itself.
 
 We solve this problem with GMRES using different number of steps between restarts, and plot how the error
 evolves over time.
@@ -365,16 +365,16 @@ Best loss for 500 restart frequency is 6.9367e-28 in 30.50s
 We observe that with all restart frequencies we converge to a result with very low error. The larger the
 number of steps between restarts, the faster we converge. Remember however that the cost of GMRES rises as
 $$O(m^3)$$ with the number of steps $$m$$ between restarts, so a larger number of steps is not always better. For
-example we see that $$m=20$$ and $$m=50$$ produced almost identical runtime, but for $$m=200$$ the runtime for 2000
-total steps is already significantly bigger, and the effect is even bigger for $$m=500$$.  This means that if we
-want to get converge as fast as possible _in terms of runtime_, we're best off with somewhere between $$m=50$$
-and $$m=200$$ steps between each reset.
+example we see that $m=20$ and $m=50$ produced almost identical runtime, but for $m=200$ the runtime for 2000
+total steps is already significantly bigger, and the effect is even bigger for $m=500$.  This means that if we
+want to get converge as fast as possible _in terms of runtime_, we're best off with somewhere between $m=50$
+and $m=200$ steps between each reset.
 
 ## GPU implementation
 
 If we do simple profiling, we see that almost all of the time in this function is spent on the 2D convolution.
-Indeed this is why the runtime does not seem to scale os $$O(m^3)$$ for the values of $$m$$ we tried above.
-It simply takes a while before the $$O(m^3)$$ factor becomes dominant over the time spent by matrix-vector
+Indeed this is why the runtime does not seem to scale os $O(m^3)$ for the values of $m$ we tried above.
+It simply takes a while before the $O(m^3)$ factor becomes dominant over the time spent by matrix-vector
 products.
 
 This also means that it should be straightforward to speed up -- we just need to do the convolution on a GPU.
@@ -668,32 +668,32 @@ further modifications the GMRES method doesn't work well for deconvolution for n
 
 ## Changing the spectrum
 
-As mentioned, GMRES works best when the eigenvalues of the matrix $$A$$ are in an ellipse not including zero, which is not the case for our convolution matrix. There is fortunately a very simple solution to this: instead of solving the linear least-squares problem
+As mentioned, GMRES works best when the eigenvalues of the matrix $A$ are in an ellipse not including zero, which is not the case for our convolution matrix. There is fortunately a very simple solution to this: instead of solving the linear least-squares problem
 
 $$
-    \minUSx \|Ax - b\|US2^2
+    \min_x \|Ax - b\|_2^2
 $$
 
 We solve the linear least squares problem
 
 $$
-    \minUSx \|A^\top A x - A^\top b\|^2
+    \min_x \|A^\top A x - A^\top b\|^2
 $$
 
-This will have the same solution, but the eigenvalues of $$A^\top A$$ are better behaved. Any matrix like this will be positive semi-definite, and all eigenvalues will be real and non-negative. They therefore all fit inside an ellipse that doesn't include zero, and we will get much better convergence with GMRES. In general, we could multiply by any matrix $$B$$ to obtain the linear least-squares problem
+This will have the same solution, but the eigenvalues of $A^\top A$ are better behaved. Any matrix like this will be positive semi-definite, and all eigenvalues will be real and non-negative. They therefore all fit inside an ellipse that doesn't include zero, and we will get much better convergence with GMRES. In general, we could multiply by any matrix $B$ to obtain the linear least-squares problem
 
 $$
-    \minUSx \|BAX-Bb\|^2
+    \min_x \|BAX-Bb\|^2
 $$
 
-If we choose $$B$$ such that the spectrum (eigenvalues) of $$BA$$ are nicer, then we can improve convergence of GMRES. This trick is called _preconditioning_. Choosing a good _preconditioner_ depends a lot on the problem at hand, and is the subject of a lot of research. In this context, $$A^\top$$ turns out to function as an excellent preconditioner, as we shall see.
+If we choose $B$ such that the spectrum (eigenvalues) of $BA$ are nicer, then we can improve convergence of GMRES. This trick is called _preconditioning_. Choosing a good _preconditioner_ depends a lot on the problem at hand, and is the subject of a lot of research. In this context, $A^\top$ turns out to function as an excellent preconditioner, as we shall see.
 
 To apply this trick to the deconvolution problem, we need to be able to take the transpose of the convolution
-operation. Fortunately, this is equivalent to convolution with a reflected version $$\overline k$$ of the kernel
+operation. Fortunately, this is equivalent to convolution with a reflected version $\overline k$ of the kernel
 $$k$$. That is, we will apply GMRES to the linear least-squares problem
 
 $$
-    \minUSx \|\overline k ST(kSTx) - \overline k ST y\|
+    \min_x \|\overline k *(k*x) - \overline k * y\|
 $$
 
 let's see this in action below.
@@ -782,7 +782,7 @@ convolution kernel. That is however out of the scope of this blog post.
 ## Conclusion
 
 GMRES is an easy to implement, fast and robust method for solving _structured_ linear system, where we only
-have access to matrix-vector products $$Ax$$. It is often used for solving sparse systems, but as we have
+have access to matrix-vector products $Ax$. It is often used for solving sparse systems, but as we have
 demonstrated, it can also be used for solving the deconvolution problem in a way that is competitive with
 existing methods. Sometimes a preconditioner is needed to get good performance out of GMRES, but choosing a
 good preconditioner can be difficult. If we implement GMRES on a GPU it can reach much higher speeds than on

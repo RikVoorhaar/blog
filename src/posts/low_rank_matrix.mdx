@@ -12,30 +12,30 @@ will illustrate everything using examples in Python code, using `numpy`.
 
 ## The singular value decomposition
 
-Often if we have an $$m\times n$$ matrix, we can write it as the product of two
-smaller matrices. If such a matrix has _rank_ $$r$$, then we can write it as the
-product of an $$m\times r$$ and $$r\times n$$ matrix. Equivalently, this is the
+Often if we have an $m\times n$ matrix, we can write it as the product of two
+smaller matrices. If such a matrix has _rank_ $r$, then we can write it as the
+product of an $m\times r$ and $r\times n$ matrix. Equivalently, this is the
 _number of linearly independent columns or rows_ the matrix has, or if we see
-the matrix as a linear map $$\mathbb R^m\to \mathbb R^n$$, then it is the
+the matrix as a linear map $\mathbb R^m\to \mathbb R^n$, then it is the
 _dimension of the image_ of this linear map.
 
 In practice we can figure out the rank of a matrix by computing its _singular
 value decomposition_ (SVD). If you studied data science or statistics, then you
 have probably seen principal component analysis (PCA); this is very closely
-related to the SVD. Using the SVD we can write a matrix $$X$$ as a product
+related to the SVD. Using the SVD we can write a matrix $X$ as a product
 
 $$
 X = U S V
 $$
 
-Where $$U$$ and $$V$$ are orthogonal matrices, and $$S$$ is a diagonal matrix. The
-values on the diagonals of $$S$$ are known as the _singular values_ of $$S$$. The
-matrices $$U$$ and $$V$$ also have nice interpretations; the rows of $$U$$ form an
-orthonormal basis of the _row space_ of $$X$$, and the columns of $$V$$ are an
-orthonormal basis of the _column space_ of $$X$$. 
+Where $U$ and $V$ are orthogonal matrices, and $S$ is a diagonal matrix. The
+values on the diagonals of $S$ are known as the _singular values_ of $S$. The
+matrices $U$ and $V$ also have nice interpretations; the rows of $U$ form an
+orthonormal basis of the _row space_ of $X$, and the columns of $V$ are an
+orthonormal basis of the _column space_ of $X$. 
 
 In `numpy` we can compute the SVD of a matrix using `np.linalg.svd`. Below we
-compute it and verify that indeed $$X = U S V$$:
+compute it and verify that indeed $X = U S V$:
 
 
 ```python
@@ -59,8 +59,8 @@ np.allclose(U @ np.diag(S) @ V, X)
 
 
 Note that we called `np.linalg.svd` with the keyword `full_matrices=False`. If
-left to the default value `True`, then in this case `V` would be a $$LB20\times
-20RB$$ matrix, as opposed to the $$10\times 20$$ matrix it is now. Also `S` is
+left to the default value `True`, then in this case `V` would be a $${20\times
+20}$ matrix, as opposed to the $10\times 20$$ matrix it is now. Also `S` is
 returned as a 1D array, and we can convert it to a diagonal matrix using
 `np.diag`. Finally the function `np.allclose` checks if all the entries of two
 matrices are almost the same; they never will be exactly the same due to
@@ -95,7 +95,7 @@ singular value decomposition_. Since the last 5 values of `S` are very close to
 zero, we can simply ignore them. This then means dropping the last 5 columns of
 `U` and the last 5 rows of `V`. Then finally we just need to 'absorb' the
 singular values into one of the two matrices `U` or `V`, This way we write `X`
-as the product of a $$10\times 5$$ and $$5\times 20$$ matrix. 
+as the product of a $10\times 5$ and $5\times 20$ matrix. 
 
 
 ```python
@@ -203,7 +203,7 @@ all singular values are equal.
 On the other hand, images without any sharp transitions can be approximated
 quite well using low rank matrices. These kind of images rarely appear as
 natural images, but rather they can be discrete representations of smooth
-functions $$[0,1]^2 \to\mathbb R$$. For example below we show a two-dimensional
+functions $[0,1]^2 \to\mathbb R$. For example below we show a two-dimensional
 discretized sum of trigonometric functions and its singular value decomposition.
 
 
@@ -254,25 +254,25 @@ than the dense matrix it approximates. One of the powerful things about this
 allows us to recover the dense matrix even in the case where we only observe
 a small part of the matrix. That is, if we have many missing values. 
 
-In the case above we can represent the 100x100 matrix $$X$$ as a product of a
-100x4 and 4x100 a matrix $$A$$ and $$B$$, which has in total 800 parameters instead
+In the case above we can represent the 100x100 matrix $X$ as a product of a
+100x4 and 4x100 a matrix $A$ and $B$, which has in total 800 parameters instead
 of 10,000. We can actually recover this low-rank decomposition from a small
-subset of the big dense matrix. Suppose that we observe the entries $$XUSLBijRB$$ for
+subset of the big dense matrix. Suppose that we observe the entries $X_{ij}$ for
 $$(i,j)\in \Omega$$ an index set. We can recover $$A$$ and $$B$$ by solving the
 following least-squares problem:
 
 $$
-    \minUSLBA,BRB\sumUSLB(i,j)\in \OmegaRB((AB)USLBijRB-XUSLBijRB)^2
+    \min_{A,B}\sum_{(i,j)\in \Omega}((AB)_{ij}-X_{ij})^2
 $$
 
 This problem is however non-convex, and not straightforward to solve. There is
-fortunately a trick: we can alternatively fix $$A$$ and then optimize $$B$$ and
+fortunately a trick: we can alternatively fix $A$ and then optimize $B$ and
 vice-versa. This is known as Alternating Least Squares (ALS) optimization, and
-in this case works well. If we fix $$A$$, observe that the minimization problem
-uncouples into separate linear least squares problems for each column of $$B$$:
+in this case works well. If we fix $A$, observe that the minimization problem
+uncouples into separate linear least squares problems for each column of $B$:
 
 $$
-    \minUSLBBUSLB\bullet kRBRB \sumUSLB(i,j)\in \Omega,\,j=kRB (\langle AUSLBi\bulletRB,BUSLB\bullet kRB\rangle-XUSLBikRB)^2
+    \min_{B_{\bullet k}} \sum_{(i,j)\in \Omega,\,j=k} (\langle A_{i\bullet},B_{\bullet k}\rangle-X_{ik})^2
 $$
 
 Below we do use this approach to recover the same matrix as before using 2000
@@ -371,40 +371,40 @@ little harder, but certainly still feasible.
 We will also need to upgrade our matrix completion algorithm. The algorithm we
 mentioned before is slow for very large matrices, and suffers from problems of
 numerical stability due to the way it decouples into many smaller linear
-problems. Recall that complete a matrix $$X$$ by solving the following
+problems. Recall that complete a matrix $X$ by solving the following
 optimization problem:
 
 $$
-    \minUSLBA,BRB\sumUSLB(i,j)\in \OmegaRB((AB)USLBijRB-XUSLBijRB)^2.
+    \min_{A,B}\sum_{(i,j)\in \Omega}((AB)_{ij}-X_{ij})^2.
 $$
 
 We will first rewrite the problem as follows:
 
 $$
-    \minUSLBA,BRB\|PUS\Omega(AB) -X\|.
+    \min_{A,B}\|P_\Omega(AB) -X\|.
 $$
 
-Here $$PUS\Omega$$ denotes the operation of setting all entries $$ABUSLBijRB$$ to zero
-if $$(i,j)\notin \Omega$$. In other words, $$PUS\Omega$$ turns $$AB$$ into a sparse
-matrix with the same sparsity pattern as $$X$$. In some sense, the issue with this
-optimization problem is that only a small part of the entries of $$AB$$ affect the
-the objective. We can solve this by adding a new matrix $$Z$$ such that
-$$PUS\Omega(Z)=X$$, and then using $$A,B$$ to approximate $$Z$$ instead:
+Here $P_\Omega$ denotes the operation of setting all entries $AB_{ij}$ to zero
+if $(i,j)\notin \Omega$. In other words, $P_\Omega$ turns $AB$ into a sparse
+matrix with the same sparsity pattern as $X$. In some sense, the issue with this
+optimization problem is that only a small part of the entries of $AB$ affect the
+the objective. We can solve this by adding a new matrix $Z$ such that
+$$P_\Omega(Z)=X$$, and then using $$A,B$$ to approximate $$Z$$ instead:
 
 $$
-    \minUSLBA,B,ZRB\|AB-Z\|\quad \textLBsuch that RB PUS\Omega Z = X
+    \min_{A,B,Z}\|AB-Z\|\quad \text{such that } P_\Omega Z = X
 $$
 
 This problem can then be solved using the same alternating least-squares
-approach we have used before. For example if we fix $$A,B$$ then the optimal value
-of $$Z$$ is given by $$Z = AB+X-PUS\Omega(Z)$$, and at each iteration we can update 
+approach we have used before. For example if we fix $A,B$ then the optimal value
+of $Z$ is given by $Z = AB+X-P_\Omega(Z)$, and at each iteration we can update 
 $$A$$ and $$B$$ by solving a linear least-squares problem. It is important to note
-that this way $$Z$$ is a sum of a low-rank and a sparse matrix at every step, and
+that this way $Z$ is a sum of a low-rank and a sparse matrix at every step, and
 this allows us to still efficiently manipulate it and store it in memory.
 
 Although not very difficult, the implementation of this algorithm is a little
 too technical for this blog post. Instead we can just look at the results. I
-used this algorithm to fit matrices $$A$$ and $$B$$ of rank 5 and of rank 10 to the
+used this algorithm to fit matrices $A$ and $B$ of rank 5 and of rank 10 to the
 Netflix prize dataset. I used 3000 iterations of training, taking the better
 part of a day to train on my computer. I could probably do more, but I'm too
 impatient. The progress of training is shown below.
@@ -442,10 +442,10 @@ identical, but the test error is lower for the rank 5 model. We can interpret
 this as the rank 10 model overfitting more, which is often the case for more
 complex models. 
 
-Next, how can we use this model? Well, the rows of the matrix $$A$$ correspond to
-movies, and the columns of matrix $$B$$ correspond to users. So if we want to know
+Next, how can we use this model? Well, the rows of the matrix $A$ correspond to
+movies, and the columns of matrix $B$ correspond to users. So if we want to know
 how much user #179 likes movie #2451 (_Lord of the Rings: The Fellowship of the
-Ring_), then we compute $$A[2451]\cdot B[:, 179]$$:
+Ring_), then we compute $A[2451]\cdot B[:, 179]$:
 
 
 ```python
@@ -461,7 +461,7 @@ We see that the _expected rating_ (out of 5) for this user and movie is about
 recommend it.
 
 But we want to find the _best_ recommendation for this user. To do this we can
-simply compute the product $$A \cdot B[:,179]$$, which will give a vector with
+simply compute the product $A \cdot B[:,179]$, which will give a vector with
 expected rating for every single movie, and then we simply sort. Below we can
 see the 5 movies with the highest and lowest expected ratings for this user.
 
@@ -566,18 +566,18 @@ recommendation system.
 
 We could try to modify our matrix completion model to take these factors into
 account, but it's not obvious how to do this. There is no need to do this
-however, we use the matrices $$A$$, $$B$$ to augment any data we have about the
+however, we use the matrices $A$, $B$ to augment any data we have about the
 movie and the user. And then we can train a new model on top of this data, to
 create something even better. 
 
 We can think of the movies as lying in a really high-dimensional space, and the 
-matrix $$A$$ maps this space onto a much smaller space. The same is true for the 
+matrix $A$ maps this space onto a much smaller space. The same is true for the 
 $$B$$ and the 'space' of users. We can then use this _embedding_ into a lower
 dimensional space as the input of another model. 
 
 Unfortunately we don't have access to more information about the users (due
 to obvious privacy concerns), so this is difficult to demonstrate. But the point
-is this: the decomposition $$X\approx AB$$ is both _interpretable_, and can be 
+is this: the decomposition $X\approx AB$ is both _interpretable_, and can be 
 used as a building block for more advanced machine learning models. 
 
 

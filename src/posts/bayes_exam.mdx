@@ -16,10 +16,10 @@ We will use scores for 8 individual questions of a university math exam. We reco
 
 ## Modeling the data
 
-Let $$S$$ denote the total exam score, and let $$GUSj$$ denote the score obtained for the $$j$$th question.
+Let $S$ denote the total exam score, and let $G_j$ denote the score obtained for the $j$th question.
 Obviously these variables are not independent, high scores in one question are a indicator the
 student will get high scores in another question as well. For simplicity we want to model the
-question scores as conditionally independent given the total score $$S$$. The idea behind this is that
+question scores as conditionally independent given the total score $S$. The idea behind this is that
 $$S$$ is an unbiased measurement of the students abilities, and the score obtained for a question
 should only depend on the student's abilities. This ignores the fact that some questions test
 similar aspects of the course, and so are more correlated compared to others. If we plot the
@@ -33,43 +33,43 @@ questions
     
 
 
-Now we need to obtain a good model for the conditional probability $$P(GUSj|S)$$. We will model $$GUSj$$
-by a binomial distribution, which corresponds to assuming $$GUSj$$ consists of $$12$$ 'subproblems', of
+Now we need to obtain a good model for the conditional probability $P(G_j|S)$. We will model $G_j$
+by a binomial distribution, which corresponds to assuming $G_j$ consists of $12$ 'subproblems', of
 which the student has equal chance of solving. While this does not seem like a natural assumption,
-it is very convenient. If $$mUSj$$ denotes the total score obtainable for question $$GUSj$$ this gives
+it is very convenient. If $m_j$ denotes the total score obtainable for question $G_j$ this gives
 model
 
 $$
-    P(GUSj|S) \propto P(GUSj|pUSj,S)P(pUSj|S),
+    P(G_j|S) \propto P(G_j|p_j,S)P(p_j|S),
 $$
 
 with 
 
 $$
-    GUSj|pUSj,S \sim \mathrmLBBinRB(pUSj,mUSj).
+    G_j|p_j,S \sim \mathrm{Bin}(p_j,m_j).
 $$
 
-Next we need to model the conditional distribution $$P(pUSj|S)$$. We tried linear and quadratic
-regression on $$\mathrmLBlogitRB(pUSj)$$, but this tends to perform badly near the limits $$S=0$$ and $$S=96$$,
+Next we need to model the conditional distribution $P(p_j|S)$. We tried linear and quadratic
+regression on $\mathrm{logit}(p_j)$, but this tends to perform badly near the limits $S=0$ and $S=96$,
 and in general tends to shift the predictions towards the global mean. Instead we want a model such
-that if $$S=0$$ then $$pUSj$$ is concentrated near zero. To do this we model $$pUSj$$ with a beta
-distribution, whose parameters depend quadratically on $$S$$. More precisely if $$\hat S= S/96$$ (which
-supported on $$[0,1]$$), then we set
+that if $S=0$ then $p_j$ is concentrated near zero. To do this we model $p_j$ with a beta
+distribution, whose parameters depend quadratically on $S$. More precisely if $\hat S= S/96$ (which
+supported on $[0,1]$), then we set
 
 $$
-    pUSj|S,\alphaUS0,\alpha^jUS1,\beta^jUS0,\beta^jUS1 \sim \mathrmLBBetaRB\left(e^LB\alpha^jUS0RB S+e^LB\alpha^jUS1RB S^2+\tau,\, e^LB\beta^jUS0RB (1-S)+e^LB\beta^jUS1RB (1-S)^2+\tau\right),
+    p_j|S,\alpha_0,\alpha^j_1,\beta^j_0,\beta^j_1 \sim \mathrm{Beta}\left(e^{\alpha^j_0} S+e^{\alpha^j_1} S^2+\tau,\, e^{\beta^j_0} (1-S)+e^{\beta^j_1} (1-S)^2+\tau\right),
 $$
 
-where $$\tau=0.01$$ is a small regularization parameter. This model has $$pUSj$$ constrained close to $$0$$
-if $$S$$ is small (and similarly $$pUSj\simeq 1$$ if $$S$$ close to 96), and also has enough flexibility to
+where $\tau=0.01$ is a small regularization parameter. This model has $p_j$ constrained close to $0$
+if $S$ is small (and similarly $p_j\simeq 1$ if $S$ close to 96), and also has enough flexibility to
 fit our data reasonably well. The exponentials are used both to force the parameters to be positive,
-and this parametrization also improves the fit. The parameters $$\alphaUSi,\betaUSi$$ are given normal
-priors with mean $$0$$ and large sigma, although the fit is not sensitive on this prior. 
+and this parametrization also improves the fit. The parameters $\alpha_i,\beta_i$ are given normal
+priors with mean $0$ and large sigma, although the fit is not sensitive on this prior. 
 
 We will model all the parameters in this model using a Monte Carlo Markov Chain (MCMC) simulation
 using `pymc3`. With `pymc3` it is very straightforward to implement this model, and requires only a
-couple lines of code. In the end we obtain samples for the variables $$GUSj$$, and we can model the
-error in the total score by looking at the distribution of the posterior $$\sumUSLBj=1RB^LB8RB GUSj$$.
+couple lines of code. In the end we obtain samples for the variables $G_j$, and we can model the
+error in the total score by looking at the distribution of the posterior $\sum_{j=1}^{8} G_j$.
 
 ## Results
 
@@ -90,7 +90,7 @@ The goal of this project is to simulate the error in the exam score. Below we pl
 deviations of the predicted scores as function of total score. We compare this to a theoretical
 variance coming from a binomial distribution with 96 trials, and we see that the error is close to
 this theoretical variance. This means that most of the variance in posterior comes directly from the
-binomial distributions modeling the question scores $$GUSj$$. We also plot the the variance in the
+binomial distributions modeling the question scores $G_j$. We also plot the the variance in the
 posterior predictive, which is significantly higher. This makes sense, because for the posterior
 predictive we do not just model the error in each question score, we also have to predict the scores
 for each question given just the total score.
@@ -119,7 +119,7 @@ predictions for the most part.
 
 We can also use the posterior predictive to qualitatively evaluate the quality of questions. Let us
 plot the standard deviation and mean of the posterior predictive for each individual question as
-function of the total score $$S$$ below. In a perfect question the variation is as low as possible,
+function of the total score $S$ below. In a perfect question the variation is as low as possible,
 and the mean should be relatively close to the straight line. All in all this means that the
 question provides as much information about the students abilities. Based on this it seems that
 questions 2,4,8 are quite good, whereas 1,3,6 are not as good. In particular the points obtained for

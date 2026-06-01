@@ -101,7 +101,7 @@ time scales at the same time in an additive model. In a simple model we will mod
 $$f(t)$$ as 
 
 $$
-f(t) = fUSLB\mathrmLBweekRBRB(t)+fUSLB\mathrmLByearRBRB(t)+fUSLB\mathrmLBtrendRBRB(t)+\epsilon(t)
+f(t) = f_{\mathrm{week}}(t)+f_{\mathrm{year}}(t)+f_{\mathrm{trend}}(t)+\epsilon(t)
 $$
 
 where the first term has a 7-day period, the second term a 365 (or 366) day period, and the third
@@ -164,14 +164,14 @@ assumption holds up.
 Finally let's try to get a deeper understanding of time series by considering the distribution of
 time between consecutive emails. Having a good understanding of this can help to model the time
 series better. If we model the arrival times of all emails to be independent, except for a global
-variation in rate, we are naturally lead to model the time $$T$$ between consecutive emails by an
+variation in rate, we are naturally lead to model the time $T$ between consecutive emails by an
 exponential distribution:
 
 $$
-    TUSt\sim \exp(\lambda(t))
+    T_t\sim \exp(\lambda(t))
 $$
 
-where $$\lambda(t)$$ is a rate parameter that depends on time, since we already established that the
+where $\lambda(t)$ is a rate parameter that depends on time, since we already established that the
 rate at which we receive emails is not constant over time. 
 
 If we divide an exponential distribution by its mean, it will always me an exponential distribution

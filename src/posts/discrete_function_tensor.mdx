@@ -15,42 +15,42 @@ interesting type of machine learning model.
 
 Before we dive into the details of our new type of machine learning model, let's sit back for a moment and
 think: _what is machine learning in the first place?_ Machine learning is all about _learning from data_. More
-specifically in _supervised machine learning_ we are given some _data points_ $$X = (xUS1,\dots,xUSN)$$, all lying
-in $$\mathbb R^d$$, together with _labels_ $$y=(yUS1,\dots,yUSN)$$ which are just numbers. We then want to find some
-function $$f\colon \mathbb R^d\to \mathbb R$$ such that $$f(xUSi)\approx yUSi$$ for all $$i$$, and such that $$f$$
+specifically in _supervised machine learning_ we are given some _data points_ $X = (x_1,\dots,x_N)$, all lying
+in $\mathbb R^d$, together with _labels_ $y=(y_1,\dots,y_N)$ which are just numbers. We then want to find some
+function $f\colon \mathbb R^d\to \mathbb R$ such that $f(x_i)\approx y_i$ for all $i$, and such that $f$
 _generalizes well to new data_. Or rather, we want to minimize a loss function, for example the least-squares
 loss 
 
 $$
-    L(f) = \sumUSLBi=1RB^N (f(xUSi)-y)^2.
+    L(f) = \sum_{i=1}^N (f(x_i)-y)^2.
 $$
 
 This is obviously an ill-posed problem, and there are two main issues with it:  
-1. What _kind_ of functions $$f$$ are we allowed to choose?  
+1. What _kind_ of functions $f$ are we allowed to choose?  
 2. What does it mean to _generalize_ well on new data?  
 
-The first issue has no general solution. We _choose_ some class of functions, usually that depend on some set of parameters $$\theta$$. For example, if we want to fit a quadratic function to our data we only look at quadratic functions 
+The first issue has no general solution. We _choose_ some class of functions, usually that depend on some set of parameters $\theta$. For example, if we want to fit a quadratic function to our data we only look at quadratic functions 
 
 $$
-fUSLB(a,b,c)RB(x) = a + bx +cx^2,
+f_{(a,b,c)}(x) = a + bx +cx^2,
 $$
 
-and our set of parameters is $$\theta=\LBa,b,c\RB$$. Then we minimize the loss over this set of parameters, i.e.
+and our set of parameters is $\theta=\{a,b,c\}$. Then we minimize the loss over this set of parameters, i.e.
 we solve the minimization problem:
 
 $$
-\minUSLBa,b,cRB \sumUSLBi=1RB^N (a+ bxUSi+cxUSi^2-yUSi)^2.
+\min_{a,b,c} \sum_{i=1}^N (a+ bx_i+cx_i^2-y_i)^2.
 $$
 
-There are many parametric families $$fUS\theta$$ of functions we can choose from, and many different ways to
-solve the corresponding minimization problem. For example, we can choose $$fUS\theta$$ to be neural networks
+There are many parametric families $f_\theta$ of functions we can choose from, and many different ways to
+solve the corresponding minimization problem. For example, we can choose $f_\theta$ to be neural networks
 _with some specified layer sizes_, or a random forest with a fixed number of trees and fixed maximum tree
 depth. Note that we should strictly speaking always specify hyperparameters like the size of the layers of a
-neural network, since those hyperparameters determine what kind of parameters $$\theta$$ we are going to
+neural network, since those hyperparameters determine what kind of parameters $\theta$ we are going to
 optimize. That is, hyperparameters affect the parametric family of functions that we are going to optimize.
 
 The second issue, generalization, is typically solved through _cross-validation_. If we want to know whether
-the function $$fUS\theta$$ we learned generalizes well to new data points, we should just keep part of the data
+the function $f_\theta$ we learned generalizes well to new data points, we should just keep part of the data
 "hidden" during the training (the _test data_). After training we then evaluate our trained function on this
 hidden data, and we record the loss function on this test data to obtain the _test loss_. The test loss is
 then a good measure of how well the function can generalize to new data, and it is very useful if we want to
@@ -61,7 +61,7 @@ _validation_ dataset for optimizing hyperparameters for example, see [my blog po
 
 Keeping the general problem of machine learning in mind, let's consider a particular class of parametric
 functions: _discretized functions on a grid_. To understand this class of functions, we first look at the 1D
-case. Let's take the interval $$[0,1]$$, and chop it up into $$n$$ equal pieces: 
+case. Let's take the interval $[0,1]$, and chop it up into $n$ equal pieces: 
 
 $$
 [0,1] = [0,1/n]\cup[1/n,2/n]\cup\dots\cup[(n-1)/n,1]
@@ -105,9 +105,9 @@ plt.legend();
     
 
 
-Note that if we divide the interval into $$n$$ pieces, then we need $$n$$ parameters to describe the discretized function $$fUS\theta$$. 
+Note that if we divide the interval into $n$ pieces, then we need $n$ parameters to describe the discretized function $f_\theta$. 
 
-In the 2D case we instead divide the square $$[0,1]^2$$ into a grid, and demand that a discretized function is _constant on each grid cell_. If we use $$n$$ grid cells for each axis, this gives us $$n^2$$ parameters. Let's see what a discretized function looks like in a 3D plot:
+In the 2D case we instead divide the square $[0,1]^2$ into a grid, and demand that a discretized function is _constant on each grid cell_. If we use $n$ grid cells for each axis, this gives us $n^2$ parameters. Let's see what a discretized function looks like in a 3D plot:
 
 
 ```python
@@ -152,39 +152,39 @@ plt.title("discretized function");
 ## Learning 2D functions: matrix completion
 
 Before diving into higher-dimensional versions of discretized functions, let's think about how we would solve
-the learning problem. As mentioned, we have $$n^2$$ parameters, and we can encode this using an $$n\times n$$
-matrix $$\Theta$$. We are doing supervised machine learning, so we have data points
-$$((xUS1,yUS1),\dots,(xUSN,yUSN))$$ and corresponding labels $$(zUS1,\dots,zUSN)$$. Each data point $$(xUSi,yUSi)$$
-correspond to some entry $$(j,k)$$ in the matrix $$\Theta$$; this is simply determined by the specific grid cell
+the learning problem. As mentioned, we have $n^2$ parameters, and we can encode this using an $n\times n$
+matrix $\Theta$. We are doing supervised machine learning, so we have data points
+$$((x_1,y_1),\dots,(x_N,y_N))$$ and corresponding labels $$(z_1,\dots,z_N)$$. Each data point $$(x_i,y_i)$$
+correspond to some entry $(j,k)$ in the matrix $\Theta$; this is simply determined by the specific grid cell
 the data point happens to fall in. 
 
-If the points $$((xUSLBiUS1RB,yUSLBiUS1RB),\dots,(xUSLBiUSmRB,yUSLBiUSmRB))$$ all fall into the grid cell $$(j,k)$$, then we can
-define $$\Theta[j,k]$$ simply by the mean value of the labels for these points;
+If the points $((x_{i_1},y_{i_1}),\dots,(x_{i_m},y_{i_m}))$ all fall into the grid cell $(j,k)$, then we can
+define $\Theta[j,k]$ simply by the mean value of the labels for these points;
 
 $$
-\Theta[j,k] = \fracLB1RBLBmRB \sumUSLBa=1RB^n yUSa
+\Theta[j,k] = \frac{1}{m} \sum_{a=1}^n y_a
 $$
 
-But what do we do if we have no training data corresponding to some entry $$\Theta[j,k]$$? Then the only thing
+But what do we do if we have no training data corresponding to some entry $\Theta[j,k]$? Then the only thing
 we can do is make an educated guess based on the entries of the matrix we _do_ know. This is the _matrix
 completion problem_; we are presented with a matrix with some known entries, and we are tasked to find good
 values for the unknown entries. We described this problem in some detail [in the previous blog
 post](/low-rank-matrix/).
 
 The main takeaway is this: to solve the matrix completion problem, we need to assume that the matrix has some
-extra structure. We typically assume that the matrix is of low rank $$r$$, that is, we can write $$\Theta$$ as a
-product $$\Theta=A B$$ where $$A,B$$ are of size $$n\times r$$ and $$r\times n$$ respectively. Intuitively, this is a
-useful assumption because now we only have to learn $$2nr$$ parameters instead of $$n^2$$. If $$r$$ is much smaller
-than $$n$$, then this is a clear gain. 
+extra structure. We typically assume that the matrix is of low rank $r$, that is, we can write $\Theta$ as a
+product $\Theta=A B$ where $A,B$ are of size $n\times r$ and $r\times n$ respectively. Intuitively, this is a
+useful assumption because now we only have to learn $2nr$ parameters instead of $n^2$. If $r$ is much smaller
+than $n$, then this is a clear gain. 
 
 From the perspective of machine learning, this changes the class of functions we are considering. Instead of
-_all_ discretized functions on our $$n\times n$$ grid inside $$[0,1]^2$$, we now consider only those functions
-described by a matrix $$\Theta=AB$$ that has rank at most $$r$$. This also changes the parameters; instead of
+_all_ discretized functions on our $n\times n$ grid inside $[0,1]^2$, we now consider only those functions
+described by a matrix $\Theta=AB$ that has rank at most $r$. This also changes the parameters; instead of
 $$n^2$$ parameters, we now only consider $$2nr^2$$ parameters describing the two matrices $$A,B$$.
 
-Real data is often not uniform, so unless we use a very coarse grid, some entries of $$\Theta[j,k]$$ are always
+Real data is often not uniform, so unless we use a very coarse grid, some entries of $\Theta[j,k]$ are always
 going to be unknown. For example below we show some more realistic data, with the same function as before plus
-some noise. The color indicates the value of the function $$f$$ we're trying to learn. 
+some noise. The color indicates the value of the function $f$ we're trying to learn. 
 
 
 ```python
@@ -336,15 +336,15 @@ This makes them excellent candidates for low-memory applications. For example, w
 
 ## Discretized functions in higher dimensions: tensor trains
 
-The generalization to $$d$$-dimensions is now straightforward; we take a $$d$$-dimensional grid on $$[0,1]^d$$, with
-$$n$$ subdivisions in each axis. Then we specify the value of our function $$fUS\Theta$$ on each of the $$n^d$$ grid
-cells.  These $$n^d$$ values form a _tensor_ $$\Theta$$, i.e. a $$d$$-dimensional array. We access the entries of
-$$\Theta$$ with a $$d$$-tuple of indices $$\Theta[iUS1,iUS2,\dots,iUSd]$$. 
+The generalization to $d$-dimensions is now straightforward; we take a $d$-dimensional grid on $[0,1]^d$, with
+$$n$$ subdivisions in each axis. Then we specify the value of our function $$f_\Theta$$ on each of the $$n^d$$ grid
+cells.  These $n^d$ values form a _tensor_ $\Theta$, i.e. a $d$-dimensional array. We access the entries of
+$$\Theta$$ with a $$d$$-tuple of indices $$\Theta[i_1,i_2,\dots,i_d]$$. 
 
-This suffers from the same problems as in the 2D case; the tensor $$\Theta$$ is really big, and during training
+This suffers from the same problems as in the 2D case; the tensor $\Theta$ is really big, and during training
 we would need at least one data point for each entry of the tensor. But the situation is even worse, even
-storing $$\Theta$$ can be prohibitively expensive. For example, if $$d=10$$ and $$n=20$$; then we would need about
-82 TB just to store the tensor! In fact, $$n=20$$ grid points in each direction is not even that much, so in
+storing $\Theta$ can be prohibitively expensive. For example, if $d=10$ and $n=20$; then we would need about
+82 TB just to store the tensor! In fact, $n=20$ grid points in each direction is not even that much, so in
 practice we might need a much bigger tensor still.
 
 In the 2D case we solved this problem by storing the matrix as the product of two smaller matrices. In the 2D
@@ -355,39 +355,39 @@ dimensions however, storing the tensor in the right way can save immense amounts
 In the 2D case, we store matrices as a low rank matrix; as a product of two smaller matrices. But what is the
 correct analogue of 'low rank' for tensors? Unfortunately (or fortunately), there are many answers to this
 question. There are many 'low rank tensor formats', all with very different properties. We will be focusing on
-_tensor trains_. A tensor train decomposition of an $$nUS1\times nUS2\times \dots \times nUSd$$ tensor $$\Theta$$
-consists of a set of $$d$$ _cores_ $$CUSk$$ of shape $$rUSLBk-1RB\times nUSk \times rUSk$$, where $$(rUS1,\dots,rUSLBd-1RB)$$
-are the _ranks_ of the tensor train. Using these cores we can then express the entries of $$\Theta$$ using the
+_tensor trains_. A tensor train decomposition of an $n_1\times n_2\times \dots \times n_d$ tensor $\Theta$
+consists of a set of $d$ _cores_ $C_k$ of shape $r_{k-1}\times n_k \times r_k$, where $(r_1,\dots,r_{d-1})$
+are the _ranks_ of the tensor train. Using these cores we can then express the entries of $\Theta$ using the
 following formula:
 
 $$
-\Theta[iUS1,\dots,iUSd] = \sumUSLBkUS1,\dots,kUSLBd-1RBRBCUS1[1,iUS1,kUS1]CUS2[kUS1,iUS2,kUS2]\cdots CUSLBd-1RB[kUSLBd-2RB,iUSLBd-1RB,kUSLBd-1RB]CUSd[kUSLBd-1RB,iUSLBdRB,1]
+\Theta[i_1,\dots,i_d] = \sum_{k_1,\dots,k_{d-1}}C_1[1,i_1,k_1]C_2[k_1,i_2,k_2]\cdots C_{d-1}[k_{d-2},i_{d-1},k_{d-1}]C_d[k_{d-1},i_{d},1]
 $$
 
-This may look intimidating, but the idea is actually quite simple. We should think of the core $$CUSLBkRB$$ as a
-_collection_ of $$nUSk$$ matrices $$(CUSk[1],\dots,CUSk[nUSk])$$, each of shape $$rUSLBk-1RB\times rUSk$$. The index $$iUSk$$
+This may look intimidating, but the idea is actually quite simple. We should think of the core $C_{k}$ as a
+_collection_ of $n_k$ matrices $(C_k[1],\dots,C_k[n_k])$, each of shape $r_{k-1}\times r_k$. The index $i_k$
 then _selects_ which of these matrices to use. The first and last cores are special, by convention
-$$rUS0=rUSd=1$$, this means that $$CUS1$$ is a collection of $$1\times rUS1$$ matrices, i.e. (row) vectors. Similarly,
-$$CUSd$$ is a collection of $$rUSLBd-1RB\times 1$$ matrices, i.e. (column) vectors. Thus each entry of $$\Theta$$ is
+$$r_0=r_d=1$$, this means that $$C_1$$ is a collection of $$1\times r_1$$ matrices, i.e. (row) vectors. Similarly,
+$$C_d$$ is a collection of $$r_{d-1}\times 1$$ matrices, i.e. (column) vectors. Thus each entry of $$\Theta$$ is
 determined by a product like this:
 
 > row vector * matrix * matrix * ... * matrix * column vector
 
 The result is a number, since a row/column vector times a matrix is a row/column vector, and the product of a
 row and column vector is just a number. In fact, if we think about it, this is exactly how a low-rank matrix
-decomposition works as well. If we write a matrix $$\Theta = AB$$, then 
+decomposition works as well. If we write a matrix $\Theta = AB$, then 
 
 $$
-\Theta[i,j]=\sumUSk A[i,k] B[k,j] = A[i,:]\cdot B[:,j].
+\Theta[i,j]=\sum_k A[i,k] B[k,j] = A[i,:]\cdot B[:,j].
 $$
 
- Here $$A[i,:]$$ is a _row_ of $$A$$, and $$B[:,j]$$ is a _column_ of $$B$$. In other words, $$A$$
-is just a collection of row vectors, and $$B$$ is just a collection of column vectors. Then to obtain an entry
-$$\Theta[i,j]$$, we select the $$i\textLBthRB$$ row of $$A$$ and the $$j\textLBthRB$$ column of $$B$$ and take the product.
+ Here $A[i,:]$ is a _row_ of $A$, and $B[:,j]$ is a _column_ of $B$. In other words, $A$
+is just a collection of row vectors, and $B$ is just a collection of column vectors. Then to obtain an entry
+$$\Theta[i,j]$$, we select the $$i\text{th}$$ row of $$A$$ and the $$j\text{th}$$ column of $$B$$ and take the product.
 
-In summary, a tensor train is a way to cheaply store large tensors. Assuming all ranks $$(rUS1,\dots,rUSLBd-1RB)$$
-are the same, a tensor train requires $$O(dr^2n)$$ entries to store a tensor with $$O(n^d)$$ entries; a huge gain
-if $$d$$ and $$n$$ are big. For context, if $$d=10$$, $$n=20$$, and $$r=10$$ then instead of 82 TB we just need 131 KB
+In summary, a tensor train is a way to cheaply store large tensors. Assuming all ranks $(r_1,\dots,r_{d-1})$
+are the same, a tensor train requires $O(dr^2n)$ entries to store a tensor with $O(n^d)$ entries; a huge gain
+if $d$ and $n$ are big. For context, if $d=10$, $n=20$, and $r=10$ then instead of 82 TB we just need 131 KB
 to store the tensor; that's about 9 orders of magnitude cheaper! Furthermore, computing entries of this tensor
 is cheap; it's just a couple matrix-vector products. 
 
@@ -398,7 +398,7 @@ discretized functions.
 
 ## Learning discretized functions: tensor completion
 
-How can we learn a discretized function $$[0,1]^d\to \mathbb R$$ represented by a tensor train? Like in the
+How can we learn a discretized function $[0,1]^d\to \mathbb R$ represented by a tensor train? Like in the
 matrix case, many entries of the the tensor are unobserved, and we have to _complete_ these entries based on
 the entries that we _can_ estimate. In [my post on matrix completion](/low-rank-matrix) we have seen that even
 the matrix case is tricky, and there are many algorithms to solve the problem. One thing these algorithms have
@@ -409,21 +409,21 @@ First of all, what is the loss function we want to minimize during training? It'
 loss:
 
 $$
-L(\Theta) = \sumUSLBj=1RB^N(fUS\Theta(xUSj) - yUSj)^2
+L(\Theta) = \sum_{j=1}^N(f_\Theta(x_j) - y_j)^2
 $$
 
-Each data point $$xUSj\in [0,1]^d$$ fits into some grid cell given by index $$(iUS1[j],iUS2[j],\dots,iUSd[j])$$, so
-using the definition of the tensor train the loss $$L(\Theta)$$ becomes
+Each data point $x_j\in [0,1]^d$ fits into some grid cell given by index $(i_1[j],i_2[j],\dots,i_d[j])$, so
+using the definition of the tensor train the loss $L(\Theta)$ becomes
 
 $$
-\beginLBalignSTRB
-L(\Theta) &= \sumUSLBj=1RB^N (\Theta[iUS1[j],iUS2[j],\dots,iUSd[j]] - yUSj)^2\\
- &= \sumUSLBj=1RB^N(CUS1[1,iUS1[j],:]CUS2[:,iUS2[j],:]\cdots CUSd[:,iUSd[j],1] - yUSj)^2
-\endLBalignSTRB
+\begin{align*}
+L(\Theta) &= \sum_{j=1}^N (\Theta[i_1[j],i_2[j],\dots,i_d[j]] - y_j)^2\\
+ &= \sum_{j=1}^N(C_1[1,i_1[j],:]C_2[:,i_2[j],:]\cdots C_d[:,i_d[j],1] - y_j)^2
+\end{align*}
 $$
 
-A straightforward approach to minimizing $$L(\Theta)$$ is to just use _gradient descent_. We could compute the
-derivatives with respect to each of the cores $$CUSi$$ and just update the cores using this derivative. This is,
+A straightforward approach to minimizing $L(\Theta)$ is to just use _gradient descent_. We could compute the
+derivatives with respect to each of the cores $C_i$ and just update the cores using this derivative. This is,
 however, very slow. There are two reasons for this, but they are a bit subtle:
 1. _There is a lot of curvature._ In gradient descent, the size of step we can optimally take is depended on
    how big the _second derivatives_ of a function are (the _'curvature'_). The derivative of a function is the
@@ -431,48 +431,49 @@ however, very slow. There are two reasons for this, but they are a bit subtle:
    is a good approximation of the function. In this case, the function we are trying to optimize is _very
    non-linear_, and any linear approximation is going to be very bad. Therefore we are forced to take really
    tiny steps during gradient descent, and convergence is going to be very slow.
-2. _There are a lot of symmetries._ For example we can replace $$CUSi$$ and $$CUSLBi+1RB$$ with $$CUSi M$$ and
-   $$A^LB-1RBCUSLBi+1RB$$ for any matrix $$A$$. Gradient descent 'doesn't know' about these symmetries, and keeps
-   updating $$\Theta$$ in directions that doesn't affect $$L(\Theta)$$.
+2. _There are a lot of symmetries._ For example we can replace $C_i$ and $C_{i+1}$ with $C_i M$ and
+   $A^{-1}C_{i+1}$ for any matrix $A$. Gradient descent 'doesn't know' about these symmetries, and keeps
+   updating $\Theta$ in directions that doesn't affect $L(\Theta)$.
 
-To efficiently optimize $$L(\theta)$$, we can't just use gradient descent as-is, and we are forced to walk a
-different route. While $$L(\Theta)$$ is very non-linear as function of the tensor train cores $$CUSi$$, it is only
-quadratic in the _entries_ of $$L(\Theta)$$, and we can easily compute its derivative:
+To efficiently optimize $L(\theta)$, we can't just use gradient descent as-is, and we are forced to walk a
+different route. While $L(\Theta)$ is very non-linear as function of the tensor train cores $C_i$, it is only
+quadratic in the _entries_ of $L(\Theta)$, and we can easily compute its derivative:
 
-$$ \nablaUSLB\ThetaRBL(\Theta) = 2\sumUSLBj=1RB^N (\Theta[iUS1[j],iUS2[j],\dots,iUSd[j]] -
-yUSj)E(iUS1[j],iUS2[j],\dots,iUSd[j]), $$
+$$ \nabla_{\Theta}L(\Theta) = 2\sum_{j=1}^N (\Theta[i_1[j],i_2[j],\dots,i_d[j]] -
+y_j)E(i_1[j],i_2[j],\dots,i_d[j]),
+$$
 
-where $$E(iUS1,iUS2,\dots,iUSd)$$ denotes a sparse tensor that's zero in all entries _except_ $$(iUS1,\dots,iUSd)$$
-where it takes value $$1$$. In other words, $$\nablaUSLB\ThetaRBL(\Theta)$$ is a _sparse tensor_ that is both simple
-and cheap to compute; it just requires sampling at most $$N$$ entries of $$\Theta$$. For gradient descent we would
-then update $$\Theta$$ by $$\Theta-\alpha \nablaUSLB\ThetaRBL(\Theta)$$ with $$\alpha$$ the stepsize. Unfortunately,
+where $E(i_1,i_2,\dots,i_d)$ denotes a sparse tensor that's zero in all entries _except_ $(i_1,\dots,i_d)$
+where it takes value $1$. In other words, $\nabla_{\Theta}L(\Theta)$ is a _sparse tensor_ that is both simple
+and cheap to compute; it just requires sampling at most $N$ entries of $\Theta$. For gradient descent we would
+then update $\Theta$ by $\Theta-\alpha \nabla_{\Theta}L(\Theta)$ with $\alpha$ the stepsize. Unfortunately,
 this expression is not a tensor train. However, we can try to _approximate_ 
-$$\Theta-\alpha \nablaUSLB\ThetaRBL(\Theta)$$ by a tensor train of the same rank as $$\Theta$$. 
+$$\Theta-\alpha \nabla_{\Theta}L(\Theta)$$ by a tensor train of the same rank as $$\Theta$$. 
 
-Recall that we can approximate a matrix $$A$$ by a rank $$r$$ matrix by using the _truncated SVD_ of $$A$$. In fact
-this is the best-possible approximation of $$A$$ by a rank $$\leq  r$$ matrix. There is a similar procedure for
-tensor trains; we can approximate a tensor $$\Theta$$ by a rank $$(rUS1,\dots,rUSLBd-1RB)$$ tensor train using the
-TT-SVD procedure. While this is not the _best_ approximation of $$\Theta$$ by such a tensor train, it is
+Recall that we can approximate a matrix $A$ by a rank $r$ matrix by using the _truncated SVD_ of $A$. In fact
+this is the best-possible approximation of $A$ by a rank $\leq  r$ matrix. There is a similar procedure for
+tensor trains; we can approximate a tensor $\Theta$ by a rank $(r_1,\dots,r_{d-1})$ tensor train using the
+TT-SVD procedure. While this is not the _best_ approximation of $\Theta$ by such a tensor train, it is
 _'quasi-optimal'_ and pretty good in practice. The details of the TT-SVD procedure are a little involved, so
-let's leave it as a black box. We now have the following iterative procedure for optimizing $$L(\Theta)$$:
+let's leave it as a black box. We now have the following iterative procedure for optimizing $L(\Theta)$:
 
 $$
-\ThetaUSLBk+1RB \leftarrow \operatornameLBTT-SVDRB(\ThetaUSLBkRB-\alpha \nablaUSLB\ThetaRBL(\ThetaUSk) )
+\Theta_{k+1} \leftarrow \operatorname{TT-SVD}(\Theta_{k}-\alpha \nabla_{\Theta}L(\Theta_k) )
 $$
 
 If you're familiar with optimizing neural networks, you might notice that this procedure could work very well
-with _stochastic gradient descent_. Indeed $$\nablaUSLB\ThetaRBL(\Theta)$$ is a sum over all the data points, so we
+with _stochastic gradient descent_. Indeed $\nabla_{\Theta}L(\Theta)$ is a sum over all the data points, so we
 can just pick a subset of data points (a minibatch) to obtain a stochastic gradient. The reason we would want
 to do this is that we have so many data points that the cost of each step is dominated by computing the
 gradient. In this situation this is however not true, and the cost is dominated by the TT-SVD procedure. We
-therefore stick to more classical gradient descent methods. In particular, the function $$L(\theta)$$ can be
+therefore stick to more classical gradient descent methods. In particular, the function $L(\theta)$ can be
 optimized well with conjugate gradient descent using Armijo backtracking line search. 
 
 
 
 ## Discretized functions in practice
 
-Let's now see all of this in practice. Let's train a discretized function $$fUS\Theta$$ represented by a tensor
+Let's now see all of this in practice. Let's train a discretized function $f_\Theta$ represented by a tensor
 train on some data using the technique described above. We will do this on a real dataset: the [airfoil
 self-noise dataset](https://archive.ics.uci.edu/ml/datasets/airfoil+self-noise). This NASA dataset contains
 experimental data about the self-noise of airfoils in a wind tunnel, originally used to optimize wing shapes.
@@ -586,31 +587,31 @@ Recall that a gradient descent method converges to a _local_ minimum of the func
 Instead of initializing the tensor trains _randomly_, we can learn from other machine learning estimators. We
 fit our favorite machine learning estimator (e.g. a neural network) to the training data. This gives a function
 $$g\colon [0,1]^d\to \mathbb R$$. This function is defined for _any_ input, not just for the training/test data
-points. Therefore we can try to first fit our discretized function $$fUS\Theta$$ to match $$g$$, i.e. we solve the
+points. Therefore we can try to first fit our discretized function $f_\Theta$ to match $g$, i.e. we solve the
 following minimization problem:
 
 $$
-\minUS\Theta \|fUS\Theta - g\|^2
+\min_\Theta \|f_\Theta - g\|^2
 $$
 
 One way to solve this minimization problem is by first (randomly) sampling a lot of new data points
-$$(xUS1,\dots,xUSN)\in [0,1]^d$$ and then fitting $$fUS\Theta$$ to these data points with labels
-$$(g(xUS1),\dots,g(xUSN))$$. This is essentially _data augmentation_, and can drastically increase the _number_ of
-data points available for training. With more training data, the function $$fUS\Theta$$ will indeed converge to a
+$$(x_1,\dots,x_N)\in [0,1]^d$$ and then fitting $$f_\Theta$$ to these data points with labels
+$$(g(x_1),\dots,g(x_N))$$. This is essentially _data augmentation_, and can drastically increase the _number_ of
+data points available for training. With more training data, the function $f_\Theta$ will indeed converge to a
 better local minimum.
 
 While data augmentation does improve performance, we can do better. We don't need to _randomly_ sample data
-points $$(xUS1,\dots,xUSN)\in[0,1]^d$$. Instead we can _choose_ good points to sample; points that give us the
+points $(x_1,\dots,x_N)\in[0,1]^d$. Instead we can _choose_ good points to sample; points that give us the
 most information on how to efficiently update the tensor train. This is essentially the idea behind the
 _tensor train cross approximation_ algorithm, or TT-Cross for short. Using TT-Cross we can quickly and
-efficiently get a good approximation to the minimization problem $$\minUS\Theta \|fUS\Theta - g\|^2$$.
+efficiently get a good approximation to the minimization problem $\min_\Theta \|f_\Theta - g\|^2$.
 
-We could stop here. If $$g$$ models our data really well, and $$fUS\Theta$$ approximates $$g$$ really well, then we
+We could stop here. If $g$ models our data really well, and $f_\Theta$ approximates $g$ really well, then we
 should be happy. Like the matrix completion model, discretized functions based on tensor trains are _fast_ and
-are _memory efficient_. Therefore we can make an approximation of $$g$$ that uses less memory and can make
-faster predictions! However, the model $$g$$ really should be used for _initialization_ only. Usually $$fUS\Theta$$
-actually doesn't do a great job of approximating $$g$$, but if we first approximate $$g$$, and _then_ use a
-gradient descent algorithm to improve $$fUS\Theta$$ even further, we end up with something much more competitive. 
+are _memory efficient_. Therefore we can make an approximation of $g$ that uses less memory and can make
+faster predictions! However, the model $g$ really should be used for _initialization_ only. Usually $f_\Theta$
+actually doesn't do a great job of approximating $g$, but if we first approximate $g$, and _then_ use a
+gradient descent algorithm to improve $f_\Theta$ even further, we end up with something much more competitive. 
 
 Let's see this in action. This is actually much easier than what we did before, because I wrote the `ttml`
 package specifically for this use case.

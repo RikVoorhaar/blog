@@ -11,35 +11,35 @@ We can also do such analysis to give estimates in the uncertainty in the test sc
 
 ## The Beta prior
 
-Let's suppose we have some classication model $$f\colon \mathbb R^n\to \LB0,...,n\RB$$ on n-dimensional data, which we trained on $$NUSLBtrainRB$$ training data points $$(X^iUSLBtrainRB,y^iUSLBtrainRB)USLB1\leq i\leq NUSLBtrainRBRB$$. We now want to evaluate the accuracy of this model on test data $$(X^iUSLBtestRB,y^iUSLBtestRB)USLB1\leq i \leq NUSLBtestRBRB$$. We can model the chance that our model correctly guesses a test value with a probality $$p$$:
+Let's suppose we have some classication model $f\colon \mathbb R^n\to \{0,...,n\}$ on n-dimensional data, which we trained on $N_{train}$ training data points $(X^i_{train},y^i_{train})_{1\leq i\leq N_{train}}$. We now want to evaluate the accuracy of this model on test data $(X^i_{test},y^i_{test})_{1\leq i \leq N_{test}}$. We can model the chance that our model correctly guesses a test value with a probality $p$:
 
 $$
-    P(f(XUSLBtestRB^i) = yUSLBtestRB^i) = p
+    P(f(X_{test}^i) = y_{test}^i) = p
 $$
 
-This is assuming that all the test samples are equally 'hard' for our model. In practice this probality of $$p$$ can vary, but this is more difficult to model. 
+This is assuming that all the test samples are equally 'hard' for our model. In practice this probality of $p$ can vary, but this is more difficult to model. 
 
-Suppose now that $$NUSLBtestRB=100$$ and we got the right answer 96/100 times. Then an unbiased estimator for this probality $$p$$ is simply $$p=96\%$$, but this says nothing about the probality distribution of $$p$$. 
+Suppose now that $N_{test}=100$ and we got the right answer 96/100 times. Then an unbiased estimator for this probality $p$ is simply $p=96\%$, but this says nothing about the probality distribution of $p$. 
 
-A common way to model probabilities is using the [Beta distribution](https://en.wikipedia.org/wiki/Beta_distribution) $$p\sim \mathrmLBBetaRB(\alpha,\beta)$$. This is distribution is supported on $$[0,1]$$, so it's values can be interpeted as probabilities. It depends on two parameters $$\alpha,\beta$$, and has density function:
+A common way to model probabilities is using the [Beta distribution](https://en.wikipedia.org/wiki/Beta_distribution) $p\sim \mathrm{Beta}(\alpha,\beta)$. This is distribution is supported on $[0,1]$, so it's values can be interpeted as probabilities. It depends on two parameters $\alpha,\beta$, and has density function:
 
 $$
-    C x^LB\alpha-1RB(1-x)^LB\beta-1RB,
+    C x^{\alpha-1}(1-x)^{\beta-1},
 $$
 
-where $$C = \Gamma(\alpha+\beta)/\Gamma(\alpha)\Gamma(\beta)$$ is a normalization constant. Now we just need to figure out how to estimate the parameters $$\alpha,\beta$$ from our experiment.
+where $C = \Gamma(\alpha+\beta)/\Gamma(\alpha)\Gamma(\beta)$ is a normalization constant. Now we just need to figure out how to estimate the parameters $\alpha,\beta$ from our experiment.
 
-Before we did any experiment and tried our model on the test set, we know nothing about the probability $$p$$. We can therefore model it as a uniform distribution on $$[0,1]$$, or equivalently $$p\sim \mathrmLBBetaRB(1,1)$$. This is known as the _prior distribution_ for the random variable $$p$$. After our experiment we have new information, and we can update the values of $$\alpha$$ and $$\beta$$ to get a _posterior distribution_ for $$p$$. This process is known as Bayesian inference.
+Before we did any experiment and tried our model on the test set, we know nothing about the probability $p$. We can therefore model it as a uniform distribution on $[0,1]$, or equivalently $p\sim \mathrm{Beta}(1,1)$. This is known as the _prior distribution_ for the random variable $p$. After our experiment we have new information, and we can update the values of $\alpha$ and $\beta$ to get a _posterior distribution_ for $p$. This process is known as Bayesian inference.
 
- In this case, if we have 96 sucesses and 4 failures on the test set we should update our posterior to $$p\sim \mathrmLBBetaRB(96+1,4+1)$$. This update rule is known as the [rule of succession](https://en.wikipedia.org/wiki/Rule_of_succession). If we choose the prior $$p\sim\mathrmLBBetaRB(0,0)$$ we get posterior $$p\sim \mathrmLBBetaRB(96,4)$$, but this has the notable disadvantage that if we somehow get 100% on the test, the resulting distribution takes value 1 with 100% probability, which is not realistic. Adding +1 to both $$\alpha$$ and $$\beta$$ is a bit more conservative in extreme cases. In general the parameters of a posterior distribution can be very difficult to compute, but in this case there is such a simple formula because the beta distribution and the binomial distribution are _conjugate priors_. 
+ In this case, if we have 96 sucesses and 4 failures on the test set we should update our posterior to $p\sim \mathrm{Beta}(96+1,4+1)$. This update rule is known as the [rule of succession](https://en.wikipedia.org/wiki/Rule_of_succession). If we choose the prior $p\sim\mathrm{Beta}(0,0)$ we get posterior $p\sim \mathrm{Beta}(96,4)$, but this has the notable disadvantage that if we somehow get 100% on the test, the resulting distribution takes value 1 with 100% probability, which is not realistic. Adding +1 to both $\alpha$ and $\beta$ is a bit more conservative in extreme cases. In general the parameters of a posterior distribution can be very difficult to compute, but in this case there is such a simple formula because the beta distribution and the binomial distribution are _conjugate priors_. 
 
 In short:
 
->If we measure $$n$$ successes and $$m$$ failures, we model the resulting probability by $$p\sim \mathrmLBBetaRB(n+1,m+1)$$.
+>If we measure $n$ successes and $m$ failures, we model the resulting probability by $p\sim \mathrm{Beta}(n+1,m+1)$.
 
 ## Quantifying uncertainty in test results
 
-With that out of the way, in our example of getting 96/100 right on the test set, what is the uncertainty for the probability $$p$$? We begin by plotting the distribution for $$p$$:
+With that out of the way, in our example of getting 96/100 right on the test set, what is the uncertainty for the probability $p$? We begin by plotting the distribution for $p$:
 
 
 ```python
@@ -63,13 +63,13 @@ print(f"mean={rv.mean()}, std={rv.std()}")
 <Output>mean=0.9509803921568627, std=0.021274143540891813</Output>
     
 
-Here we see that the actual value of $$p$$ could be anywhere in the roughly $$92-98\%$$ range, and our estimate of $$p$$ is in fact $$p=95\pm2.1\%$$. The standard deviation of $$\mathrmLBBetaRB(\alpha,\beta)$$ is given by
+Here we see that the actual value of $p$ could be anywhere in the roughly $92-98\%$ range, and our estimate of $p$ is in fact $p=95\pm2.1\%$. The standard deviation of $\mathrm{Beta}(\alpha,\beta)$ is given by
 
 $$
-    \sigma(Beta(\alpha,\beta)) = \sqrtLB\fracLB\alpha\betaRBLB(\alpha+\beta)^2RBRB\frac1LB\sqrtLB\alpha+\beta+1RBRB = \fracLB\sqrtLB\hat p(1-\hat p)RBRBLB\sqrtLBN+3RBRB
+    \sigma(Beta(\alpha,\beta)) = \sqrt{\frac{\alpha\beta}{(\alpha+\beta)^2}}\frac1{\sqrt{\alpha+\beta+1}} = \frac{\sqrt{\hat p(1-\hat p)}}{\sqrt{N+3}}
 $$
 
-Here $$N=\alpha+\beta$$ is the total number of trials in our experiment and $$\hat p = (\alpha+1)/(\alpha+\beta+2)$$ is the estimated probability after our experiment. This shows that the uncertainty goes down with the square root of the number of trials (which is true for pretty much anything), and that it depends non-trivially on the estimated probability $$\hat p$$. This is important, because it means the better our model performs (test score closer to 100%), the lower the uncertainty is in this test score. 
+Here $N=\alpha+\beta$ is the total number of trials in our experiment and $\hat p = (\alpha+1)/(\alpha+\beta+2)$ is the estimated probability after our experiment. This shows that the uncertainty goes down with the square root of the number of trials (which is true for pretty much anything), and that it depends non-trivially on the estimated probability $\hat p$. This is important, because it means the better our model performs (test score closer to 100%), the lower the uncertainty is in this test score. 
 
 ## Which model is better?
 
@@ -126,16 +126,16 @@ Either way, the conclusion is that Model B is expected to be better than Model A
 
 Now what if we don't just have 2 models, but dozens of different models. For example because our models depend on some hyperparameters for which we tried many different values. Then out of all these models, we want to know which is the best, and assign a probability to this. This leads to the [multiple testing problem](https://xkcd.com/882/). For example, if we have 100 different models, each getting 95% accuracy, then purely by coincidence a few of these models might be getting scores like 97% or 98% and will seem better. Since the error in the score scales with the inverse square root of the size of the test set, this problem is difficult to eliminate by just choosing a larger test set. 
 
-Suppose we have $$n$$ models with test scores $$pUS1,\dots, pUSn$$, then the probability that $$pUS1$$ is the biggest can by computed by
+Suppose we have $n$ models with test scores $p_1,\dots, p_n$, then the probability that $p_1$ is the biggest can by computed by
 
 $$
-    P(pUS1>\max(pUS2,\dots,pUSn)) = P((pUS1>pUS2)\cup (pUS1>pUS3)\cup\dots\cup(pUS1>pUSn))
+    P(p_1>\max(p_2,\dots,p_n)) = P((p_1>p_2)\cup (p_1>p_3)\cup\dots\cup(p_1>p_n))
 $$
 
 This probability is very difficult to compute exactly because the events are not independent. But we do get a very useful upper bound if we assume independence:
 
 $$
-    P(pUS1>\max(pUS2,\dots,pUSn)) \leq \sumUSLBi=2RB^n P(pUS1>pUSi)
+    P(p_1>\max(p_2,\dots,p_n)) \leq \sum_{i=2}^n P(p_1>p_i)
 $$
 
 These individual probabilities can then be computed with the exact Fisher test or the chi-squared test as outline above. The important thing to note is that if all these probabilities are on the same order, the probability that a particular model can be reliably identified as the best model scales linearly with the number of models we compare it to. 
@@ -151,25 +151,25 @@ At the end of the day, we will probably consider only a couple models to be amon
 
 ## So how big should my validation / test set be?
 
-It can be difficult to estimate a good size $$N$$ of the validation set in practice, since it depends on some assumptions of our models. It depends on the following variables:
+It can be difficult to estimate a good size $N$ of the validation set in practice, since it depends on some assumptions of our models. It depends on the following variables:
 
-- $$nUSm$$: The number of different models we will compare with similar performance.
-- $$p$$: The test score of the best model (on a scale of 0 to 1)
-- $$\sigma$$: The difference in test score between the best and second best model
+- $n_m$: The number of different models we will compare with similar performance.
+- $p$: The test score of the best model (on a scale of 0 to 1)
+- $\sigma$: The difference in test score between the best and second best model
 
 We then have 
 
 $$
-    N \simeq \fracLBnUSm^2 p(1-p)RBLB\sigma^2RB
+    N \simeq \frac{n_m^2 p(1-p)}{\sigma^2}
 $$
 
-The number $$nUSm$$ is mainly relevant if we intend to compare several models that are roughly similar in quality, for example if we're doing hyper parameter optimization. If we expect the difference between the third-best and second-best model to be around the same as the difference between the second-best and the best model, we can leave this parameter equal to 1 in our estimation.
+The number $n_m$ is mainly relevant if we intend to compare several models that are roughly similar in quality, for example if we're doing hyper parameter optimization. If we expect the difference between the third-best and second-best model to be around the same as the difference between the second-best and the best model, we can leave this parameter equal to 1 in our estimation.
 
-The same formula also applies to estimating the size of a test set. If we just want to get an estimate of the test score of a single model, or if we're just comparing two models, then we can leave $$nUSm$$ at 1, but if we're comparing more models we need to take this into account. This is especially true since if we're comparing different models on the test set we already expect them to have quite similar performance.
+The same formula also applies to estimating the size of a test set. If we just want to get an estimate of the test score of a single model, or if we're just comparing two models, then we can leave $n_m$ at 1, but if we're comparing more models we need to take this into account. This is especially true since if we're comparing different models on the test set we already expect them to have quite similar performance.
 
-The precision $$\sigma$$ and quality $$p$$ have an interesting interaction that works in our favor. If we compare two relatively bad models, say with qualities $$p$$ around 50%, then probably we don't need super high precision -- it's probably doesn't matter to us whether the model has score of 50% or 50.1%, so a 1% precision is fine. The factor $$p(1-p)$$ is then roughly 0.25, so we need a validation size of roughly $$0.25/(0.01)^2 = 2500$$ samples. 
+The precision $\sigma$ and quality $p$ have an interesting interaction that works in our favor. If we compare two relatively bad models, say with qualities $p$ around 50%, then probably we don't need super high precision -- it's probably doesn't matter to us whether the model has score of 50% or 50.1%, so a 1% precision is fine. The factor $p(1-p)$ is then roughly 0.25, so we need a validation size of roughly $0.25/(0.01)^2 = 2500$ samples. 
 
-On the other hand if we have two models with score around 99.0%, we would need a precision of at least 0.1%. Without the $$p(1-p)$$ factor, this means we would need one million samples, but $$p(1-p)\simeq 0.01$$, so that we only need around 10000 samples.
+On the other hand if we have two models with score around 99.0%, we would need a precision of at least 0.1%. Without the $p(1-p)$ factor, this means we would need one million samples, but $p(1-p)\simeq 0.01$, so that we only need around 10000 samples.
 
 # Real world example: different models on MNIST
 
@@ -195,7 +195,7 @@ X_train, X_test, y_train, y_test = train_test_split(mnist, labels, test_size=0.2
 The baseline model we will be using is a linear support vector classifier (LinearSVC in scikit-learn). This is a very simple model, and is relatively quick to train even on large data. We will then score it by accuracy on the test set. Using the formula we saw before for the standard deviation of the beta distribution, we can estimate the error in this score:
 
 $$
-\sigma = \fracLB\sqrtLB\hat p(1-\hat p)RBRBLB\sqrtLBN+3RBRB
+\sigma = \frac{\sqrt{\hat p(1-\hat p)}}{\sqrt{N+3}}
 $$
 
 
@@ -217,7 +217,7 @@ print(f'Linear SVC error: {accuracy*100:.2f} ± {error*100:.2f}%')
 
 ## Experimental setup
 
-This gives us a reasonable baseline. Any reasonable model shouldn't perform worse than this. The current size of the validation is not ideal, since the error in the score is still relatively big (e.g. we can't reliably identify a 0.5% improvement). But making it much bigger is also clearly not good, since this will sacrifice the quality of the model too much, and even if we make it twice bigger we only expect the error to become smaller by a factor of $$\sqrtLB2RB$$.
+This gives us a reasonable baseline. Any reasonable model shouldn't perform worse than this. The current size of the validation is not ideal, since the error in the score is still relatively big (e.g. we can't reliably identify a 0.5% improvement). But making it much bigger is also clearly not good, since this will sacrifice the quality of the model too much, and even if we make it twice bigger we only expect the error to become smaller by a factor of $\sqrt{2}$.
 
 Perhaps we can work here with an 80/10/10 split, and appreciate the fact that we should not compare too many models. For example, hyperparameter tuning will likely result in overfitting on the validation data and relatively poor performance on the test set, because it is difficult to reliably identify small improvements. 
 
@@ -447,33 +447,33 @@ So far our discussion has been centered around the accuracy metric for classific
 For example the mean square error for regression is defined by
 
 $$
-    \mathrmLBMSERB = \frac1N \sumUSLBi=1RB^N(yUSi-\hat yUSi)^2
+    \mathrm{MSE} = \frac1N \sum_{i=1}^N(y_i-\hat y_i)^2
 $$
 
-where $$yUSi$$ are the test labels, and $$\hat yUSi$$ the predicted values. This can be interpreted as the sample mean of the random variable $$(Y-\hat Y)^2$$. Sample means tend to be normally distributed if we plug in enough samples, so we could model the distribution of MSE as a normal distribution (or t-distribution), with variance obtained from the sample variance of this random variable:
+where $y_i$ are the test labels, and $\hat y_i$ the predicted values. This can be interpreted as the sample mean of the random variable $(Y-\hat Y)^2$. Sample means tend to be normally distributed if we plug in enough samples, so we could model the distribution of MSE as a normal distribution (or t-distribution), with variance obtained from the sample variance of this random variable:
 
 $$
-    \sigma^2 = \fracLB1RBLBN-1RB\sumUSLBi=1RB^N \left((yUSi-\hat yUSi)^2-\mathrmLBMSERB\right)^2
+    \sigma^2 = \frac{1}{N-1}\sum_{i=1}^N \left((y_i-\hat y_i)^2-\mathrm{MSE}\right)^2
 $$
 
 And this method works for any metric that is obtained as a mean over all samples. Most metrics are of this form, but not all metrics (notably the area under ROC curve metric). 
 
-In the case of MSE we may be able to do better. A central assumption of least squares regression is that the residuals $$Y-\hat Y$$ are normally distributed. Recall that the sum of $$N$$ (standard) normally distributed independent random variables follows a chi-squared distribution. In other words if we define the bias $$B$$ by
+In the case of MSE we may be able to do better. A central assumption of least squares regression is that the residuals $Y-\hat Y$ are normally distributed. Recall that the sum of $N$ (standard) normally distributed independent random variables follows a chi-squared distribution. In other words if we define the bias $B$ by
 
 $$
-    B = \frac1n\sum yUSi-\hat yUSi
+    B = \frac1n\sum y_i-\hat y_i
 $$
 
-Then $$Y-\hat Y$$ is normally distributed with mean $$B$$ and variance $$\mathrmLBMSERB-B^2$$ (ignoring the Bessel correction). Therefore 
+Then $Y-\hat Y$ is normally distributed with mean $B$ and variance $\mathrm{MSE}-B^2$ (ignoring the Bessel correction). Therefore 
 
 $$
-    \chiUSY := \sumUSLBi=1RB^N \fracLB(yUSi-\hat yUSi)^2RBLB\sqrtLB\mathrmLBMSERB-B^2RBRB
+    \chi_Y := \sum_{i=1}^N \frac{(y_i-\hat y_i)^2}{\sqrt{\mathrm{MSE}-B^2}}
 $$
 
-has a non-central chi-squared distribution with $$N$$ degrees of freedom and mean $$\lambda = N \cdot \mathrmLBMSERB$$. The variance of $$\chiUSY$$ is $$2N(1+2 \mathrmLBMSERB)$$, so we can easily deduce that
+has a non-central chi-squared distribution with $N$ degrees of freedom and mean $\lambda = N \cdot \mathrm{MSE}$. The variance of $\chi_Y$ is $2N(1+2 \mathrm{MSE})$, so we can easily deduce that
 
 $$
-    \mathrmLBVarRB\left(\frac1N\sumUSLBi=1RB^N(yUSi-\hat yUSi)^2\right) = \fracLB2(\mathrmLBMSERB-B^2)(1+2\mathrmLBMSERB)RBLBNRB
+    \mathrm{Var}\left(\frac1N\sum_{i=1}^N(y_i-\hat y_i)^2\right) = \frac{2(\mathrm{MSE}-B^2)(1+2\mathrm{MSE})}{N}
 $$
 
 which may be a more accurate measure. 

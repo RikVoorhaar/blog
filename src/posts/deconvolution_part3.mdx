@@ -19,44 +19,44 @@ better for sparse kernels.
 
 Recall that deconvolution comes down to solving the equation
 $$
-    y = kSTx,
+    y = k*x,
 $$
-where $$y$$ is the observed (blured) image, $$k$$ is the point-spread function, $$x$$ is the
+where $y$ is the observed (blured) image, $k$ is the point-spread function, $x$ is the
 unobserved (sharp) images. If we take a discrete Fourier Transform (DFT) then this equation becomes
 $$
     Y = K\odot X,
 $$
-where capital letters denote the Fourier-transformed variables, and $$\odot$$ is the _pointwise_
-multiplication. To solve the deconvolution problem we can then do pointwise division by $$K$$ and then
-do the inverse Fourier transform. Because $$K$$ may have zero or near-zero entries, we can run into
-numerical instability. A quick fix is to instead multiply by $$K^ST / (|K|^2+\epsilon)$$, giving
+where capital letters denote the Fourier-transformed variables, and $\odot$ is the _pointwise_
+multiplication. To solve the deconvolution problem we can then do pointwise division by $K$ and then
+do the inverse Fourier transform. Because $K$ may have zero or near-zero entries, we can run into
+numerical instability. A quick fix is to instead multiply by $K^* / (|K|^2+\epsilon)$, giving
 solution
 
 $$
-x = \mathcal F^LB-1RB\left(Y \odot \fracLBK^STRBLB|K|^2+\epsilonRB\right)
+x = \mathcal F^{-1}\left(Y \odot \frac{K^*}{|K|^2+\epsilon}\right)
 $$
 
 This is fast to compute, and gives decent results. This simple method of deconvolution is known as
-the Wiener filter. In the situation where there is some noise $$n$$ such that $$y=kSTx+n$$, this
-corresponds (for a certain value of $$\epsilon$$) to $$x^ST$$ minimizing the expected square error
-$$E(\|x-x^ST\|^2)$$. Instead of minimizing the error, we can accept that $$\|kSTx-y\|\approx \|n\|^2$$,
-and then find the _smoothest_  $$x^ST$$ with that error, to avoid ringing artifacts. Smoothness can be
-modeled by the laplacian $$\Delta x^ST$$ This leads to the problem
+the Wiener filter. In the situation where there is some noise $n$ such that $y=k*x+n$, this
+corresponds (for a certain value of $\epsilon$) to $x^*$ minimizing the expected square error
+$$E(\|x-x^*\|^2)$$. Instead of minimizing the error, we can accept that $$\|k*x-y\|\approx \|n\|^2$$,
+and then find the _smoothest_  $x^*$ with that error, to avoid ringing artifacts. Smoothness can be
+modeled by the laplacian $\Delta x^*$ This leads to the problem
 
 $$
-    \beginLBarrayRBLBllRB
-        \textLBminimizeRB & \Delta x \\
-        \textLBsubject toRB & \|kSTx-y\|\leq \|n\|^2
-    \endLBarrayRB
+    \begin{array}{ll}
+        \text{minimize} & \Delta x \\
+        \text{subject to} & \|k*x-y\|\leq \|n\|^2
+    \end{array}
 $$
 
-If $$L$$ is the Fourier transform of the Laplacian kernel, then the solution to this problem has form
+If $L$ is the Fourier transform of the Laplacian kernel, then the solution to this problem has form
 
 $$
-x = \mathcal F^LB-1RB\left(Y \odot \fracLBK^STRBLB|K|^2+\gamma |L|^2RB\right)
+x = \mathcal F^{-1}\left(Y \odot \frac{K^*}{|K|^2+\gamma |L|^2}\right)
 $$
 
-where the parameter $$\gamma>0$$ is determined by the noise level. In the end this is a simple
+where the parameter $\gamma>0$ is determined by the noise level. In the end this is a simple
 modification to the Wiener filter, that should give less ringing effects. Let's see what this does
 in practice.
 
@@ -83,22 +83,22 @@ There are many iterative deconvolution methods, and one often-used method in par
 Richardson-Lucy decomposition. The iteration step is given by
 
 $$
-xUSLBk+1RB = xUSk\odot \left(\fracLByRBLBxUSkSTkRBSTk^ST\right)
+x_{k+1} = x_k\odot \left(\frac{y}{x_k*k}*k^*\right)
 $$
 
-Here $$k^ST$$ is the flipped point spread function, its Fourier transform is the complex conjugate of
-the Fourier transform of $$k$$. As first iteration we typically pick $$xUS0=y$$. Note that if
-$$\sumUSLBi,jRBkUSLBijRB = 1$$, then $$\mathbf 1STk = \mathbf 1$$, with $$\mathbf 1$$ a constant 1 signal.
-Therefore if we plug in $$xUSk = \lambda x$$ we obtain
+Here $k^*$ is the flipped point spread function, its Fourier transform is the complex conjugate of
+the Fourier transform of $k$. As first iteration we typically pick $x_0=y$. Note that if
+$$\sum_{i,j}k_{ij} = 1$$, then $$\mathbf 1*k = \mathbf 1$$, with $$\mathbf 1$$ a constant 1 signal.
+Therefore if we plug in $x_k = \lambda x$ we obtain
 
 $$
-xUSLBk+1RB = xUSk \odot \left(\fracLByRBLB\lambda yRBSTk^ST\right) = xUSk\odot \frac1\lambda \mathbf 1STk^ST =
-\fracLBxUSkRB\lambda
+x_{k+1} = x_k \odot \left(\frac{y}{\lambda y}*k^*\right) = x_k\odot \frac1\lambda \mathbf 1*k^* =
+\frac{x_k}\lambda
 $$
 
-This both shows that $$x$$ is a fixed point of the Richardson-Lucy algorithm, and at the same time it
-show that the algorithm doesn't necessarily converge, since it could alternate between $$2x$$ and
-$$x/2$$ for example. In practice on natural images, if initialized with $$xUS0=y$$, it does seem to
+This both shows that $x$ is a fixed point of the Richardson-Lucy algorithm, and at the same time it
+show that the algorithm doesn't necessarily converge, since it could alternate between $2x$ and
+$$x/2$$ for example. In practice on natural images, if initialized with $$x_0=y$$, it does seem to
 converge. Below we try this algorithm for different number of iterations, considering the same image
 and point spread function as before.
 
@@ -124,11 +124,11 @@ only about 1ms on my computer with a simple GPU implementation using `cupy`.
 ## Boundary effects
 
 One issue that I have so far swept under the rug is the problem of boundary effects. If we convolve
-an $$(n,m)$$ image by a $$(\ell,\ell)$$ kernel, then the result is an image of size $$(n+\ell-1,
-m+\ell-1)$$, and not $$(n,m)$$. There is typically a 'fuzzy border' around the image, which we crop
+an $(n,m)$ image by a $(\ell,\ell)$ kernel, then the result is an image of size $$(n+\ell-1,
+m+\ell-1)$, and not $(n,m)$$. There is typically a 'fuzzy border' around the image, which we crop
 away when displaying, but not when deconvolving. In real life we don't have the luxury of including
 this fuzzy border around the image, and this can lead to heavy artifacts when deconvolving an image.
-Below is the St. Vitus church image blurred with $$\sigma=3$$ Gaussian blur, and subsequently
+Below is the St. Vitus church image blurred with $\sigma=3$ Gaussian blur, and subsequently
 deblurred using a Wiener filter with and without using the border around the image.
 
     
@@ -171,7 +171,7 @@ Below we see the Laplacian of the image extended using Liu-Jia's method, using z
 ![svg](/blog/deconvolution_part3/part3_15_1.svg)
     
 
-Next we can check if these periodic extensions of the images actually reduces boundary artifacts when deconvolving. Below we see the three methods for both the Wiener and Richardson-Lucy (RL) deconvolution in action on an image distorted with $$\sigma=3$$ Gaussian blur.
+Next we can check if these periodic extensions of the images actually reduces boundary artifacts when deconvolving. Below we see the three methods for both the Wiener and Richardson-Lucy (RL) deconvolution in action on an image distorted with $\sigma=3$ Gaussian blur.
 
     
 ![svg](/blog/deconvolution_part3/part3_17_0.svg)

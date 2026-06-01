@@ -52,98 +52,98 @@ The Kalman filter can be thought of as a two-step process: the prediction step a
 
 ### Predict step
 
-To warm up, let's focus on how to model a single, static keypoint. Imagine we have a position $$x\in\mathbb R^3$$ along with a $$3\times 3$$ covariance matrix $$P$$.  These represent the mean and variance of a random variable $$X(0)$$ at the initial time $$t=0$$.
+To warm up, let's focus on how to model a single, static keypoint. Imagine we have a position $x\in\mathbb R^3$ along with a $3\times 3$ covariance matrix $P$.  These represent the mean and variance of a random variable $X(0)$ at the initial time $t=0$.
 
-As time passes, our estimated position $$x$$ remains unchanged, but the covariance matrix $$P$$ should grow. To model this, we can turn to Brownian motion and write $$X(t) = X(0) + \eta W(t)$$ where $$W(t)$$ represents a Wiener process (or Brownian motion), and $$\eta>0$$ is the noise level. The expectaton for this is $$\mathbb E(X(t))=X(0)=x$$, while the variance evolves according to:
+As time passes, our estimated position $x$ remains unchanged, but the covariance matrix $P$ should grow. To model this, we can turn to Brownian motion and write $X(t) = X(0) + \eta W(t)$ where $W(t)$ represents a Wiener process (or Brownian motion), and $\eta>0$ is the noise level. The expectaton for this is $\mathbb E(X(t))=X(0)=x$, while the variance evolves according to:
 
 $$
-\mathrmLBVarRB(X(t))= \mathrmLBVarRB(X(0)))+\mathrmLBVarRB(W(t))=P+\eta tI.
+\mathrm{Var}(X(t))= \mathrm{Var}(X(0)))+\mathrm{Var}(W(t))=P+\eta tI.
 $$
 
-Things get more complicated when we introduce a velocity parameter $$v\in \mathbb R^3$$. Viewing this from the perspective of a _stochastic differential equation_ (SDE), the original equation was
+Things get more complicated when we introduce a velocity parameter $v\in \mathbb R^3$. Viewing this from the perspective of a _stochastic differential equation_ (SDE), the original equation was
 
 $$
     \mathrm dX(t) = \eta \mathrm dW(t).
 $$
 
-Adding in the velocity $$Y(t)$$ this then becomes
+Adding in the velocity $Y(t)$ this then becomes
 
 $$
-\beginLBcasesRB
-    \mathrm dX(t) = Y(t)\mathrm dt+\etaUSx \mathrm dW(t) \\
-    \mathrm dY(t) = \etaUSv \mathrm dW(t).j
-\endLBcasesRB
+\begin{cases}
+    \mathrm dX(t) = Y(t)\mathrm dt+\eta_x \mathrm dW(t) \\
+    \mathrm dY(t) = \eta_v \mathrm dW(t).j
+\end{cases}
 $$
 
-We can integrate this by first integrating $$Y(t)$$ to obtain
+We can integrate this by first integrating $Y(t)$ to obtain
 
 $$
-Y(t) = Y(0)+\etaUSv W(t)
+Y(t) = Y(0)+\eta_v W(t)
 $$
 
 Which we then can substitue to get
 
 $$
-  \mathrm dX(t) = Y(0)+\etaUSvW(t)+\etaUSx\mathrm dW(t)
+  \mathrm dX(t) = Y(0)+\eta_vW(t)+\eta_x\mathrm dW(t)
 $$
 
 Finally integrating this we obtain
 
 $$
-  X(t) = X(0)+tY(0)+\etaUSxW(t)+\etaUSv\intUS0^t\!W(s)\,\mathrm ds
+  X(t) = X(0)+tY(0)+\eta_xW(t)+\eta_v\int_0^t\!W(s)\,\mathrm ds
 $$
 
 You'll notice the last term is not Gaussian. Still, with some standard mathematical tricks (Itô's Lemma), we find:
 
 $$
-  \mathbb E\left[\intUS0^t\!W(s)\,\mathrm ds\right] = 0,\qquad\mathrmLBVarRB\left[\intUS0^t\!W(s)\,\mathrm ds\right]=t^3/3
+  \mathbb E\left[\int_0^t\!W(s)\,\mathrm ds\right] = 0,\qquad\mathrm{Var}\left[\int_0^t\!W(s)\,\mathrm ds\right]=t^3/3
 $$
 
 In summary, our predict step can be represented as:
 
 $$
-\beginLBalignSTRB
-  \hat xUSk&\leftarrow xUSLBk-1RB+vUSLBk-1RBt \\
-  \hat vUSk&\leftarrow vUSLBk-1RB \\
-  \hat PUSLBx,kRB&\leftarrow PUSLBx,k-1RB+t^2PUSy+\etaUSxtI+(\etaUSvt^3/3)I\\
-  PUSy&\leftarrow PUSy+\etaUSvtI
-\endLBalignSTRB
+\begin{align*}
+  \hat x_k&\leftarrow x_{k-1}+v_{k-1}t \\
+  \hat v_k&\leftarrow v_{k-1} \\
+  \hat P_{x,k}&\leftarrow P_{x,k-1}+t^2P_y+\eta_xtI+(\eta_vt^3/3)I\\
+  P_y&\leftarrow P_y+\eta_vtI
+\end{align*}
 $$
 
 While the math wasn't overly complicated, the intricacy quickly scales with more complex stochastic differential equations. Analytical integration may not always be feasible, making numerical or Monte-Carlo methods an alternative, albeit costly, approach.
 
 
-Fortunately, if our prediction is linear, we can simplify things considerably. In our case, the function $$(x,v)\mapsto (x+vt,v)$$ is indeed linear. Let's denote this map by $$FUSt$$. Now, we encapsulate both $$(xUSk,vUSk)$$ together into a single variable $$xUSk\in\mathbb R^6$$, with the covariance $$P$$ being a $$6\times 6$$ matrix. Ignoring the $$(\etaUSvt^3/3)I$$ term, the update step simplifies to:
+Fortunately, if our prediction is linear, we can simplify things considerably. In our case, the function $(x,v)\mapsto (x+vt,v)$ is indeed linear. Let's denote this map by $F_t$. Now, we encapsulate both $(x_k,v_k)$ together into a single variable $x_k\in\mathbb R^6$, with the covariance $P$ being a $6\times 6$ matrix. Ignoring the $(\eta_vt^3/3)I$ term, the update step simplifies to:
 
 $$
-\beginLBalignSTRB \hat xUSk&\leftarrow FUSt\overlineLBxUSLBk-1RBRB\\
-  \hat PUSk&\leftarrow FUStPUSLBk-1RB\,FUSt^\top + Q, \endLBalignSTRB
+\begin{align*} \hat x_k&\leftarrow F_t\overline{x_{k-1}}\\
+  \hat P_k&\leftarrow F_tP_{k-1}\,F_t^\top + Q, \end{align*}
 $$
 
-where $$Q=\mathrmLBdiagRB(\etaUSx,\etaUSx,\etaUSx,\etaUSv,\etaUSv,\etaUSv)$$. We use $$\overlineLBxUSLBk-1RBRB$$ for the _estimate_ of the state at step $$k-1$$, acknowledging that we don't know the actual value. As long as long as our model function $$FUSt$$ is linear, this approximation will suffice. However if $$FUSt$$ is nonlinear, then we're in trouble, but we'll see more on that later.
+where $Q=\mathrm{diag}(\eta_x,\eta_x,\eta_x,\eta_v,\eta_v,\eta_v)$. We use $\overline{x_{k-1}}$ for the _estimate_ of the state at step $k-1$, acknowledging that we don't know the actual value. As long as long as our model function $F_t$ is linear, this approximation will suffice. However if $F_t$ is nonlinear, then we're in trouble, but we'll see more on that later.
 
 ![A mathematical diagram explaining the predict step](/blog/ukf/predict-step.svg)
 
 ### Update step
 
-After the prediction step, we move from an initial state $$xUSLBk-1RB$$ to an estimated $$\hat xUSk$$. This is an estimate of the true state $$xUSk$$ of the system at time $$tUSk$$, based on our estimate at time $$tUSLBk-1RB$$. At the same time, we observe the system and obtain a measurement $$zUSk$$ of the system.
+After the prediction step, we move from an initial state $x_{k-1}$ to an estimated $\hat x_k$. This is an estimate of the true state $x_k$ of the system at time $t_k$, based on our estimate at time $t_{k-1}$. At the same time, we observe the system and obtain a measurement $z_k$ of the system.
 
-Unfortunately the measurement $$zUSk$$ does not live in the same space as the state $$xUSk$$. For example, $$zUSk$$ might represent a 2D observation while $$xUSk$$ represents a position+velocity in 3D.
+Unfortunately the measurement $z_k$ does not live in the same space as the state $x_k$. For example, $z_k$ might represent a 2D observation while $x_k$ represents a position+velocity in 3D.
 
-To go from the 'model space' to the 'measurement space' we introduce a matrix $$H$$. In the context of tracking a koving keypoint for instance, this matrix is a $$3\times 6$$ matrix given blockwise as $$(IUS3\,\mathbf 0)$$ where $$\mathbf 0$$ is a $$3\times 3$$ matrixof zeros. This matrix is simply the act of 'forgetting' the velocity and only keeping the position.
+To go from the 'model space' to the 'measurement space' we introduce a matrix $H$. In the context of tracking a koving keypoint for instance, this matrix is a $3\times 6$ matrix given blockwise as $(I_3\,\mathbf 0)$ where $\mathbf 0$ is a $3\times 3$ matrixof zeros. This matrix is simply the act of 'forgetting' the velocity and only keeping the position.
 
-Our goal is now to derive an estimate $$(\overline xUSk, PUSk)$$ for the state $$xUSk$$ at time $$tUSk$$ by incorporating both the previous estimate $$\hat xUSk$$ and the observation $$zUSk$$. In order to do that, we lean on 3 assumptions:
+Our goal is now to derive an estimate $(\overline x_k, P_k)$ for the state $x_k$ at time $t_k$ by incorporating both the previous estimate $\hat x_k$ and the observation $z_k$. In order to do that, we lean on 3 assumptions:
 
-1. The estimate $$(\hat xUSk,\hat PUSk)$$ is _accurate_. That is, we assume $$\hat xUSk$$ is a
-   _sample_ of the distribution $$N(xUSk,\hat PUSk)$$.
-2. The observation $$zUSk$$ is a direct measurement of $$xUSk$$ with an error $$R$$, in other
-   words $$zUSk$$ is a sample of $$N(HxUSk, R)$$
-3. There is a matrix $$K$$, known as the _Kalman gain_,such that $$\overline xUSk = \hat
-   xUSk+K(zUSk-H\hat xUSk)$$
+1. The estimate $(\hat x_k,\hat P_k)$ is _accurate_. That is, we assume $\hat x_k$ is a
+   _sample_ of the distribution $N(x_k,\hat P_k)$.
+2. The observation $z_k$ is a direct measurement of $x_k$ with an error $R$, in other
+   words $z_k$ is a sample of $N(Hx_k, R)$
+3. There is a matrix $K$, known as the _Kalman gain_,such that $$\overline x_k = \hat
+   x_k+K(z_k-H\hat x_k)$$
 
 The last assumption is not really an assumption of the model, but more a convenience to
 make the math work out. With this assumption we can derive an 'optimal' estimate of the
-true state $$xUSk$$. None of these assumptions are realistic. For instance, in our simple
+true state $x_k$. None of these assumptions are realistic. For instance, in our simple
 Bayesian analysis of the prediction step we have already noted that the prediction step
 used by the Kalman filter is an approximation. The second point assumes that the
 measurement error is exactly Guassian, which is rarely true in practice. Nevertheless,
@@ -152,96 +152,96 @@ computations.
 
 ![A mathematical diagram explaining the update step](/blog/ukf/update-step.svg)
 
-Deriving the optimal value of the Kalman gain $$K$$ is a little tricky, but we can
+Deriving the optimal value of the Kalman gain $K$ is a little tricky, but we can
 relatively easily use the assumptions above to find a formula for the new error estimate
-$$PUSk$$. We can define $$PUSk$$ as $$\mathrmLBcovRB(\overline xUSk - xUSk)$$. Then we make several observations:
+$$P_k$$. We can define $$P_k$$ as $$\mathrm{cov}(\overline x_k - x_k)$$. Then we make several observations:
 
-- _By assumption_ $$\mathrmLBcovRB(xUSk - \hat xUSk) = \hat PUSk$$.
-- We can write $$zUSk$$ as $$HxUSk+v$$, where follows a normal distribution $$v\sim N(0,R)$$ and is independent of the other random variables.
+- _By assumption_ $\mathrm{cov}(x_k - \hat x_k) = \hat P_k$.
+- We can write $z_k$ as $Hx_k+v$, where follows a normal distribution $v\sim N(0,R)$ and is independent of the other random variables.
 
 The rest is a straightforward computation using properties of covariance:
 
 $$
-\beginLBalignSTRB
-  PUSk &= \mathrmLBcovRB(\overline xUSk - xUSk)\\
-  &=\mathrmLBcovRB\left(\hat xUSk -xUSk + K(zUSk-H\hat xUSk) \right) \\
-  &=\mathrmLBcovRB\left(\hat xUSk -xUSk + K(HxUSk-H\hat xUSk+v) \right) \\
-  &=\mathrmLBcovRB\left((I-K)(\hat xUSk -xUSk) + Kv \right) \\
-  &=\mathrmLBcovRB((I-K)(\hat xUSk -xUSk)) + \mathrmLBcovRB(Kv) \\
-  &=(I-K)\hat PUSk(I-K)^\top + KRK^\top
-\endLBalignSTRB
+\begin{align*}
+  P_k &= \mathrm{cov}(\overline x_k - x_k)\\
+  &=\mathrm{cov}\left(\hat x_k -x_k + K(z_k-H\hat x_k) \right) \\
+  &=\mathrm{cov}\left(\hat x_k -x_k + K(Hx_k-H\hat x_k+v) \right) \\
+  &=\mathrm{cov}\left((I-K)(\hat x_k -x_k) + Kv \right) \\
+  &=\mathrm{cov}((I-K)(\hat x_k -x_k)) + \mathrm{cov}(Kv) \\
+  &=(I-K)\hat P_k(I-K)^\top + KRK^\top
+\end{align*}
 $$
 
-Now, let's tackle the question of how to calculate the optimal value for the Kalman gain. To do this, we first need to clarify what "optimal" signifies in this setting. In this context optimal refers to the value of $$K$$ that minimizes the _expected residual squared error_ $$\mathbbLBERB\|\overline xUSk-xUSk\|^2$$. Using some tricks from statistics and matrix calculus it turns out that the opimal Kalman gain takes the following fomr:
+Now, let's tackle the question of how to calculate the optimal value for the Kalman gain. To do this, we first need to clarify what "optimal" signifies in this setting. In this context optimal refers to the value of $K$ that minimizes the _expected residual squared error_ $\mathbb{E}\|\overline x_k-x_k\|^2$. Using some tricks from statistics and matrix calculus it turns out that the opimal Kalman gain takes the following fomr:
 
 $$
-K = \hat PUSkHSUSk^LB-1RB,
+K = \hat P_kHS_k^{-1},
 $$
 
 where
 
 $$
-SUSk = H\hat PUSkH^\top + R,
+S_k = H\hat P_kH^\top + R,
 $$
 
-which is just the covariance matrix of the residual $$zUSk-H\hat xUSk$$.
+which is just the covariance matrix of the residual $z_k-H\hat x_k$.
 
-In summary, using several assumptions we can use prior estimate $$\hat xUSLBkRB$$ and an observation $$zUSk$$ to get an improved estimate $$\overline xUSk$$. This is all a Kalman filter is: we alternate predict and update steps to always have an up-to-date estimate of the models state.
+In summary, using several assumptions we can use prior estimate $\hat x_{k}$ and an observation $z_k$ to get an improved estimate $\overline x_k$. This is all a Kalman filter is: we alternate predict and update steps to always have an up-to-date estimate of the models state.
 
 ## Unscented Kalman filters
 
 To derive the prediction and update steps of the Kalman filter we had to make one
 'stinky' assumption. It has nothing to do with the approximation we made in the
 prediction step, or the 3 assumptions I listed in the update step. Rather it's the
-assumption that the transition map $$FUSt$$ and the measurement map $$H$$ are _linear_ maps.
+assumption that the transition map $F_t$ and the measurement map $H$ are _linear_ maps.
 
-In the case of a moving keypoint both $$FUSt$$ and $$H$$ _were_ linear. However this is not always the case in more complex systems.  Take camera observations as an example.  Even ignoring lens distortion, the measurement $$H$$ is still a projective transformation, not a linear one. To understand why, consider the fact that if we move a point very close to a camera 1cm to the left, it might move many pixels on the image. In contrast,if that same point is several meters away then the same movement will result in a change of 1-2 pixels at best.
+In the case of a moving keypoint both $F_t$ and $H$ _were_ linear. However this is not always the case in more complex systems.  Take camera observations as an example.  Even ignoring lens distortion, the measurement $H$ is still a projective transformation, not a linear one. To understand why, consider the fact that if we move a point very close to a camera 1cm to the left, it might move many pixels on the image. In contrast,if that same point is several meters away then the same movement will result in a change of 1-2 pixels at best.
 
-So why do we need the linearity assumption? Simply put, if $$x$$ is Gaussian then so are $$FUStx$$ and $$Hx$$, but this is only true for linear maps. One can _approximate_ $$FUStx$$ and $$Hx$$ by a Gaussian using a linear approximation of the functions $$FUSt$$ and $$H$$. However, has its downsides: a) the approximation may be innacurate, and b) computing the linear approximaton requires computing the Jacobian, which may be challenging and computationally expensive.
+So why do we need the linearity assumption? Simply put, if $x$ is Gaussian then so are $F_tx$ and $Hx$, but this is only true for linear maps. One can _approximate_ $F_tx$ and $Hx$ by a Gaussian using a linear approximation of the functions $F_t$ and $H$. However, has its downsides: a) the approximation may be innacurate, and b) computing the linear approximaton requires computing the Jacobian, which may be challenging and computationally expensive.
 
-In summary for a non-linear function $$f$$ and a gaussian $$x\sim N(\mu,\Sigma)$$ we need an
-effective way to estimate the mean $$\mathbb E(f(x))$$ and covariance
-$$\mathrmLBcovRB(f(x))$$. One method that always works is Monte-Carlo estimation: we simply
-take lots random of samples $$(xUS1,\ldots,xUSN)$$ of $$x$$, and then compute the mean and
-covariance of $$(f(xUS1),\ldots,f(xUSN))$$. The only issue with this is that we need many
+In summary for a non-linear function $f$ and a gaussian $x\sim N(\mu,\Sigma)$ we need an
+effective way to estimate the mean $\mathbb E(f(x))$ and covariance
+$$\mathrm{cov}(f(x))$$. One method that always works is Monte-Carlo estimation: we simply
+take lots random of samples $(x_1,\ldots,x_N)$ of $x$, and then compute the mean and
+covariance of $(f(x_1),\ldots,f(x_N))$. The only issue with this is that we need many
 samples in order to get an accurate estimate.
 
 ### Sigma points and the unscented transform
 
-Why rely on _random sampling_ to estimate the mean and covariance of $$f(x)$$, when we can go with _deterministic sampling_ and _pick_ a robust set of samples $$(sUS1,\dots,sUSN)$$. These points are called _sigma points_. Using these, we can estimate the mean of $$f(x)$$ through a weighted mean $$\mu=\sumUSLBi=1RB^Nf(sUSi)W^aUSi$$. To estimate the covariance we use $$\mu$$ and a second set of weights to get: $$\Sigma = \sumUSi WUSi^c (f(sUSi)-\mu)(f(sUSi)-\mu)^\top$$.  This method is known as the _unscented transform_ (UT). It takes a mean and covariance of a Gaussian $$X$$ and uses sigma points to estimte the mean and covariance of the transformed variable $$f(X)$$.
+Why rely on _random sampling_ to estimate the mean and covariance of $f(x)$, when we can go with _deterministic sampling_ and _pick_ a robust set of samples $(s_1,\dots,s_N)$. These points are called _sigma points_. Using these, we can estimate the mean of $f(x)$ through a weighted mean $\mu=\sum_{i=1}^Nf(s_i)W^a_i$. To estimate the covariance we use $\mu$ and a second set of weights to get: $\Sigma = \sum_i W_i^c (f(s_i)-\mu)(f(s_i)-\mu)^\top$.  This method is known as the _unscented transform_ (UT). It takes a mean and covariance of a Gaussian $X$ and uses sigma points to estimte the mean and covariance of the transformed variable $f(X)$.
 
-So, how do we pick these sigma points $$sUSi$$ and the associated weights $$W^a$$ and $$W^c$$? Technically, any set of points could work, so long as, if $$f$$ is the identity function, we get the original mean and covariance back. However, most people use a particular algorithm developed by van der Merwe. This algorithm uses three parameters $$\alpha, \beta,\kappa$$ . Given input mean and covariance $$(\mu,\Sigma)$$, the algorithm defines:
+So, how do we pick these sigma points $s_i$ and the associated weights $W^a$ and $W^c$? Technically, any set of points could work, so long as, if $f$ is the identity function, we get the original mean and covariance back. However, most people use a particular algorithm developed by van der Merwe. This algorithm uses three parameters $\alpha, \beta,\kappa$ . Given input mean and covariance $(\mu,\Sigma)$, the algorithm defines:
 
 $$
-  sUSi = \beginLBcasesRB
+  s_i = \begin{cases}
   \mu & (i=0); \\
-  \mu + \left[\sqrtLB(n+\lambda)\SigmaRB\right]USi & (i=1,\ldots,n); \\
-  \mu - \left[\sqrtLB(n+\lambda)\SigmaRB\right]USLBi-nRB & (i=n+1,\ldots,2n).
-  \endLBcasesRB
+  \mu + \left[\sqrt{(n+\lambda)\Sigma}\right]_i & (i=1,\ldots,n); \\
+  \mu - \left[\sqrt{(n+\lambda)\Sigma}\right]_{i-n} & (i=n+1,\ldots,2n).
+  \end{cases}
 $$
 
-Here, $$n$$ is the dimension of $$\mu$$ and $$\lambda := \alpha^2(n+\kappa)-n$$. Note the use of the matrix square root which is well-defined for symmetric positive semidefinite matrices -- i.e. covariance matrices. You can calculate the matrix square root for example using the singular value decompositon or the Cholesky decomposition. Here are the equations for the weights:
+Here, $n$ is the dimension of $\mu$ and $\lambda := \alpha^2(n+\kappa)-n$. Note the use of the matrix square root which is well-defined for symmetric positive semidefinite matrices -- i.e. covariance matrices. You can calculate the matrix square root for example using the singular value decompositon or the Cholesky decomposition. Here are the equations for the weights:
 
 $$
-\beginLBalignSTRB
-  WUS0^m &=\fracLB\lambdaRBLBn+\lambdaRB \\
-  WUS0^c &=\fracLB\lambdaRBLBn+\lambdaRB +1-\alpha^2+\beta\\
-  WUSi^m=WUSi^c &=\fracLB1RBLB2(n+\lambda)RB \qquad (i=1,\ldots,2n)
-\endLBalignSTRB
+\begin{align*}
+  W_0^m &=\frac{\lambda}{n+\lambda} \\
+  W_0^c &=\frac{\lambda}{n+\lambda} +1-\alpha^2+\beta\\
+  W_i^m=W_i^c &=\frac{1}{2(n+\lambda)} \qquad (i=1,\ldots,2n)
+\end{align*}
 $$
 
-Since these weights don't depend on $$\mu,\Sigma$$, we only have to compute them once.
+Since these weights don't depend on $\mu,\Sigma$, we only have to compute them once.
 
 In summary, the unscented transform provides a good estimate of the mean and covariance
-of $$f(X)$$ at the cost of:
+of $f(X)$ at the cost of:
 
-- $$2n+1$$ evaluations of the function $$f$$
-- Computing a matrix square root of an $$n\times n$$ matrix (cost: $$O(n^3)$$)
+- $2n+1$ evaluations of the function $f$
+- Computing a matrix square root of an $n\times n$ matrix (cost: $O(n^3)$)
 
 In return:
 
-- No need to compute a Jacobian of $$f$$
-- A more accurate estimate if $$f$$ is non-linear
+- No need to compute a Jacobian of $f$
+- A more accurate estimate if $f$ is non-linear
 
 On top of that, the implementation is not difficult.
 
@@ -253,60 +253,60 @@ stink".
 
 Armed with the unscented transform, you only need minor modifications to the Kalman filter algorithm to account for non-linear functions. Let's first look at the predict step as it used to be:
 $$
-\beginLBalignSTRB
-  \hat xUSk&\leftarrow FUStxUSLBk-1RB\\
-  \hat PUSk&\leftarrow FUStPUSLBk-1RB\,FUSt^\top + Q,
-\endLBalignSTRB
+\begin{align*}
+  \hat x_k&\leftarrow F_tx_{k-1}\\
+  \hat P_k&\leftarrow F_tP_{k-1}\,F_t^\top + Q,
+\end{align*}
 $$
 
-What happens here is that we have as input a Gaussian $$(x,P)$$, we then transform it with
-$$FUSt$$ to get a Gaussian $$(FUStx,\, FUStPFUSt^\top)$$, and then finally we add some extra
-noise in the shape of $$Q$$.
+What happens here is that we have as input a Gaussian $(x,P)$, we then transform it with
+$$F_t$$ to get a Gaussian $$(F_tx,\, F_tPF_t^\top)$$, and then finally we add some extra
+noise in the shape of $Q$.
 
-Instead of a linear map $$FUSt$$, we now have a non-linear 'process model' $$fUSt$$. We just have to swap the estimates of the mean and covariance with those provided by the unscented transform:
-
-$$
-\beginLBalignSTRB
-  \hat xUSk&\leftarrow\sumUSLBi=1RB^NfUSt(sUSi)W^aUSi,\\
-  \hat PUSk&\leftarrow \sumUSi WUSi^c (fUSt(sUSi)-\hat xUSk)(fUSt(sUSi)-\hat xUSk)^\top + Q.
-\endLBalignSTRB
-$$
-
-Here, $$sUSi$$ are the sigma points derived from $$(xUSLBk-1RB,PUSLBk-1RB)$$. While this seems complex, we can rewrite it using the unscented transform $$\mathrmLBUTRB[fUSt]$$ to get:
+Instead of a linear map $F_t$, we now have a non-linear 'process model' $f_t$. We just have to swap the estimates of the mean and covariance with those provided by the unscented transform:
 
 $$
-\beginLBalignSTRB
-  (\hat xUSLBkRB,\hat PUSLBkRB)\leftarrow \mathrmLBUTRB[fUSt] (xUSLBk-1RB,PUSLBk-1RB)+(0, Q)\\
-\endLBalignSTRB
+\begin{align*}
+  \hat x_k&\leftarrow\sum_{i=1}^Nf_t(s_i)W^a_i,\\
+  \hat P_k&\leftarrow \sum_i W_i^c (f_t(s_i)-\hat x_k)(f_t(s_i)-\hat x_k)^\top + Q.
+\end{align*}
 $$
 
-That's not too bad! This also shows you could actually swap out the unscented transform for _any_ method of estimating the mean/covariance of $$fUSt(X)$$. 
-
-Then what about the predict step? We have our estimate $$(\hat xUSk,\hat PUSk)$$ and an observation $$(zUSk, R)$$. Instead of a measurment matrix $$H$$, we have a measurment function $$h$$. We start by applying the unscented transform to the estimate to put it in the measurement space:
+Here, $s_i$ are the sigma points derived from $(x_{k-1},P_{k-1})$. While this seems complex, we can rewrite it using the unscented transform $\mathrm{UT}[f_t]$ to get:
 
 $$
-  (\muUSz,\SigmaUSz)\leftarrow \mathrmLBUTRB[h](\hat xUSk,\hat PUSk)+(0,R)
+\begin{align*}
+  (\hat x_{k},\hat P_{k})\leftarrow \mathrm{UT}[f_t] (x_{k-1},P_{k-1})+(0, Q)\\
+\end{align*}
 $$
 
-Then we calculate the 'cross-variance' beween $$(\muUSz,\SigmaUSz)$$ and $$(\hat xUSk,\hat PUSk)$$. If $$\LBsUSi\RB$$ are the sigma points associated to $$\mathrmLBUTRB[h](\hat xUSk,\hat PUSk)$$, then this cross-variacne $$PUSLBxzRB$$ is defined by:
+That's not too bad! This also shows you could actually swap out the unscented transform for _any_ method of estimating the mean/covariance of $f_t(X)$. 
+
+Then what about the predict step? We have our estimate $(\hat x_k,\hat P_k)$ and an observation $(z_k, R)$. Instead of a measurment matrix $H$, we have a measurment function $h$. We start by applying the unscented transform to the estimate to put it in the measurement space:
 
 $$
-PUSLBxzRB = \sumUSi WUSi^c(sUSi-\hat xUSk)(h(sUSi)-\muUSz)^\top
+  (\mu_z,\Sigma_z)\leftarrow \mathrm{UT}[h](\hat x_k,\hat P_k)+(0,R)
 $$
 
-The cross-variance takes on the role of the matrix $$S$$ in the original kalman filter. From here we find the Kalman gain as:
+Then we calculate the 'cross-variance' beween $(\mu_z,\Sigma_z)$ and $(\hat x_k,\hat P_k)$. If $\{s_i\}$ are the sigma points associated to $\mathrm{UT}[h](\hat x_k,\hat P_k)$, then this cross-variacne $P_{xz}$ is defined by:
 
 $$
-K=PUSLBxzRB PUSLBzRB^LB-1RB
+P_{xz} = \sum_i W_i^c(s_i-\hat x_k)(h(s_i)-\mu_z)^\top
 $$
 
-Ffinally our new estimate $$(xUSk,PUSk)$$ becomes:
+The cross-variance takes on the role of the matrix $S$ in the original kalman filter. From here we find the Kalman gain as:
 
 $$
-\beginLBalignSTRB
-  xUSk&\leftarrow \hat xUSk+K(zUSk-\muUSz)\\
-  PUSk&\leftarrow \hat PUSk-KPUSLBzRBK^\top
-\endLBalignSTRB
+K=P_{xz} P_{z}^{-1}
+$$
+
+Ffinally our new estimate $(x_k,P_k)$ becomes:
+
+$$
+\begin{align*}
+  x_k&\leftarrow \hat x_k+K(z_k-\mu_z)\\
+  P_k&\leftarrow \hat P_k-KP_{z}K^\top
+\end{align*}
 $$
 
 And so the unscented kalman filter is born! This concludes the mathematical part of this
@@ -399,9 +399,9 @@ plt.title("View from camera #2")
 ![Simulated path drawn from the point of view of two cameras](/blog/ukf/blog_post_3_1.png)
 
 
-To model this problem we use a model dimension of $$6$$ (that's position plus vecocity) and a measurement dimension of 2 (the pixels on a screen).
+To model this problem we use a model dimension of $6$ (that's position plus vecocity) and a measurement dimension of 2 (the pixels on a screen).
 
-The measurement function takes in two arguments; the position and an integer indicating the camera number (this is something that we'll get back to later). To turn this function into an object that Rust can understand, we use the `@measurement_function` decorator. The model transition function is just $$(x,\,v)\mapsto (x+v\Delta t,\,v)$$ (again with a decorator to tell Rust what's going on).
+The measurement function takes in two arguments; the position and an integer indicating the camera number (this is something that we'll get back to later). To turn this function into an object that Rust can understand, we use the `@measurement_function` decorator. The model transition function is just $(x,\,v)\mapsto (x+v\Delta t,\,v)$ (again with a decorator to tell Rust what's going on).
 
 ```python
 dim_x = 6
@@ -426,9 +426,9 @@ def f_py(x: np.ndarray, dt: float) -> np.ndarray:
     return np.concatenate([position + velocity * dt, velocity])
 ```
 
-Next we need something to generate sigma points, as well as something to do the heavy lifting of the unscented Kalman filter algorithm. The Kalman filter algorithm needs matrices $$Q$$, $$R$$ and $$P$$ which we'll need t set as well.
+Next we need something to generate sigma points, as well as something to do the heavy lifting of the unscented Kalman filter algorithm. The Kalman filter algorithm needs matrices $Q$, $R$ and $P$ which we'll need t set as well.
 
-We actually only changed the value of $$Q$$ from its default, as $$P$$ and $$R$$ are fine if they're an identity matrix in this case. If you have a really good theoretical model, you might be able to derive good values for $$Q$$, $$R$$ and $$P$$. In practice though, you're just going to have to fiddle around with it until it works.
+We actually only changed the value of $Q$ from its default, as $P$ and $R$ are fine if they're an identity matrix in this case. If you have a really good theoretical model, you might be able to derive good values for $Q$, $R$ and $P$. In practice though, you're just going to have to fiddle around with it until it works.
 
 ```python
 sigma_points = SigmaPoints.merwe(dim_x, 0.5, 2, -2)
@@ -440,7 +440,7 @@ kalman_filter.R = np.eye(2).astype(np.float32)
 kalman_filter.P = np.eye(6).astype(np.float32)
 ```
 
-Now we're going to alternatively do a predict and update step from the point of view of either camera. To tell the Kalman filter which camera is making the observation we use the `update_measurement_context` method. Whatever value we pass here is what's going to get passed to the measurement function $$h$$.
+Now we're going to alternatively do a predict and update step from the point of view of either camera. To tell the Kalman filter which camera is making the observation we use the `update_measurement_context` method. Whatever value we pass here is what's going to get passed to the measurement function $h$.
 
 ```python
 predictions_list = []

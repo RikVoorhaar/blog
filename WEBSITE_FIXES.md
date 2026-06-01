@@ -24,6 +24,7 @@ JS, Tailwind 4 `@theme` tokens in `src/styles/app.css`, MDX component map in
 | D | Light code theme | code is monokai in light mode | `astro.config.mjs`, `src/styles/app.css` | Low |
 | E | Typography overhaul + section highlight | fonts, size, line spacing, section "highlight font" | `package.json`, `src/styles/app.css`, `src/layouts/Layout.astro`, `SectionHeader.astro` | Med |
 | F | "Keep reading" related posts footer | add links to other posts | `src/pages/blog/[...slug].astro`, maybe new component | Low |
+| G | Dark-mode SVG diagram legibility | thesis SVGs (black text, transparent bg) unreadable in dark mode | `src/components/markdown/img.astro`, `ImgSmall.astro`, `src/styles/app.css` | Low |
 
 ---
 
@@ -183,6 +184,47 @@ Dark mode is fine; light mode has illegible bright-yellow text and too-light lin
 
 > Dependency note: Fix E's "section highlight" color choice builds on the tokens added here.
 
+### ✅ Completed
+
+**Semantic tokens:** Added `--text-accent` and `--text-link` to both `html:not(.light)` (dark)
+and `html.light` blocks in `src/styles/app.css`. Dark mode references `--color-accent-500` /
+`--color-link-300` (unchanged); light mode references `--color-accent-700` / `--color-link-700`.
+
+**Accent palette swap (iteration 2):** User requested crimson/rose instead of yellow. Replaced
+the entire `--color-accent-*` ramp (and backward-compat `--color-turbo-*`/`--color-main-*`
+aliases) with Tailwind's Rose scale:
+- Light mode highlight: `--color-accent-700` = `#be123c` (deep crimson)
+- Dark mode highlight: `--color-accent-500` = `#f43f5e` (vibrant rose)
+- Updated `glow-accent` box-shadow from yellow to rose.
+
+**`--color-accent-500` to `--text-accent` text migration (12 files):**
+`Layout.astro` (brand + active nav + underline), `BlogPostLayout.astro` (post h1),
+`cv.astro` (page h1), `PostCard.astro` (card title), `cv/OpenSource.astro` (title link),
+`cv/Publication.astro` (title link), `cv/Education.astro` (entry title),
+`cv/Skill.astro` (category title), `cv/Tool.astro` (category title),
+`contact/ContactItem.astro` (type label), `404.astro` (h1), `index.astro` (h1).
+
+**`--color-link-300` to `--text-link` migration + removed redundant `html.light a` overrides
+(5 files):** `markdown/a.astro`, `contact/ContactItem.astro`, `PostCard.astro` (read more),
+`404.astro`, `index.astro` (8 inline links). Removed `html.light a { color: ... }` overrides
+from `markdown/a.astro`, `ContactItem.astro`, and `404.astro`.
+
+**Animations (iteration 3):**
+- `DarkMode.astro`: SVG icons now use `--text-accent` (visible in both themes). Hover adds
+  accent ring (`box-shadow: 0 0 0 2px var(--text-accent)`) + surface-overlay background +
+  scale-110 zoom.
+- `Layout.astro`: Nav links get `hover:underline hover:underline-offset-4` with
+  `transition-all duration-200`.
+- `app.css`: Added `.link-underline` utility class (growing underline on hover, matches
+  `markdown/a.astro` behavior). Applied to all inline text links in `index.astro` (8 links),
+  `ContactItem.astro` (1 link), and `404.astro` (1 link).
+
+**Deliberately left unchanged:** `SectionHeader.astro` underline rule (decorative),
+`LandingSection.astro` icon slot (decorative), `PostCard.astro` / `[...slug].astro` category
+chips (already have per-theme overrides).
+
+**Build:** 25 pages, exit 0, all routes render.
+
 ---
 
 ## Fix D — Light code theme (Shiki)
@@ -277,6 +319,42 @@ blog index.
 
 ---
 
+## Fix G — Dark-mode SVG diagram legibility
+
+### Diagnosis
+The diagram SVGs in `/blog/thesis` (e.g. `def-low-rank.svg`, `tt-explanation*.svg`,
+`low-rank-matrix-def.svg`, `def-tt.svg`, `explanation-tensor-opt.svg`) are **black-on-transparent**:
+verified that `def-low-rank.svg` uses `fill="rgb(0%, 0%, 0%)"` (18×) and
+`stroke="rgb(0%, 2.35%, 2.75%)"` for text/lines, with **no background rect** (transparent).
+In dark mode the black glyphs/lines sit on the dark surface and are nearly invisible.
+
+These SVGs are served from `static/blog/thesis/*.svg` and rendered by
+`src/components/markdown/img.astro` (and `ImgSmall.astro`), which deliberately keep SVGs as a
+plain `<img>` (not inlined). So the SVG internals can't be recolored with CSS, and a CSS
+`filter: invert()` would corrupt the embedded light-blue **radial gradients** in some diagrams.
+
+### Plan
+- Give diagram SVGs an opaque light backing so black text stays readable in both themes.
+  Simplest robust approach: a CSS rule scoped to prose images, e.g.
+  `.prose img[src$=".svg"] { background: #fff; padding: 0.5rem; border-radius: var(--radius-md); }`
+  in `src/styles/app.css`. Apply it in **both** themes (or at least dark) — a white card reads
+  fine in light mode too and keeps the gradients accurate.
+- Scope carefully: target only prose/content SVGs, **not** CV logos. The CV uses its own
+  components (`Experience.astro` plain `<img>`, `CvIcon.astro`) outside `.prose`, so a
+  `.prose img[src$=".svg"]` selector or a dedicated class added in `img.astro`/`ImgSmall.astro`
+  (only when `src.endsWith('.svg')`) avoids touching logos. Prefer adding the class in the two
+  markdown image components for precision if the attribute selector proves too broad.
+- Leave raster diagrams (`.webp`/`.png`) untouched — they already have their own backgrounds.
+
+### Acceptance / verification
+- In dark mode on `/blog/thesis`, every SVG diagram's text and lines are clearly legible.
+- Light mode unchanged or improved; embedded gradients render correctly (no inversion artifacts).
+- CV logos and icons are unaffected.
+- `npm run build` exits 0; spot-check other SVG-bearing posts
+  (`discrete_function_tensor`, `low_rank_matrix`, `gmres`) for regressions.
+
+---
+
 ## Dependencies & suggested order
 
 ```mermaid
@@ -287,6 +365,8 @@ graph TD
     D[D: Light code theme]:::accent3
     E[E: Typography + section highlight]:::accent4
     F[F: Related posts footer]:::accent5
+
+    G[G: Dark-mode SVG legibility]:::accent6
 
     C --> E
     A --> F
@@ -299,8 +379,9 @@ Recommended sequence:
 4. **D — Light code theme** (independent; can swap with D/E ordering).
 5. **E — Typography + section highlight** (depends on C's color tokens).
 6. **F — Related posts footer** (independent; nice-to-have, do last).
+7. **G — Dark-mode SVG legibility** (independent; small CSS-scoped fix, slot in anytime).
 
-A, B, D, and F are mutually independent and could be reordered freely. C should precede E.
+A, B, D, F, and G are mutually independent and could be reordered freely. C should precede E.
 
 ## Notes / non-goals
 - No data/content rewrites beyond rendering fixes (e.g. `cv.ts` HTML is kept; we fix how it's

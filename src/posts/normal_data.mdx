@@ -64,11 +64,11 @@ We see two problems, this data's distribution is bimodal (i.e. it has two differ
 
 Looking at plots like these is a great part of exploratory data analysis. But it's also very useful to output a concrete number and purely based on this number decide whether or not something is normally distributed. 
 
-One general approach is to measure the distance between the distribution of our data, and a best fit normal distribution. Let $$\hat X$$ denote the estimated distribution of our data $$X$$, and $$\mathcal N=\mathcal N(\mu,\sigma)$$ denote a normal distribution with mean and variation estimated from $$X$$. Then a common way to measure the distance between $$\hat X$$ and $$\mathcal N$$ is the Kullback-Leibler divergence. It has the following form:
+One general approach is to measure the distance between the distribution of our data, and a best fit normal distribution. Let $\hat X$ denote the estimated distribution of our data $X$, and $\mathcal N=\mathcal N(\mu,\sigma)$ denote a normal distribution with mean and variation estimated from $X$. Then a common way to measure the distance between $\hat X$ and $\mathcal N$ is the Kullback-Leibler divergence. It has the following form:
 
-$$DUSLBKLRB(\hat X|\mathcal N) = \intUSLB-\inftyRB^\infty\! \hat X(x)\log\left(\fracLB\hat X(x)RBLB\mathcal N(x)RB\right)\,\mathrm dx,$$
+$$D_{KL}(\hat X|\mathcal N) = \int_{-\infty}^\infty\! \hat X(x)\log\left(\frac{\hat X(x)}{\mathcal N(x)}\right)\,\mathrm dx,$$
 
-where $$\hat X(x)$$ and $$\mathcal N(x)$$ denote the probability density functions. Note that we run into trouble if $$\mathcal N(x)=0$$ but $$\hat X(x)\neq 0$$. Fortunately this never happens in our case, since the normal distribution has positive density everywhere. Let's compute compute this KL divergence for our two examples. 
+where $\hat X(x)$ and $\mathcal N(x)$ denote the probability density functions. Note that we run into trouble if $\mathcal N(x)=0$ but $\hat X(x)\neq 0$. Fortunately this never happens in our case, since the normal distribution has positive density everywhere. Let's compute compute this KL divergence for our two examples. 
 
 
 ```python
@@ -102,10 +102,10 @@ However, there is a fundamental issue with this method. We used the kernel densi
 
 ## The estimated cumulative distribution
 
-The solution is simple. While estimating the *probability density* function requires smoothing the data, it's much easier to estimate the *cumulative distribution* function. It only involves sorting our data. We can estimate the distribution function $$\hat F$$ by:
+The solution is simple. While estimating the *probability density* function requires smoothing the data, it's much easier to estimate the *cumulative distribution* function. It only involves sorting our data. We can estimate the distribution function $\hat F$ by:
 
 $$
-    \hat F(t) = \fracLB\#\LB\textLBsamplesRB\leq t\RBRBLB\#\LB\textLBsamplesRB\RBRB
+    \hat F(t) = \frac{\#\{\text{samples}\leq t\}}{\#\{\text{samples}\}}
 $$
 
 
@@ -137,10 +137,10 @@ plot_normal_cdf(single_pixel,name="Single pixel")
 
 These CDF plots again visually confirm that one distribution is quite close to a normal distribution, whereass the other is not. In the second plot you can clearly see the singularity at 0 and 255 as well. 
 
-Using this CDF we propose a very simple statistic giving the distance between two distributions. If $$\hat F$$ is the estimated CDF, and we're comparing it to the CDF $$G$$, then we define the *Kolmogorov-Smirnov* statistic by
+Using this CDF we propose a very simple statistic giving the distance between two distributions. If $\hat F$ is the estimated CDF, and we're comparing it to the CDF $G$, then we define the *Kolmogorov-Smirnov* statistic by
 
 $$
-D = \supUSx|\hat F(x)-G(x)|
+D = \sup_x|\hat F(x)-G(x)|
 $$
 
 We can compute this statistic directly with a `scipy` function:
@@ -186,28 +186,28 @@ So far all the methods we mentioned are completely general, and work on any (uni
 
 Now in our case of a single pixel, it actually looks like the distribution is a mixture of two truncated normal distributions. Is there a way to obtain the parameters of these distributions and see whether this fits better? One very general method to obtain a best-fit distribution is through maximum likelihood estimation. The idea here is that rather than asking "what are the parameters that best describe our data?", we should ask "given some parameters, what is the likelihood we got our data?". This leads to the likelihood function, which assigns to a set of parameters a probability of observing our data. The "best" parameters are then those that assign the highest likelihood to our data. This is a relative crude method, because it tells us nothing about how good our estimate of the parameters is, but more on that later.
 
-In our case we have a mixture of two normal distribitions (truncated to $$[0, 255]$$). Such a distribution is parametrized by $$\theta=(\muUS1,\sigmaUS1,\muUS2,\sigmaUS2,t)$$, where $$\muUSi$$ denote the means and $$\sigmaUSi$$ denote the standard deviation of both normal distribitions, and $$t$$ is a number between 0 and 1 giving a weight to either distribution. Ignoring the truncation, this distribution has density given by
+In our case we have a mixture of two normal distribitions (truncated to $[0, 255]$). Such a distribution is parametrized by $\theta=(\mu_1,\sigma_1,\mu_2,\sigma_2,t)$, where $\mu_i$ denote the means and $\sigma_i$ denote the standard deviation of both normal distribitions, and $t$ is a number between 0 and 1 giving a weight to either distribution. Ignoring the truncation, this distribution has density given by
 
 $$
-    f(x|\theta) = \fracLB1RBLB\sigmaUS1 \sqrtLB2 \piRBRB\exp\left(-\frac12\left(\fracLBx-\muUS1RBLB\sigmaUS1RB\right)^2\right)+(1-t) \fracLB1RBLB\sigmaUS2 \sqrtLB2 \piRBRB\exp\left(-\frac12\left(\fracLBx-\muUS2RBLB\sigmaUS2RB\right)^2\right)
+    f(x|\theta) = \frac{1}{\sigma_1 \sqrt{2 \pi}}\exp\left(-\frac12\left(\frac{x-\mu_1}{\sigma_1}\right)^2\right)+(1-t) \frac{1}{\sigma_2 \sqrt{2 \pi}}\exp\left(-\frac12\left(\frac{x-\mu_2}{\sigma_2}\right)^2\right)
 $$
 
-The likelihood of observing our data $$(yUS1,\dots,yUSn)$$ is then given by
+The likelihood of observing our data $(y_1,\dots,y_n)$ is then given by
 
 $$
-    \mathcal L(y|\theta) = \prodUSLBi=1RB^n f(yUSi|\theta)
+    \mathcal L(y|\theta) = \prod_{i=1}^n f(y_i|\theta)
 $$
 
 Because taking a product of many small numbers is computationally unstable, we typically take a logarithm to get the log-likelihood function:
 
 $$
-    \ell (y|\theta) = \sumUSLBi=1RB^n \log f(yUSi|\theta)
+    \ell (y|\theta) = \sum_{i=1}^n \log f(y_i|\theta)
 $$
 
-We can maximize this using any standard optimizer, so long as we know the derivatives. Here the fact that we're dealing with truncated normal distribitions actually doesn't matter, since up to a multiplicative constant the distribitions are the same in the range $$[0, 255]$$ where all the data lives. The partial derivatives of the log-likelihood function $$\ell$$ are given by
+We can maximize this using any standard optimizer, so long as we know the derivatives. Here the fact that we're dealing with truncated normal distribitions actually doesn't matter, since up to a multiplicative constant the distribitions are the same in the range $[0, 255]$ where all the data lives. The partial derivatives of the log-likelihood function $\ell$ are given by
 
 $$
-    \fracLB\partialRBLB\partial \thetaUSiRB \ell(y|\theta) = \sumUSLBi=1RB^n \fracLB\fracLB\partialRBLB\partial \thetaUSiRBf(yUSi|\theta)RBLBf(yUSi|\theta)RB
+    \frac{\partial}{\partial \theta_i} \ell(y|\theta) = \sum_{i=1}^n \frac{\frac{\partial}{\partial \theta_i}f(y_i|\theta)}{f(y_i|\theta)}
 $$
 
 Fortunately there are algorithms for this particular problem that are much better than directly maximizing this function. These use the powerful EM algorithm. Due to their ubiquity in machine learning, there is a good implementation of Gaussian mixture models in `scikit-learn`, so let's use that! To make a visual comparison, we will plot both the CDF and the estimate kernel densities.

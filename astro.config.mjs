@@ -1,11 +1,12 @@
 import { defineConfig } from 'astro/config';
 import mdx from '@astrojs/mdx';
 import sitemap from '@astrojs/sitemap';
-import remarkMdxMath from './remark-mdx-math.mjs';
+import remarkMath from 'remark-math';
 import rehypeKatex from 'rehype-katex';
 import rehypeSlug from 'rehype-slug';
 import rehypeAutolinkHeadings from 'rehype-autolink-headings';
 import tailwindcss from '@tailwindcss/vite';
+import { unified } from '@astrojs/markdown-remark';
 
 // https://astro.build/config
 export default defineConfig({
@@ -25,22 +26,20 @@ export default defineConfig({
 		'/articles': '/blog'
 	},
 
-	integrations: [
-		sitemap(),
-		mdx({
-			remarkPlugins: [remarkMdxMath],
+	integrations: [sitemap(), mdx()],
+
+	markdown: {
+		shikiConfig: {
+			theme: 'monokai'
+		},
+		processor: unified({
+			remarkPlugins: [remarkMath],
 			rehypePlugins: [
 				[rehypeKatex, { fleqn: true, throwOnError: false }],
 				rehypeSlug,
 				rehypeAutolinkHeadings
 			]
 		})
-	],
-
-	markdown: {
-		shikiConfig: {
-			theme: 'monokai'
-		}
 	},
 
 	vite: {
