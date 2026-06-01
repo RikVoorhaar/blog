@@ -9,6 +9,6 @@ interface Props {
 const { posts } = Astro.props;
 ---
 
-<div class="flex flex-auto grow gap-4 flex-wrap justify-center sm:p-8 xl:px-16">
+<div class="grid gap-6 py-8 px-4 sm:px-8 max-w-6xl mx-auto w-full" style="grid-template-columns: repeat(auto-fill, minmax(18rem, 1fr));">
 	{posts.map((post) => <PostCard post={post} />)}
 </div>

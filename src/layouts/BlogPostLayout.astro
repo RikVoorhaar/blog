@@ -13,8 +13,13 @@ const { title, description, ogImage, ogType } = Astro.props;
 
 <Layout title={title} description={description} ogImage={ogImage} ogType={ogType}>
 	<div class="max-w-4xl mx-auto w-full p-4 sm:p-8">
-		<article class="prose dark:prose-invert prose-slate max-w-none prose-headings:scroll-mt-20">
-			<h1 class="text-3xl font-extrabold text-main-600 dark:text-main-500 not-prose mb-4">{title}</h1>
+		<article class="prose max-w-none prose-headings:scroll-mt-20">
+			<h1
+				class="text-3xl font-extrabold not-prose mb-4 tracking-tight"
+				style="color: var(--color-accent-500);"
+			>
+				{title}
+			</h1>
 			<slot />
 		</article>
 	</div>

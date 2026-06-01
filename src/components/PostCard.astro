@@ -6,7 +6,7 @@ interface Props {
 }
 
 const { post } = Astro.props;
-const teaserUrl = `/blog/teasers/original/${post.data.teaser}`;
+const teaserSrc = `/blog/teasers/original/${post.data.teaser}`;
 const date = post.data.date;
 const day = date.getDate();
 const month = new Intl.DateTimeFormat('en', { month: 'long' }).format(date);
@@ -22,35 +22,74 @@ const ordinal = (d: number): string => {
 };
 ---
 
-<div class="p-4 m-0 relative group w-[320px] shadow-lg">
-	<div
-		class="absolute inset-0 bg-gradient-to-r from-zinc-100 to-zinc-300 opacity-[.50] dark:opacity-[.60] dark:from-zinc-900 dark:to-zinc-800 group-hover:opacity-[.95] transition-opacity duration-500 rounded-xl"
-	></div>
-	<div class="relative z-10">
-		<div class="content-center py-2 pb-4">
-			<a href={`/blog/${post.id}`}>
-				<img
-					src={teaserUrl}
-					alt="teaser"
-					class="m-auto rounded-lg bg-white max-h-52 object-contain"
-				/>
-			</a>
+<div
+	class="group flex flex-col h-full transition-all duration-250"
+	style="background-color: var(--surface-raised); border-radius: var(--radius-lg);"
+>
+	<!-- Teaser image -->
+	<a href={`/blog/${post.id}`} class="overflow-hidden" style="border-radius: var(--radius-md) var(--radius-md) 0 0;">
+		<div class="aspect-[16/10] overflow-hidden" style="border-radius: var(--radius-md) var(--radius-md) 0 0;">
+			<img
+				src={teaserSrc}
+				alt={`Teaser for ${post.data.title}`}
+				loading="lazy"
+				class="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
+				style="border-radius: var(--radius-md) var(--radius-md) 0 0;"
+			/>
 		</div>
+	</a>
+
+	<!-- Content -->
+	<div class="flex flex-col flex-1 p-4 gap-2">
+		<!-- Title -->
 		<a
 			href={`/blog/${post.id}`}
-			class="text-xl font-extrabold leading-5 text-turbo-800 dark:text-turbo-500 hover:text-turbo-700 dark:hover:text-turbo-300 transition-colors tracking-wide"
+			class="text-xl font-extrabold leading-tight transition-colors duration-150 tracking-tight"
+			style="color: var(--color-accent-500);"
 		>
 			{post.data.title}
 		</a>
-		<p class="text-sm">{day}{ordinal(day)} of {month}, {year}</p>
-		<p class="px-2 my-1 border-l-2 border-l-turbo-800 dark:border-l-turbo-500 leading-5">
-			{post.data.excerpt}
-			<a
-				href={`/blog/${post.id}`}
-				class="dark:text-main-300 dark:hover:text-main-100 text-main-700 hover:text-main-800 transition-colors"
-			>
-				read more ...
-			</a>
+
+		<!-- Date -->
+		<p class="text-sm" style="color: var(--text-muted);">
+			{day}{ordinal(day)} of {month}, {year}
 		</p>
+
+		<!-- Excerpt with teal left rule -->
+		<p
+			class="flex-1 pl-3 my-1 leading-snug line-clamp-3 text-sm"
+			style="border-left: 2px solid var(--color-teal-500); color: var(--text-primary);"
+		>
+			{post.data.excerpt}
+		</p>
+
+		<!-- Read more -->
+		<a
+			href={`/blog/${post.id}`}
+			class="text-sm font-medium transition-colors duration-150"
+			style="color: var(--color-link-300);"
+		>
+			read more →
+		</a>
+
+		<!-- Category chips -->
+		<div class="flex flex-wrap gap-1.5 mt-1">
+			{post.data.categories.map((cat) => (
+				<span
+					class="px-2 py-0.5 text-xs font-semibold uppercase tracking-wider"
+					style="background-color: var(--color-accent-900); color: var(--color-accent-300); border-radius: var(--radius-full);"
+				>
+					{cat}
+				</span>
+			))}
+		</div>
 	</div>
 </div>
+
+<style>
+	.duration-250 { transition-duration: 250ms; }
+	html.light .group span[style*="--color-accent-900"] {
+		background-color: var(--color-accent-100) !important;
+		color: var(--color-accent-700) !important;
+	}
+</style>

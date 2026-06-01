@@ -36,8 +36,8 @@ const { Content } = await render(post);
 			ImgSmall,
 		}}
 	/>
-	<footer class="mt-12 pt-6 border-t border-gray-200 dark:border-gray-700 not-prose">
-		<p class="text-sm text-gray-500 dark:text-gray-400">
+	<footer class="mt-12 pt-6 not-prose" style="border-top: 1px solid var(--border-subtle);">
+		<p class="text-sm" style="color: var(--text-muted);">
 			Published on {
 				post.data.date.toLocaleDateString('en', {
 					year: 'numeric',
@@ -48,10 +48,20 @@ const { Content } = await render(post);
 		</p>
 		<div class="flex flex-wrap gap-2 mt-2">
 			{post.data.categories.map((cat) => (
-				<span class="px-2 py-1 text-xs rounded-full bg-main-100 dark:bg-main-900 text-main-700 dark:text-main-300">
+				<span
+					class="px-2 py-1 text-xs font-semibold uppercase tracking-wider"
+					style="background-color: var(--color-accent-900); color: var(--color-accent-300); border-radius: var(--radius-full);"
+				>
 					{cat}
 				</span>
 			))}
 		</div>
 	</footer>
 </BlogPostLayout>
+
+<style>
+	html.light footer span[style*="--color-accent-900"] {
+		background-color: var(--color-accent-100) !important;
+		color: var(--color-accent-700) !important;
+	}
+</style>

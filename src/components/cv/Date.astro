@@ -8,6 +8,6 @@ export interface Props {
 const { start, end } = Astro.props;
 ---
 
-<span class="italic dark:text-green-500 text-green-600 font-semibold">
+<span class="italic font-semibold text-sm" style="color: var(--text-muted);">
 	{start}{end ? `—${end}` : ''}
 </span>

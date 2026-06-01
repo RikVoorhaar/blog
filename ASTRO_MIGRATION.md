@@ -769,12 +769,65 @@ component polish. No further routing or plumbing work needed.
 ### Phase 7 — Visual overhaul (the redesign)
 **Goal:** the new look. *This is where design work happens, not before.* Everything up
 to here was "buildable, not pretty"; this is where it becomes pretty.
+
+> **Design spec:** the explicit, component-by-component design system for this phase
+> lives in **`PHASE_7_DESIGN.md`** (project root). Read it before implementing — it
+> defines the tokens, type scale, surfaces, and per-file specs that the bullets below
+> summarize.
 - Design system: tokens (extend the Tailwind 4 `@theme` from Phase 2), typography scale,
   refined dark mode, component polish.
 - Reapply/replace the old prose styling with the new design.
 - Convert remaining raw `<img>` usages to `<Image>`/`<Picture>` (§3.7) as the design
   settles.
 - **Builds:** full site, redesigned. ✅
+
+#### Phase 7 — Completion notes ✅
+
+**What was built / changed:**
+- Unified token system: `accent` (canonical electric yellow, replaces `turbo`+`main`), `teal` (replaces `puerto-rico`), `link` (sky blue ramp), `zinc` neutrals site-wide.
+- Surface elevation system: CSS custom properties (`--surface-base`, `--surface-raised`, `--surface-overlay`, `--surface-sunken`, `--border-subtle`, `--border-strong`, `--text-primary`, `--text-muted`) that flip under dark/light — replaces raw `#000000` / `#d0d0d0` / zinc-900 / white.
+- Radius scale tokens (`--radius-sm/md/lg/full`), elevation presets (`elev-0/1/2`, `glow-accent`).
+- Shared `prose` theme in `app.css` — replaces per-page `prose-slate dark:prose-invert prose-zinc` soup; teal quote borders, link colors from tokens.
+- Inline code redesigned: retired lime color; now uses `--surface-overlay` background + `accent-200` text on dark.
+- Scrollbar thumb matches teal (was hardcoded blue).
+- **Header:** sticky glass (85% opacity + `backdrop-blur-md`), active-route detection (`accent` underline + `aria-current`), brand in accent, nav links muted/active-aware.
+- **Footer:** structured (© + nav echo + social icons row), `surface-raised` + `border-subtle`, no more gradient blobs.
+- **DarkMode toggle:** 36×36 circular button, accent-colored icons, smooth transitions.
+- **SmallContainer:** `surface-raised` + `elev-1` + radius-lg, removed `opacity-90` hack.
+- **SectionHeader:** accent underline bar + text-primary, retired `slate` colors.
+- **PostCard:** complete redesign — fluid card with 16/10 teaser image (object-cover, zoom-on-hover), title in accent, teal left-rule on excerpt, category chips (pill, accent tint), link-blue read-more.
+- **PostCardGallery:** CSS grid (`repeat(auto-fill, minmax(18rem, 1fr))`), equal card heights.
+- **BlogPostLayout:** uses shared `prose` theme, `max-w-3xl` (48rem) reading column, accent `h1`.
+- **Post footer:** `border-subtle` divider, accent category chips.
+- **Markdown components:** `a` (link color, animated underline on hover), `blockquote` (teal left-rule), `img`/`ImgSmall` (radius-md, no white bg), `Details` (teal rail, text-primary, keyboard-accessible), `Output` (teal rail, mono badge).
+- **CV:** replaced giant inline 400-char `prose-*` class with shared prose + proper surface card; all ad-hoc green → teal, all `main-*` → `accent`.
+- **CV sub-components:** `Date` (text-muted), `Experience` (text-primary/muted), `ExperienceBulletpoint` (teal bullet), `Skill`/`Tool` (accent titles + teal icons), `Publication`/`OpenSource` (accent links, teal collapsible rails).
+- **Landing:** accent `h1`, link-blue external links, copy updated from "Svelte + MDsveX + Node in Docker" to "Astro + MDX + Tailwind 4, on Cloudflare Pages."
+- **LandingSection:** accent icon color, accent-700 label.
+- **Contact:** teal icons, accent type labels, link-blue values.
+- **404:** big accent "404" + zap icon, muted message, link-blue home link.
+
+**Build baseline:**
+| Metric | Value |
+|---|---|
+| Build time | ~5.3s |
+| Total pages | 25 |
+| Framework JS | Zero (only vanilla inline scripts for toggle/Details) |
+| Errors/warnings | None (MDX remarkPlugins deprecation known, pre-existing) |
+| Old color usages in src/ | Zero (grep clean for `main-`, `lime-`, `green-`, `slate-`, `gray-`, `sky-200`, `blue-700/800`, `turbo-`, `puerto-rico-` in components) |
+
+**Design decisions:**
+1. Teaser images kept as public `<img>` (not `astro:assets` `<Image>`). The images live in `static/`; moving them to `src/` for `astro:assets` processing is Phase 8 work (image asset triage).
+2. Backward-compat aliases (`turbo-*`, `main-*`, `puerto-rico-*`, `secondary-*`) retained in `app.css` `@theme` block so nothing breaks unexpectedly; can be removed in a post-Phase 7 cleanup pass.
+3. Shiki theme kept as `monokai` per the existing `astro.config.mjs` decision; dual-theme Shiki deferred (tunable polish).
+4. Link underline animation uses CSS `background-size` trick (gradient underline grow-in) — zero JS, `prefers-reduced-motion` respected via CSS.
+5. Light-mode chip colors handled via scoped `<style>` blocks with `html.light` overrides since the chips use inline `style` attributes for the surface token approach.
+
+**Handoff for Phase 8:**
+- Image asset triage: move processable images from `static/` to `src/`, wire up `astro:assets` `<Image>` for teasers + in-post images.
+- Add `public/_headers` for cache rules (Cloudflare Pages CDN).
+- Font loading strategy (self-host display/mono faces, subset latin, `font-display: swap`).
+- Lighthouse audit against pre-Phase-7 baseline.
 
 ### Phase 8 — Performance & Cloudflare CDN
 **Goal:** fast loads, edge-cached.

@@ -1,7 +1,11 @@
 ---
-// Port of lib/components/cv/SectionHeader.svelte
+// Section header with accent underline
 ---
 
-<div class="mb-2 text-slate-700 dark:text-slate-200 font-extrabold mt-8 text-2xl">
+<div class="font-extrabold mt-8 mb-2 text-2xl" style="color: var(--text-primary);">
+	<div
+		class="w-8 h-0.5 mb-1"
+		style="background-color: var(--color-accent-500);"
+	></div>
 	<slot />
 </div>

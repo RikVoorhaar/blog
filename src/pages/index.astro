@@ -4,23 +4,26 @@ import SmallContainer from '../components/SmallContainer.astro';
 import SectionHeader from '../components/SectionHeader.astro';
 import LandingSection from '../components/landing/LandingSection.astro';
 
-const a_class =
-	'font-semibold hover:text-blue-500 transition-colors text-blue-700 dark:text-blue-300 dark:hover:text-blue-400';
 const icon_size = 16;
 const stroke_width = 3;
 ---
 
 <Layout title="Home" description="Personal website and blog of Rik Voorhaar — software developer from Copenhagen. Articles about data science, mathematics, and programming.">
 	<SmallContainer>
-		<h1 class="font-extrabold text-3xl dark:text-main-500 text-main-600 mb-4">Hello</h1>
-		<p>
+		<h1
+			class="font-extrabold text-3xl mb-4 tracking-tight"
+			style="color: var(--color-accent-500);"
+		>
+			Hello
+		</h1>
+		<p class="mb-2">
 			I'm <span class="font-semibold">Rik Voorhaar</span>, a father and software developer currently
 			living in Copenhagen. This is my personal page and blog, I hope you like it.
 		</p>
 
 		<SectionHeader>About me</SectionHeader>
 		<p class="mb-2">
-			Check out <a class={a_class} href="/cv">my CV / resume</a> page if you want to know what I do
+			Check out <a href="/cv" class="font-semibold transition-colors duration-150" style="color: var(--color-link-300);">my CV / resume</a> page if you want to know what I do
 			for a living.<br />
 			On a personal level here are some of my hobbies:
 		</p>
@@ -36,7 +39,7 @@ const stroke_width = 3;
 			</LandingSection>
 			I read almost everyday. Mostly sci-fi and fantasy novels, but also many other books. You can find
 			an up-to-date list of all the books I've been reading on
-			<a class={a_class} href="https://www.goodreads.com/tilpo">Goodreads</a>.
+			<a class="font-semibold transition-colors duration-150" style="color: var(--color-link-300);" href="https://www.goodreads.com/tilpo">Goodreads</a>.
 		</p>
 
 		<p class="mb-2">
@@ -66,9 +69,9 @@ const stroke_width = 3;
 			</LandingSection>
 			I've had a passion for music for a long time. I am always on the hunt for new albums, and I don't
 			stick to any particular genre. I keep track of the albums I like on
-			<a class={a_class} href="https://rateyourmusic.com/collection/Tilpo/oo">Rate Your Music</a>, and
+			<a class="font-semibold transition-colors duration-150" style="color: var(--color-link-300);" href="https://rateyourmusic.com/collection/Tilpo/oo">Rate Your Music</a>, and
 			I have been logging all the music I've been listening to on
-			<a class={a_class} href="https://www.last.fm/user/Tilpo">Last.fm</a> since 2010. I also play guitar
+			<a class="font-semibold transition-colors duration-150" style="color: var(--color-link-300);" href="https://www.last.fm/user/Tilpo">Last.fm</a> since 2010. I also play guitar
 			(sometimes).
 		</p>
 
@@ -103,15 +106,12 @@ const stroke_width = 3;
 
 		<SectionHeader>About this website</SectionHeader>
 		<p>
-			I made this website from scratch using <a class={a_class} href="https://svelte.dev/">Svelte</a>
+			I made this website from scratch using <a class="font-semibold transition-colors duration-150" style="color: var(--color-link-300);" href="https://astro.build/">Astro</a>
 			and
-			<a class={a_class} href="https://tailwindcss.com/">Tailwind</a>. The blog posts are written in
-			markdown and rendered using
-			<a class={a_class} href="https://github.com/pngwn/MDsveX">MDsveX</a>. This website is
-			self-hosted on my VPS using Node inside a Docker container. You can find
-			<a class={a_class} href="https://github.com/RikVoorhaar/blog"
-				>the source code for this website here</a
-			>.
+			<a class="font-semibold transition-colors duration-150" style="color: var(--color-link-300);" href="https://tailwindcss.com/">Tailwind 4</a>. The blog posts are written in
+			markdown and rendered using <a class="font-semibold transition-colors duration-150" style="color: var(--color-link-300);" href="https://mdxjs.com/">MDX</a>. This website is
+			hosted on <a class="font-semibold transition-colors duration-150" style="color: var(--color-link-300);" href="https://pages.cloudflare.com/">Cloudflare Pages</a>. You can find
+			<a class="font-semibold transition-colors duration-150" style="color: var(--color-link-300);" href="https://github.com/RikVoorhaar/blog">the source code for this website here</a>.
 		</p>
 	</SmallContainer>
 </Layout>

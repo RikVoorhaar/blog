@@ -1,5 +1,5 @@
 ---
-// Port of lib/components/contact/ContactItem.svelte
+// Contact item: icon + type label + value
 export interface Props {
 	type: string;
 	content: string;
@@ -9,19 +9,26 @@ export interface Props {
 const { type, content, href } = Astro.props;
 ---
 
-<p class="mb-1">
-	<span class="dark:text-green-500 text-green-600 mr-1">
+<p class="mb-1 flex items-center gap-2">
+	<span style="color: var(--color-teal-500);">
 		<slot />
 	</span>
-	<span class="dark:text-main-500 text-main-700 font-semibold">{type}</span>:
+	<span class="font-semibold" style="color: var(--color-accent-500);">{type}</span>:
 	{href ? (
 		<a
 			href={href}
-			class="hover:text-blue-500 hover:dark:text-blue-500 dark:text-blue-300 text-blue-700 transition-colors"
+			class="font-semibold transition-colors duration-150"
+			style="color: var(--color-link-300);"
 		>
 			{content}
 		</a>
 	) : (
-		content
+		<span>{content}</span>
 	)}
 </p>
+
+<style>
+	html.light a {
+		color: var(--color-link-700);
+	}
+</style>

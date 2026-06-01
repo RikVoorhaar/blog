@@ -1,6 +1,23 @@
 <a
 	href={Astro.props.href}
-	class="text-blue-700 hover:text-blue-800 transition-colors duration-300 dark:text-blue-300 font-semibold hover:dark:text-blue-200 no-underline"
+	class="font-semibold no-underline transition-all duration-150"
+	style="color: var(--color-link-300);"
 >
 	<slot />
 </a>
+
+<style>
+	a {
+		background-image: linear-gradient(currentColor, currentColor);
+		background-position: 0% 100%;
+		background-repeat: no-repeat;
+		background-size: 0% 1px;
+		transition: background-size 150ms cubic-bezier(0.2, 0, 0, 1);
+	}
+	a:hover {
+		background-size: 100% 1px;
+	}
+	html.light a {
+		color: var(--color-link-700);
+	}
+</style>

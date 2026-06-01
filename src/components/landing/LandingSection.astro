@@ -1,5 +1,4 @@
 ---
-// Port of lib/components/landing/landingSection.svelte
 export interface Props {
 	title: string;
 }
@@ -7,8 +6,9 @@ export interface Props {
 const { title } = Astro.props;
 ---
 
-<span class="font-extrabold dark:font-semibold pr-1 dark:text-main-500 text-lime-700">
-	<span class="pr-1">
+<span class="font-extrabold pr-1">
+	<span class="pr-1" style="color: var(--color-accent-500);">
 		<slot />
-	</span>{title}
+	</span>
+	<span style="color: var(--color-accent-700);">{title}</span>
 </span>

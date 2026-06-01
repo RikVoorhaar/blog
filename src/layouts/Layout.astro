@@ -12,6 +12,16 @@ export interface Props {
 
 const { title, description, ogImage = '/favicon.png', ogType = 'website' } = Astro.props;
 const fullTitle = `${title} — Rik Voorhaar`;
+
+function isActive(path: string) {
+	return Astro.url.pathname === path || Astro.url.pathname.startsWith(path + '/');
+}
+
+const navLinks = [
+	{ href: '/blog', label: 'Blog' },
+	{ href: '/cv', label: 'CV' },
+	{ href: '/contact', label: 'Contact' },
+];
 ---
 
 <html lang="en">
@@ -59,47 +69,99 @@ const fullTitle = `${title} — Rik Voorhaar`;
 
 		<slot name="head" />
 	</head>
-	<body>
-		<div class="dark:text-white flex flex-col min-h-screen">
-			<!-- Header -->
-			<div class="flex flex-row gap-4 px-4 py-6 bg-white dark:bg-zinc-800 mb-16 items-center">
-				<DarkMode />
+	<body class="min-h-screen flex flex-col" style="background-color: var(--surface-base); color: var(--text-primary);">
+		<!-- Sticky glass header -->
+		<header
+			class="sticky top-0 z-40 border-b backdrop-blur-md"
+			style="background-color: color-mix(in srgb, var(--surface-raised) 85%, transparent); border-color: var(--border-subtle);"
+		>
+			<div class="max-w-6xl mx-auto flex items-center gap-4 sm:gap-6 px-4 sm:px-8 py-3">
+				<!-- Brand -->
 				<a
 					href="/"
-					class="dark:font-extrabold font-semibold dark:text-main-500 hover:text-main-600 dark:hover:text-main-200 text-main-700 transition-colors"
+					class="font-extrabold text-lg tracking-tight transition-colors duration-150 flex-shrink-0"
+					style="color: var(--color-accent-500);"
 				>
 					Rik Voorhaar
 				</a>
-				<a
-					href="/blog"
-					class="dark:font-semibold hover:text-blue-500 transition-colors"
-				>
-					Blog
-				</a>
-				<a
-					href="/cv"
-					class="dark:font-semibold hover:text-blue-500 transition-colors"
-				>
-					CV
-				</a>
-				<a
-					href="/contact"
-					class="dark:font-semibold hover:text-blue-500 transition-colors"
-				>
-					Contact
-				</a>
-			</div>
 
-			<!-- Main content -->
-			<main class="flex-1">
-				<slot />
-			</main>
+				<!-- Nav links -->
+				<nav class="flex items-center gap-1 sm:gap-3 ml-2" aria-label="Main navigation">
+					{navLinks.map((link) => {
+						const active = isActive(link.href);
+						return (
+							<a
+								href={link.href}
+								class:list={[
+									'px-2 py-1 text-sm font-medium rounded transition-colors duration-150',
+									{
+										'underline underline-offset-4 decoration-2': active,
+									},
+								]}
+								style={active
+									? `color: var(--color-accent-500); text-decoration-color: var(--color-accent-500);`
+									: `color: var(--text-muted);`}
+								aria-current={active ? 'page' : undefined}
+							>
+								{link.label}
+							</a>
+						);
+					})}
+				</nav>
 
-			<!-- Footer -->
-			<div class="bg-gradient-to-b to-white dark:to-zinc-800 from-transparent -z-20 dark:p-5 p-2 opacity-80"></div>
-			<div class="px-4 py-4 bg-white dark:bg-zinc-800 opacity-80">
-				<p>Rik Voorhaar &copy; {new Date().getFullYear()}</p>
+				<!-- Spacer -->
+				<div class="flex-1" />
+
+				<!-- Dark mode toggle -->
+				<DarkMode />
 			</div>
-		</div>
+		</header>
+
+		<!-- Main content -->
+		<main class="flex-1">
+			<slot />
+		</main>
+
+		<!-- Footer -->
+		<footer
+			class="border-t mt-auto"
+			style="background-color: var(--surface-raised); border-color: var(--border-subtle);"
+		>
+			<div class="max-w-6xl mx-auto px-4 sm:px-8 py-6 flex flex-col sm:flex-row items-center gap-4 text-sm">
+				<!-- Copyright -->
+				<p style="color: var(--text-muted);">
+					Rik Voorhaar &copy; {new Date().getFullYear()}
+				</p>
+
+				<!-- Nav echo -->
+				<nav class="flex gap-4 sm:ml-auto sm:mr-0" aria-label="Footer navigation">
+					{navLinks.map((link) => (
+						<a
+							href={link.href}
+							class="transition-colors duration-150"
+							style="color: var(--text-muted);"
+						>
+							{link.label}
+						</a>
+					))}
+				</nav>
+
+				<!-- Social / links -->
+				<div class="flex gap-3">
+					<a href="https://github.com/RikVoorhaar" aria-label="GitHub" class="transition-colors duration-150" style="color: var(--text-muted);">
+						<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 22v-4a4.8 4.8 0 0 0-1-3.5c3 0 6-2 6-5.5.08-1.25-.27-2.48-1-3.5.28-1.15.28-2.35 0-3.5 0 0-1 0-3 1.5-2.64-.5-5.36-.5-8 0C6 2 5 2 5 2c-.3 1.15-.3 2.35 0 3.5A5.403 5.403 0 0 0 4 9c0 3.5 3 5.5 6 5.5-.39.49-.68 1.05-.85 1.65-.17.6-.22 1.23-.15 1.85v4" /><path d="M9 18c-4.51 2-5-2-7-2" /></svg>
+					</a>
+					<a href="https://www.goodreads.com/tilpo" aria-label="Goodreads" class="transition-colors duration-150" style="color: var(--text-muted);">
+						<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 19.5v-15A2.5 2.5 0 0 1 6.5 2H20v20H6.5a2.5 2.5 0 0 1 0-5H20" /></svg>
+					</a>
+					<a href="https://www.last.fm/user/Tilpo" aria-label="Last.fm" class="transition-colors duration-150" style="color: var(--text-muted);">
+						<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18V5l12-2v13" /><circle cx="6" cy="18" r="3" /><circle cx="18" cy="16" r="3" /></svg>
+					</a>
+					<a href="/rss.xml" aria-label="RSS Feed" class="transition-colors duration-150" style="color: var(--text-muted);">
+						<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 11a9 9 0 0 1 9 9" /><path d="M4 4a16 16 0 0 1 16 16" /><circle cx="5" cy="19" r="1" /></svg>
+					</a>
+				</div>
+			</div>
+		</footer>
 	</body>
 </html>

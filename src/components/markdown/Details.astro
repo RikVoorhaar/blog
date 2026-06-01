@@ -10,11 +10,12 @@ const { summary, id } = Astro.props;
 <div class="my-4" data-details-id={id}>
 	<button
 		type="button"
-		class="flex align-top flex-auto italic font-semibold dark:hover:text-blue-400 hover:text-blue-800 transition-colors duration-500"
+		class="flex align-top flex-auto italic font-semibold transition-colors duration-200 cursor-pointer border-0 bg-transparent p-0"
+		style="color: var(--text-primary);"
 		data-details-toggle
 	>
 		<span
-			class="inline-block transition-transform px-1 pl-0 my-1 rotate-90"
+			class="inline-block transition-transform duration-200 px-1 pl-0 my-1 rotate-90"
 			data-details-chevron
 		>
 			<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m9 18 6-6-6-6"/></svg>
@@ -22,7 +23,8 @@ const { summary, id } = Astro.props;
 		{summary}
 	</button>
 	<div
-		class="hidden border-l-2 border-l-blue-700 pl-2 ml-2 my-0 py-0"
+		class="hidden pl-2 ml-2 my-0 py-0"
+		style="border-left: 3px solid var(--color-teal-500); color: var(--text-primary);"
 		data-details-content
 	>
 		<slot />

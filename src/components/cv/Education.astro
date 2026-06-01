@@ -16,16 +16,15 @@ export interface Props {
 const { date_start, date_end, entries } = Astro.props;
 ---
 
-<p>
+<div class="mb-2">
 	<Date start={date_start} end={date_end} />
-	<br />
 	{entries.map((entry, i) => (
-		<>
+		<div>
 			{i > 0 && <br />}
-			<span class="text-lg text-main-700 dark:text-main-500 font-bold pr-2 pl-4">{entry.title}</span>
-			|
-			<span class="font-semibold pl-2">{entry.university}</span>
-			{entry.note && <span class="italic" set:html={`(${entry.note})`} />}
-		</>
+			<span class="text-lg font-bold pr-2 pl-4" style="color: var(--color-accent-500);">{entry.title}</span>
+			<span class="mx-1" style="color: var(--text-muted);">|</span>
+			<span class="font-semibold pl-2" style="color: var(--text-primary);">{entry.university}</span>
+			{entry.note && <span class="italic" style="color: var(--text-muted);"> ({entry.note})</span>}
+		</div>
 	))}
-</p>
+</div>
