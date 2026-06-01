@@ -1,10 +1,12 @@
 @import 'tailwindcss';
 
 /* Self-hosted fonts (latin subset, font-display: swap built-in) */
-@import '@fontsource/space-grotesk/latin-400.css';
-@import '@fontsource/space-grotesk/latin-500.css';
-@import '@fontsource/space-grotesk/latin-600.css';
-@import '@fontsource/space-grotesk/latin-700.css';
+@import '@fontsource/raleway/latin-600.css';
+@import '@fontsource/raleway/latin-700.css';
+@import '@fontsource/raleway/latin-800.css';
+@import '@fontsource/source-sans-3/latin-400.css';
+@import '@fontsource/source-sans-3/latin-600.css';
+@import '@fontsource/source-sans-3/latin-700.css';
 @import '@fontsource/jetbrains-mono/latin-400.css';
 @import '@fontsource/jetbrains-mono/latin-600.css';
 
@@ -15,7 +17,17 @@
 /* ---- Base typography ---- */
 
 html {
-	font-family: 'Space Grotesk', ui-sans-serif, system-ui, sans-serif;
+	font-family: 'Source Sans 3', ui-sans-serif, system-ui, sans-serif;
+	font-size: 18px;
+}
+
+h1,
+h2,
+h3,
+h4,
+h5,
+h6 {
+	font-family: 'Raleway', ui-sans-serif, system-ui, sans-serif;
 }
 
 pre,
@@ -129,6 +141,7 @@ html:not(.light) {
 	--text-muted: #a1a1aa;
 	--text-accent: var(--color-accent-500);
 	--text-link: var(--color-link-300);
+	--text-heading-accent: var(--color-teal-400);
 }
 
 html.light {
@@ -142,6 +155,7 @@ html.light {
 	--text-muted: #52525b;
 	--text-accent: var(--color-accent-700);
 	--text-link: var(--color-link-700);
+	--text-heading-accent: var(--color-teal-600);
 }
 
 html.dark {
@@ -196,6 +210,15 @@ html.light .elev-1 {
 	--tw-prose-lead: var(--text-muted);
 
 	max-width: 48rem; /* --prose-max */
+	font-size: 1.125rem;
+	line-height: 1.6;
+}
+
+.prose h1,
+.prose h2,
+.prose h3,
+.prose h4 {
+	font-family: 'Raleway', ui-sans-serif, system-ui, sans-serif;
 }
 
 :is(.dark) .prose {
@@ -217,14 +240,36 @@ html.light .elev-1 {
 	--tw-prose-lead: var(--text-muted);
 }
 
+/* ---- Dark-mode image legibility (Fix G) ---- */
+/* Transparent diagrams (SVG + raster) are unreadable on dark surfaces.
+   A white backing fixes both. Scoped to .prose — CV logos live outside it. */
+
+:is(.dark) .prose img {
+	background: #fff;
+}
+
+:is(.dark) .prose img[src$='.svg'] {
+	padding: 0.5rem;
+}
+
 /* ---- Code blocks (Shiki) ---- */
 
 pre {
-	background: var(--surface-sunken);
 	border: 1px solid var(--border-subtle);
 	border-radius: var(--radius-md);
 	padding: 1rem 1.25rem;
 	overflow-x: auto;
+}
+
+/* Shiki dual-theme: Astro emits light-theme inline styles + --shiki-dark-* overrides.
+   This site defaults to dark, so apply dark vars unless .light is active. */
+html:not(.light) .astro-code,
+html:not(.light) .astro-code span {
+	color: var(--shiki-dark) !important;
+	background-color: var(--shiki-dark-bg) !important;
+	font-style: var(--shiki-dark-font-style) !important;
+	font-weight: var(--shiki-dark-font-weight) !important;
+	text-decoration: var(--shiki-dark-text-decoration) !important;
 }
 
 /* ---- Inline code ---- */

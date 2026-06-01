@@ -317,6 +317,16 @@ blog index.
 - Teaser images, titles, and links resolve correctly (astro:assets).
 - Looks correct in both themes; `npm run build` exits 0.
 
+### ✅ Completed
+- Added `PostCard` import to `src/pages/blog/[...slug].astro`.
+- Computed `relatedPosts` in frontmatter: all non-draft posts excluding current,
+  scored by category overlap (×100 weight) + date recency, capped at 3.
+- Render `<section class="not-prose">` with `<h2>Keep reading</h2>` and a responsive
+  CSS grid of `<PostCard>` components below the existing date/category footer.
+- Grid uses `minmax(16rem, 1fr)` for slightly tighter cards than the index page (18rem).
+- Build: `npm run build` exits 0, 25 pages built. Verified on `first_post` and `gmres`
+  pages — each shows 3 distinct related posts with no self-links.
+
 ---
 
 ## Fix G — Dark-mode SVG diagram legibility
@@ -345,6 +355,19 @@ plain `<img>` (not inlined). So the SVG internals can't be recolored with CSS, a
   (only when `src.endsWith('.svg')`) avoids touching logos. Prefer adding the class in the two
   markdown image components for precision if the attribute selector proves too broad.
 - Leave raster diagrams (`.webp`/`.png`) untouched — they already have their own backgrounds.
+
+### ✅ Completed
+- Added CSS rules in `src/styles/app.css` (after the `:is(.dark) .prose` block):
+  - `:is(.dark) .prose img { background: #fff; }` — gives a white backing to all prose images
+    in dark mode. Opaque images are unaffected (they cover the background); transparent
+    images (SVG or raster `.webp`/`.png`) become readable.
+  - `:is(.dark) .prose img[src$=".svg"] { padding: 0.5rem; }` — adds a card-like frame
+    around SVG diagrams so they look polished rather than edge-to-edge.
+- Scoped to `.prose` only — CV logos live outside `.prose` (in `Experience.astro`,
+  `CvIcon.astro`) and are untouched.
+- Works for both SVGs (e.g. `thesis/*.svg`) and transparent raster images (e.g.
+  `low_rank_matrix` plots like `intro-tn_3_1.webp`).
+- Build: `npm run build` exits 0, 25 pages built.
 
 ### Acceptance / verification
 - In dark mode on `/blog/thesis`, every SVG diagram's text and lines are clearly legible.

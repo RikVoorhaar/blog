@@ -30,7 +30,10 @@ export default defineConfig({
 
 	markdown: {
 		shikiConfig: {
-			theme: 'monokai'
+			themes: {
+				light: 'github-light',
+				dark: 'monokai'
+			}
 		},
 		processor: unified({
 			remarkPlugins: [remarkMath],
