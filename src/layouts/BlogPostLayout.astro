@@ -6,20 +6,41 @@ interface Props {
 	description: string;
 	ogImage?: string;
 	ogType?: string;
+	date?: string;
+	categories?: string[];
 }
 
-const { title, description, ogImage, ogType } = Astro.props;
+const { title, description, ogImage, ogType, date, categories } = Astro.props;
 ---
 
 <Layout title={title} description={description} ogImage={ogImage} ogType={ogType}>
 	<div class="max-w-4xl mx-auto w-full p-4 sm:p-8">
 		<article class="prose max-w-none prose-headings:scroll-mt-20">
 			<h1
-				class="text-3xl font-extrabold not-prose mb-4 tracking-tight"
+				class="text-3xl font-extrabold not-prose mb-2 tracking-tight"
 				style="color: var(--text-accent);"
 			>
 				{title}
 			</h1>
+			{date && (
+				<div class="not-prose mb-6">
+					<p class="text-sm" style="color: var(--text-muted);">
+						{date}
+					</p>
+					{categories && categories.length > 0 && (
+						<div class="flex flex-wrap gap-2 mt-2">
+							{categories.map((cat) => (
+								<span
+									class="px-2 py-1 text-xs font-semibold uppercase tracking-wider"
+									style="background-color: var(--color-accent-900); color: var(--color-accent-300); border-radius: var(--radius-full);"
+								>
+									{cat}
+								</span>
+							))}
+						</div>
+					)}
+				</div>
+			)}
 			<slot />
 		</article>
 	</div>

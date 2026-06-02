@@ -42,13 +42,13 @@ const ordinal = (d: number): string => {
 >
 	<!-- Teaser image -->
 	<a href={`/blog/${post.id}`} class="overflow-hidden" style="border-radius: var(--radius-md) var(--radius-md) 0 0;">
-		<div class="aspect-[16/10] overflow-hidden" style="border-radius: var(--radius-md) var(--radius-md) 0 0;">
+		<div class="overflow-hidden" style="max-height: 12rem; border-radius: var(--radius-md) var(--radius-md) 0 0;">
 			{teaserMeta ? (
 				<Image
 					src={teaserMeta}
 					alt={`Teaser for ${post.data.title}`}
 					loading="lazy"
-					class="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
+					class="w-full h-auto max-h-48 object-contain transition-transform duration-300 group-hover:scale-105"
 					style="border-radius: var(--radius-md) var(--radius-md) 0 0;"
 					sizes="(max-width: 640px) 90vw, (max-width: 1024px) 45vw, 22rem"
 				/>
@@ -57,7 +57,7 @@ const ordinal = (d: number): string => {
 					src={teaserSrc}
 					alt={`Teaser for ${post.data.title}`}
 					loading="lazy"
-					class="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
+					class="w-full h-auto max-h-48 object-contain transition-transform duration-300 group-hover:scale-105"
 					style="border-radius: var(--radius-md) var(--radius-md) 0 0;"
 				/>
 			)}
@@ -85,7 +85,7 @@ const ordinal = (d: number): string => {
 			class="flex-1 pl-3 my-1 leading-snug line-clamp-3 text-sm"
 			style="border-left: 2px solid var(--color-teal-500); color: var(--text-primary);"
 		>
-			{post.data.excerpt}
+			{post.data.excerpt.trim()}
 		</p>
 
 		<!-- Read more -->

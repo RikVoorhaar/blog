@@ -100,13 +100,13 @@ const navLinks = [
 								href={link.href}
 								class:list={[
 									'px-2 py-1 text-sm font-medium rounded transition-all duration-200',
-									'hover:underline hover:underline-offset-4',
+									'hover:text-(--text-accent) hover:scale-105',
 									{
-										'underline underline-offset-4 decoration-2': active,
+										'font-semibold scale-105': active,
 									},
 								]}
 								style={active
-									? `color: var(--text-accent); text-decoration-color: var(--text-accent);`
+									? `color: var(--text-accent);`
 									: `color: var(--text-muted);`}
 								aria-current={active ? 'page' : undefined}
 							>

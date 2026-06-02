@@ -9,7 +9,7 @@ automated).
 
 ---
 
-## Phase 1 — Repo cleanup 🤖
+## Phase 1 — Repo cleanup ✅ 🤖
 
 **No dependencies.** Safe to run anytime on the `experiment/astro` branch.
 
@@ -57,6 +57,13 @@ If keeping history matters, create `docs/archive/` and move them there.
 
 These don't match the content collection glob (`**/*.mdx`) so they don't affect build output,
 but they're repo clutter.
+
+**Handoff for Phase 2:**
+
+- **Deleted:** `Dockerfile`, `docker-compose.yml`, `.dockerignore`, `.github/workflows/build-deploy.yml`, `_reference/` (full directory), `src/posts/test_post.mdx.unpublish`, `src/posts/music_2020.mdx.unpublish`
+- **Moved:** `ASTRO_MIGRATION.md`, `WEBSITE_FIXES.md`, `MATH_RENDERING_FIX.md` → `docs/archive/`
+- **Modified:** `.prettierignore` (removed `.svelte-kit` and `pnpm-lock.yaml`), `package.json` (added `engines` field with `node >= 22`)
+- **Caveats:** The old `.github/workflows/` directory is now empty and was removed. Phase 2 should create `.github/workflows/ci.yml` fresh. Build verified clean after cache purge (pre-existing stale `.astro` cache caused a spurious failure on `/contact`).
 
 ---
 
@@ -203,6 +210,24 @@ design calls for a color change and font-size transition to make it "pop."
 
 Edit `src/data/cv.ts` directly — it's a single structured TypeScript file.
 
+**Handoff for Phase 6 (validation):**
+
+### Files changed
+- `src/layouts/BlogPostLayout.astro` — added `date` and `categories` props; renders metadata bar below `<h1>`
+- `src/pages/blog/[...slug].astro` — passes date/categories to layout; removed footer with duplicate date/categories
+- `src/components/PostCard.astro` — teaser: `aspect-[16/10]` + `object-cover` → `max-height: 12rem` + `object-contain`; excerpt: added `.trim()`
+- `src/components/cv/Experience.astro` — wrapped bullets in `<div class="mb-4">` for bottom spacing
+- `src/layouts/Layout.astro` — nav links: underline → `text-(--text-accent)` + `scale-105` on hover; `font-semibold scale-105` on active
+
+### Design decisions
+- **3a:** Date/categories now appear in the `BlogPostLayout` metadata bar (before `<slot />`) on every post page. The footer with a horizontal rule above related posts was removed — the date is now at the top where readers expect it.
+- **3b:** Teaser images use `object-contain` with `max-height: 12rem` container and `max-h-48` on the image. No forced aspect ratio — images display at native proportions. SVGs (fallback path) also get `object-contain`.
+- **3e:** Active nav link is now `font-semibold` + `scale-105` (no underline). Hover uses `text-(--text-accent)` with `scale-105`. Underline decoration is removed entirely.
+
+### Known caveats
+- The lint command fails on `dist/` HTML files due to pre-existing `<div>` inside `<p>` nesting from post content — unrelated to these changes.
+- Phase 3f (CV data update) is a 👤 human task — not done.
+
 ---
 
 ## Phase 4 — Typography experiments 🤖
@@ -239,9 +264,16 @@ Three independent options for adding a decorative marker before section headings
 
 All experiments are independent CSS tweaks in `.prose`.
 
+**Handoff for Phase 6 (pre-launch validation):**
+- **File modified:** `src/styles/app.css` — `.prose` block updated with E1–E5.
+- **E1–E4 applied:** body line-height 1.5, font-size 19px, h2/h3 margin-top 2.25em, max-width 52rem.
+- **E5 applied (revised):** crimson em-dash (`—`) ::before marker on `h2` using `var(--text-accent)`, teal em-dash on `h3`/`h4` using `var(--text-heading-accent)`.
+- **E6, E7 not applied** — deferred. E5 was the suggested starting option; switch to E6 or E7 if the teal dash doesn't suit.
+- **Build verified:** 25 pages, ~10s, no errors.
+
 ---
 
-## Phase 5 — README update 🤖
+## Phase 5 — README update 🤖 ✅
 
 **No dependencies.**
 
@@ -275,6 +307,15 @@ Rewrite `README.md` with:
     `src/assets/blog/<post-slug>/` — they are processed by `astro:assets` for
     responsive WebP output. SVGs stay in `static/blog/<post-slug>/`.
   - Run `npm run dev` to preview; cloudflare auto-deploys on push.
+
+**Handoff for Phase 6:**
+
+- **File changed:** `README.md` — rewritten from old Svelte/VPS content to Astro/Cloudflare
+- **No code changes** — build verified clean (25 pages, 9.26s)
+- **Caveats:** The README documents the double-location teaser image requirement
+  (`src/assets/teasers/` + `static/blog/teasers/original/`). Phase 6 validators should
+  confirm OG images work correctly for all posts, since the fallback path depends on
+  both locations being populated.
 
 ---
 
@@ -352,19 +393,19 @@ Phase 7 is the final human step.
 ## Summary checklist (ordered by execution)
 
 ### 🤖 Agentic phases
-- [ ] 1a: Delete `Dockerfile`, `docker-compose.yml`, `.dockerignore`, `.github/workflows/build-deploy.yml`
-- [ ] 1b: Delete `_reference/`
-- [ ] 1c: Archive `ASTRO_MIGRATION.md`, `WEBSITE_FIXES.md`, `MATH_RENDERING_FIX.md` → `docs/archive/`
-- [ ] 1d: Clean `.prettierignore` (remove `.svelte-kit`, `pnpm-lock.yaml`)
-- [ ] 1e: Remove `.unpublish` draft posts
+- [x] 1a: Delete `Dockerfile`, `docker-compose.yml`, `.dockerignore`, `.github/workflows/build-deploy.yml`
+- [x] 1b: Delete `_reference/`
+- [x] 1c: Archive `ASTRO_MIGRATION.md`, `WEBSITE_FIXES.md`, `MATH_RENDERING_FIX.md` → `docs/archive/`
+- [x] 1d: Clean `.prettierignore` (remove `.svelte-kit`, `pnpm-lock.yaml`)
+- [x] 1e: Remove `.unpublish` draft posts
 - [ ] 2: Create `.github/workflows/ci.yml` (build + lint)
-- [ ] 3a: Add published date below blog post title
-- [ ] 3b: Fix teaser aspect ratio in PostCard (object-contain, no crop)
-- [ ] 3c: Trim excerpt whitespace in PostCard (fix blank lines)
-- [ ] 3d: Add vertical padding between CV roles
-- [ ] 3e: Enhance nav link animations (color + scale)
-- [ ] 4 (E1–E7): Typography experiments — E1–E4 body/spacing, E5–E7 heading decorations (start with E5)
-- [ ] 5: Rewrite README with Astro stack + blog post how-to
+- [x] 3a: Add published date below blog post title
+- [x] 3b: Fix teaser aspect ratio in PostCard (object-contain, no crop)
+- [x] 3c: Trim excerpt whitespace in PostCard (fix blank lines)
+- [x] 3d: Add vertical padding between CV roles
+- [x] 3e: Enhance nav link animations (color + scale)
+- [x] 4 (E1–E7): Typography experiments — E1–E4 body/spacing, E5–E7 heading decorations (E5 applied) ✅
+- [x] 5: Rewrite README with Astro stack + blog post how-to
 
 ### 👤 Human phases
 - [ ] 3f: Update CV data in `src/data/cv.ts`

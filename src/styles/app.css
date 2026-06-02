@@ -209,9 +209,9 @@ html.light .elev-1 {
 	--tw-prose-td-borders: var(--border-subtle);
 	--tw-prose-lead: var(--text-muted);
 
-	max-width: 48rem; /* --prose-max */
-	font-size: 1.125rem;
-	line-height: 1.6;
+	max-width: 52rem; /* --prose-max */
+	font-size: 1.0625rem;
+	line-height: 1.5;
 }
 
 .prose h1,
@@ -219,6 +219,24 @@ html.light .elev-1 {
 .prose h3,
 .prose h4 {
 	font-family: 'Raleway', ui-sans-serif, system-ui, sans-serif;
+}
+
+.prose h2,
+.prose h3 {
+	margin-top: 2.25em;
+}
+
+.prose h2::before {
+	content: '— ';
+	color: var(--text-accent);
+	font-weight: 400;
+}
+
+.prose h3::before,
+.prose h4::before {
+	content: '— ';
+	color: var(--text-heading-accent);
+	font-weight: 400;
 }
 
 :is(.dark) .prose {

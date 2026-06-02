@@ -48,6 +48,12 @@ const relatedPosts = allPosts
 	description={post.data.excerpt}
 	ogImage={ogImage}
 	ogType="article"
+	date={post.data.date.toLocaleDateString('en', {
+		year: 'numeric',
+		month: 'long',
+		day: 'numeric',
+	})}
+	categories={post.data.categories}
 >
 	<Content
 		components={{
@@ -59,28 +65,6 @@ const relatedPosts = allPosts
 			ImgSmall,
 		}}
 	/>
-	<footer class="mt-12 pt-6 not-prose" style="border-top: 1px solid var(--border-subtle);">
-		<p class="text-sm" style="color: var(--text-muted);">
-			Published on {
-				post.data.date.toLocaleDateString('en', {
-					year: 'numeric',
-					month: 'long',
-					day: 'numeric',
-				})
-			}
-		</p>
-		<div class="flex flex-wrap gap-2 mt-2">
-			{post.data.categories.map((cat) => (
-				<span
-					class="px-2 py-1 text-xs font-semibold uppercase tracking-wider"
-					style="background-color: var(--color-accent-900); color: var(--color-accent-300); border-radius: var(--radius-full);"
-				>
-					{cat}
-				</span>
-			))}
-		</div>
-	</footer>
-
 	{relatedPosts.length > 0 && (
 		<section class="mt-16 not-prose">
 			<h2
@@ -97,11 +81,5 @@ const relatedPosts = allPosts
 			</div>
 		</section>
 	)}
-</BlogPostLayout>
-
-<style>
-	html.light footer span[style*="--color-accent-900"] {
-		background-color: var(--color-accent-100) !important;
-		color: var(--color-accent-700) !important;
 	}
-</style>
+</BlogPostLayout>
