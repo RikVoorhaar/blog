@@ -1,13 +1,14 @@
 ---
-title:  "Low-rank matrices: using structure to recover missing data" 
-date:   "2021-09-26"
+title: 'Low-rank matrices: using structure to recover missing data'
+date: '2021-09-26'
 categories: [machine-learning, mathematics, linear-algebra, code]
 excerpt: "A lot of data is naturally of 'low rank'. I will explain what this means, and how to exploit this fact."
-teaser: "low_rank_matrix.png"
+teaser: 'low_rank_matrix.png'
 ---
+
 Tensor networks are probably the most important tool in my research, and I want
 explain them. Before I can do this however, I should first talk about low-rank
-matrix decompositions, and why they're so incredibly useful.  At the same time I
+matrix decompositions, and why they're so incredibly useful. At the same time I
 will illustrate everything using examples in Python code, using `numpy`.
 
 ## The singular value decomposition
@@ -32,11 +33,10 @@ Where $U$ and $V$ are orthogonal matrices, and $S$ is a diagonal matrix. The
 values on the diagonals of $S$ are known as the _singular values_ of $S$. The
 matrices $U$ and $V$ also have nice interpretations; the rows of $U$ form an
 orthonormal basis of the _row space_ of $X$, and the columns of $V$ are an
-orthonormal basis of the _column space_ of $X$. 
+orthonormal basis of the _column space_ of $X$.
 
 In `numpy` we can compute the SVD of a matrix using `np.linalg.svd`. Below we
 compute it and verify that indeed $X = U S V$:
-
 
 ```python
 import numpy as np
@@ -56,8 +56,6 @@ np.allclose(U @ np.diag(S) @ V, X)
 
 <Output>True</Output>
 
-
-
 Note that we called `np.linalg.svd` with the keyword `full_matrices=False`. If
 left to the default value `True`, then in this case `V` would be a $${20\times
 20}$ matrix, as opposed to the $10\times 20$$ matrix it is now. Also `S` is
@@ -68,7 +66,6 @@ numerical error.
 
 As mentioned before, we can use the singular values `S` to determine what the
 rank is the matrix `X`. This is obvious if we plot the singular values:
-
 
 ```python
 import matplotlib.pyplot as plt
@@ -84,7 +81,6 @@ plt.title("Plot of singular values")
 ```
 
 ![png](/blog/low_rank_matrix/intro-tn_3_1.png)
-    
 
 We see that the first 5 singular values are roughly the same size, but that the
 last five singular values are much smaller; on the order of the machine epsilon.
@@ -95,8 +91,7 @@ singular value decomposition_. Since the last 5 values of `S` are very close to
 zero, we can simply ignore them. This then means dropping the last 5 columns of
 `U` and the last 5 rows of `V`. Then finally we just need to 'absorb' the
 singular values into one of the two matrices `U` or `V`, This way we write `X`
-as the product of a $10\times 5$ and $5\times 20$ matrix. 
-
+as the product of a $10\times 5$ and $5\times 20$ matrix.
 
 ```python
 A = U[:, :r] * S[:r]
@@ -106,12 +101,7 @@ print(A.shape, B.shape)
 np.allclose(A @ B, X)
 ```
 
-<Output>
-(10, 5) (5, 20)
-True
-</Output>
-
-
+<Output>(10, 5) (5, 20) True</Output>
 
 ## SVD as data compression method
 
@@ -119,9 +109,8 @@ We rarely encounter real-world data that can be _exactly_ represented by a low
 rank matrix using the truncated SVD. But we can still use the truncated SVD to
 get a good _approximation_ of the data.
 
-Let us look at the singular values of an image of the St. Vitus church in my 
-hometown. Note that a black-and-white image is really just a matrix. 
-
+Let us look at the singular values of an image of the St. Vitus church in my
+hometown. Note that a black-and-white image is really just a matrix.
 
 ```python
 from matplotlib import image
@@ -143,8 +132,6 @@ plt.plot(S)
 ```
 
 ![png](/blog/low_rank_matrix/intro-tn_7_1.png)
-    
-
 
 We see here that the first few singular values are much larger than the rest,
 followed by a slow decay, and then finally a sharp drop at the very end. Note
@@ -153,7 +140,6 @@ that there are 512 singular values, because this is a 512x512 image.
 Let's now try to see what happens if we compress this image as a low rank matrix
 using the truncated singular value decomposition. We will look what happens to
 the image when seen as a rank 10,20,50 or 100 matrix.
-
 
 ```python
 plt.figure(figsize=(12, 12))
@@ -168,15 +154,13 @@ for i, rank in enumerate([10, 20, 50, 100]):
     plt.imshow(img_compressed, cmap="gray")
     plt.axis("off")
 ```
-    
-![png](/blog/low_rank_matrix/intro-tn_9_0.png)
-    
 
+![png](/blog/low_rank_matrix/intro-tn_9_0.png)
 
 We see that even the rank 10 and 20 images are pretty recognizable, but with
 heavy artifacts. On the other hand the rank 50 image looks pretty good, but not
 as good as the original. The rank 100 image on the other hand looks really close
-to the original. 
+to the original.
 
 How big is the compression if we do this? Well, if we write the image as a rank
 10 matrix, we need two 512x10 matrices to store the image, which adds up to
@@ -192,20 +176,19 @@ compress data. However, not all data can be compressed as efficiently by this
 method. It depends on the distribution of singular values; the faster the
 singular values decay, the better a low rank decomposition is going to
 approximate our data. Images are not good examples of data that can be
-compressed efficiently as a low rank matrix. 
+compressed efficiently as a low rank matrix.
 
 One reason why it's difficult to compress images is because they contain many
 sharp edges and transitions. Low rank matrices are especially bad at
 representing diagonal lines. For example, the identity matrix is a diagonal
 line seen as an image, and it is also impossible to compress using an SVD since
-all singular values are equal. 
+all singular values are equal.
 
 On the other hand, images without any sharp transitions can be approximated
 quite well using low rank matrices. These kind of images rarely appear as
 natural images, but rather they can be discrete representations of smooth
 functions $[0,1]^2 \to\mathbb R$. For example below we show a two-dimensional
 discretized sum of trigonometric functions and its singular value decomposition.
-
 
 ```python
 # Make a grid of 100 x 100 values between [0,1]
@@ -233,12 +216,7 @@ print(f"The matrix is approximately of rank: {np.sum(S>1e-12)}")
 
 <Output>The matrix is approximately of rank: 4</Output>
 
-
-
-    
 ![png](/blog/low_rank_matrix/intro-tn_11_1.png)
-    
-
 
 We see that this particular function can be represented by a rank 4 matrix! This
 is not obvious if you look at the image. In these kind of situations a low-rank
@@ -249,10 +227,10 @@ will actually compress this very well.)
 
 ## Matrix completion
 
-Recall that a low rank matrix approximation can require much less parameters 
+Recall that a low rank matrix approximation can require much less parameters
 than the dense matrix it approximates. One of the powerful things about this
 allows us to recover the dense matrix even in the case where we only observe
-a small part of the matrix. That is, if we have many missing values. 
+a small part of the matrix. That is, if we have many missing values.
 
 In the case above we can represent the 100x100 matrix $X$ as a product of a
 100x4 and 4x100 a matrix $A$ and $B$, which has in total 800 parameters instead
@@ -277,7 +255,6 @@ $$
 
 Below we do use this approach to recover the same matrix as before using 2000
 data points, and we can see it does so with a very low error:
-
 
 ```python
 N = 2000
@@ -337,10 +314,7 @@ plt.xlabel("steps")
 plt.ylabel("Mean squared error")
 ```
 
-    
 ![png](/blog/low_rank_matrix/intro-tn_14_1.png)
-    
-
 
 ## Netflix prize
 
@@ -358,7 +332,7 @@ represents a movie, and each column a user. Most users have only seen a small
 fraction of all the movies on the platform, so the overwhelming majority of the
 entries of this matrix are unknown. Then we apply matrix completion to this
 matrix. Each entry of the completed matrix then represents the rating _we think_
-the user would give to a movie, even if they have never watched it. 
+the user would give to a movie, even if they have never watched it.
 
 In 2006 Netflix opened a competition with a grand prize of **$1,000,000** (!!)
 to solve precisely this problem. The data consists of more than 100 million
@@ -397,7 +371,7 @@ $$
 
 This problem can then be solved using the same alternating least-squares
 approach we have used before. For example if we fix $A,B$ then the optimal value
-of $Z$ is given by $Z = AB+X-P_\Omega(Z)$, and at each iteration we can update 
+of $Z$ is given by $Z = AB+X-P_\Omega(Z)$, and at each iteration we can update
 $$A$$ and $$B$$ by solving a linear least-squares problem. It is important to note
 that this way $Z$ is a sum of a low-rank and a sparse matrix at every step, and
 this allows us to still efficiently manipulate it and store it in memory.
@@ -408,7 +382,6 @@ used this algorithm to fit matrices $A$ and $B$ of rank 5 and of rank 10 to the
 Netflix prize dataset. I used 3000 iterations of training, taking the better
 part of a day to train on my computer. I could probably do more, but I'm too
 impatient. The progress of training is shown below.
-
 
 ```python
 import os.path
@@ -431,22 +404,17 @@ plt.xlabel("Training iterations")
 plt.ylabel("Root mean squared error (RMSE)");
 ```
 
-
-    
 ![png](/blog/low_rank_matrix/intro-tn_16_0.png)
-    
-
 
 We see that the training error for the rank 5 and rank 10 models are virtually
 identical, but the test error is lower for the rank 5 model. We can interpret
 this as the rank 10 model overfitting more, which is often the case for more
-complex models. 
+complex models.
 
 Next, how can we use this model? Well, the rows of the matrix $A$ correspond to
 movies, and the columns of matrix $B$ correspond to users. So if we want to know
 how much user #179 likes movie #2451 (_Lord of the Rings: The Fellowship of the
 Ring_), then we compute $A[2451]\cdot B[:, 179]$:
-
 
 ```python
 A[2451] @ B[:, 179]
@@ -454,17 +422,14 @@ A[2451] @ B[:, 179]
 
 <Output>4.411312294862265</Output>
 
-
-
 We see that the _expected rating_ (out of 5) for this user and movie is about
-4.41. So we expect that this user will like this movie, and we may choose to 
+4.41. So we expect that this user will like this movie, and we may choose to
 recommend it.
 
 But we want to find the _best_ recommendation for this user. To do this we can
 simply compute the product $A \cdot B[:,179]$, which will give a vector with
 expected rating for every single movie, and then we simply sort. Below we can
 see the 5 movies with the highest and lowest expected ratings for this user.
-
 
 ```python
 import pandas as pd
@@ -478,83 +443,78 @@ movies["ratings-179"] = A @ B[:, 179]
 movies.sort_values("ratings-179", ascending=False)
 ```
 
-
-
-
 <div>
-<table border="1" class="dataframe">
-  <thead>
-    <tr style="text-align: left;">
-      <th></th>
-      <th>name</th>
-      <th>ratings-179</th>
-    </tr>
-  </thead>
-  <tbody>
-    <tr>
-      <th>10755</th>
-      <td>Kirby: A Dark &amp; Stormy Knight</td>
-      <td>9.645918</td>
-    </tr>
-    <tr>
-      <th>15833</th>
-      <td>Paternal Instinct</td>
-      <td>7.712654</td>
-    </tr>
-    <tr>
-      <th>15355</th>
-      <td>Last Hero In China</td>
-      <td>7.689984</td>
-    </tr>
-    <tr>
-      <th>14902</th>
-      <td>Warren Miller's: Ride</td>
-      <td>7.624472</td>
-    </tr>
-    <tr>
-      <th>2082</th>
-      <td>Blood Alley</td>
-      <td>7.317524</td>
-    </tr>
-    <tr>
-      <th>...</th>
-      <td>...</td>
-      <td>...</td>
-    </tr>
-    <tr>
-      <th>463</th>
-      <td>The Return of Ruben Blades</td>
-      <td>-6.037189</td>
-    </tr>
-    <tr>
-      <th>12923</th>
-      <td>Where the Red Fern Grows 2</td>
-      <td>-6.153577</td>
-    </tr>
-    <tr>
-      <th>7067</th>
-      <td>Eric Idle's Personal Best</td>
-      <td>-6.441100</td>
-    </tr>
-    <tr>
-      <th>538</th>
-      <td>Rumpole of the Bailey: Series 4</td>
-      <td>-6.740144</td>
-    </tr>
-    <tr>
-      <th>4331</th>
-      <td>Sugar: Howling of Angel</td>
-      <td>-7.015818</td>
-    </tr>
-  </tbody>
-</table>
+	<table border="1" class="dataframe">
+		<thead>
+			<tr style="text-align: left;">
+				<th></th>
+				<th>name</th>
+				<th>ratings-179</th>
+			</tr>
+		</thead>
+		<tbody>
+			<tr>
+				<th>10755</th>
+				<td>Kirby: A Dark &amp; Stormy Knight</td>
+				<td>9.645918</td>
+			</tr>
+			<tr>
+				<th>15833</th>
+				<td>Paternal Instinct</td>
+				<td>7.712654</td>
+			</tr>
+			<tr>
+				<th>15355</th>
+				<td>Last Hero In China</td>
+				<td>7.689984</td>
+			</tr>
+			<tr>
+				<th>14902</th>
+				<td>Warren Miller's: Ride</td>
+				<td>7.624472</td>
+			</tr>
+			<tr>
+				<th>2082</th>
+				<td>Blood Alley</td>
+				<td>7.317524</td>
+			</tr>
+			<tr>
+				<th>...</th>
+				<td>...</td>
+				<td>...</td>
+			</tr>
+			<tr>
+				<th>463</th>
+				<td>The Return of Ruben Blades</td>
+				<td>-6.037189</td>
+			</tr>
+			<tr>
+				<th>12923</th>
+				<td>Where the Red Fern Grows 2</td>
+				<td>-6.153577</td>
+			</tr>
+			<tr>
+				<th>7067</th>
+				<td>Eric Idle's Personal Best</td>
+				<td>-6.441100</td>
+			</tr>
+			<tr>
+				<th>538</th>
+				<td>Rumpole of the Bailey: Series 4</td>
+				<td>-6.740144</td>
+			</tr>
+			<tr>
+				<th>4331</th>
+				<td>Sugar: Howling of Angel</td>
+				<td>-7.015818</td>
+			</tr>
+		</tbody>
+	</table>
 </div>
-
-
 
 Note that the expected ratings are not between 0 and 5, but can take on any
 value (in particular non-integer ones). This is not necessarily a problem,
-because we only care about the relative rating of the movies. 
+because we only care about the relative rating of the movies.
 
 To me, all these movies all sound quite obscure. And this makes sense, the model
 does not take factors such as popularity of the movie into account. It also
@@ -562,24 +522,23 @@ ignores a lot of other data that we may know about the user, such as their age,
 gender and location. It ignores when the movie is released, and it doesn't take
 into account the dates of all the movie ratings of each user. These are all
 important factors, that could significantly improve the quality of this the
-recommendation system. 
+recommendation system.
 
 We could try to modify our matrix completion model to take these factors into
 account, but it's not obvious how to do this. There is no need to do this
 however, we use the matrices $A$, $B$ to augment any data we have about the
 movie and the user. And then we can train a new model on top of this data, to
-create something even better. 
+create something even better.
 
-We can think of the movies as lying in a really high-dimensional space, and the 
-matrix $A$ maps this space onto a much smaller space. The same is true for the 
+We can think of the movies as lying in a really high-dimensional space, and the
+matrix $A$ maps this space onto a much smaller space. The same is true for the
 $$B$$ and the 'space' of users. We can then use this _embedding_ into a lower
-dimensional space as the input of another model. 
+dimensional space as the input of another model.
 
 Unfortunately we don't have access to more information about the users (due
 to obvious privacy concerns), so this is difficult to demonstrate. But the point
-is this: the decomposition $X\approx AB$ is both _interpretable_, and can be 
-used as a building block for more advanced machine learning models. 
-
+is this: the decomposition $X\approx AB$ is both _interpretable_, and can be
+used as a building block for more advanced machine learning models.
 
 ## Conclusion
 
@@ -593,9 +552,9 @@ Even though they come with some limitations, they can always be used as a
 building block for more advanced machine learning models. This is because they
 can give an interpretable, low-dimensional representation of very
 high-dimensional data. We also didn't even come close to discussing all their
-applications, or algorithms on how to find and optimize them. 
+applications, or algorithms on how to find and optimize them.
 
 In the next post I will look at a generalization of low-rank matrix
 decompositions: _tensor decompositions_. While more complicated, these
 decompositions are even more powerful at reducing the dimensionality of very
-high-dimensional data. 
+high-dimensional data.

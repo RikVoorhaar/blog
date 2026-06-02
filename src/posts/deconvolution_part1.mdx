@@ -1,11 +1,10 @@
 ---
-title:  "Blind Deconvolution #1: Non-blind Deconvolution" 
-date:   "2021-03-13"
+title: 'Blind Deconvolution #1: Non-blind Deconvolution'
+date: '2021-03-13'
 categories: [machine-learning, signal-processing, computer-vision]
 excerpt: "Deconvolution is one of the cornerstones of image processing. Let's take a look at how it works."
-teaser: "deconvolution_part1.png"
+teaser: 'deconvolution_part1.png'
 ---
-
 
 I recently became interested in blind deconvolution. Initially I didn't even know the proper name
 for this, I simply wondered if it's possible to automatically sharpen images given we have some
@@ -45,7 +44,6 @@ Often point pread functions have finite support; they are only non-zero for a fi
 entries. In this case we can write the PSF as a matrix, where the _middle_ entry corresponds to
 $$k[0,0]$$. In this case the delta function is a $$1\times 1$$ matrix with $$1$$ as it's only entry.
 
-
 ### Box blur
 
 Another very simple (but not necessarily natural) PSF is given by a constant matrix. For example,
@@ -64,7 +62,7 @@ very fast and easy implement, and to the human eye looks quite a lot like other 
 
 ### Gaussian blur
 
-Lens blur can be approximated by a Gaussian PSF, i.e. a kernel $k$ such that 
+Lens blur can be approximated by a Gaussian PSF, i.e. a kernel $k$ such that
 
 $$
 k[i,j] \propto \exp\left(-\frac{i^2+j^2}{2\sigma^2}\right),
@@ -86,16 +84,13 @@ Otherwise the amount and direction of motion blur is not uniform throughout the 
 
 We will apply all types of blur to a cropped and scaled image of the St. Vitus church in my hometown
 taken in 1946 (image credit: [Koos
-Raucamp](http://proxy.handle.net/10648/a894b7c6-d0b4-102d-bcf8-003048976d84)). 
+Raucamp](http://proxy.handle.net/10648/a894b7c6-d0b4-102d-bcf8-003048976d84)).
 
 The first image shows a delta PSF. The top-right shows box blur with a $3\times 3$ box. The
 bottom-left image shows Gaussian blur, with $\sigma=1$. Finally the bottom-right image shows
-motion blur with a top-left to bottom-right diagonal line segment of 5 pixels in length. 
+motion blur with a top-left to bottom-right diagonal line segment of 5 pixels in length.
 
-    
 ![png](/blog/deconvolution_part1/part1_4_0.png)
-    
-
 
 ## Fourier transforms and deconvolution
 
@@ -154,24 +149,18 @@ the top right a version with Gaussian blur with $\sigma=2$. Then on the bottom w
 deconvolute with a Gaussian PSF with $\sigma=2$ and $\sigma=2.01$. The first looks identical to
 the original image, but then the second doesn't look similar at all!
 
-    
 ![png](/blog/deconvolution_part1/part1_6_0.png)
-    
-
 
 What is going on here? A quick look at the discrete Fourier transform of the PSF gives us the
 answer. Recall that the Fourier transform of a real signal is actually complex, so below we plot the
 absolute value of the Fourier transform on a logarithmic scale. For reference we also plot the
 fourier transform of the original and blurred signals.
 
-    
 ![png](/blog/deconvolution_part1/part1_8_0.png)
-    
-
 
 We see that the Fourier transform of the kernel has many values close to $0$. This means that
 dividing by such a signal is not numerically stable. Indeed if we slightly perturb either the kernel
-$$k$$ or the blurred signal $$y$$, we can end up with strange results, as seen above. 
+$$k$$ or the blurred signal $$y$$, we can end up with strange results, as seen above.
 
 ## Regularizing deconvolution
 
@@ -197,10 +186,7 @@ $$
 where $S>0$ is a regularization constant. Let's see how well this works for different values of
 $$S$$:
 
-    
 ![png](/blog/deconvolution_part1/part1_11_0.png)
-    
-
 
 If you look closely, the image looks best for $S=10^{-8}$. For lower and higher values we see a
 ringing effect, particularly noticeable in portion of the image occupied by the sky. Visually the
@@ -209,10 +195,7 @@ Fourier transform of the same images, they actually look quite a bit different. 
 however exaggerated by the logarithmic scale). There are significant artifacts remaining from the
 near-zero values of the Fourier transform of the PSF
 
-
 ![png](/blog/deconvolution_part1/part1_13_0.png)
-    
-
 
 ## Deconvolution using linear algebra
 
@@ -231,7 +214,7 @@ can turn deconvolution into a linear least-squares problem, and deconvolution us
 transforms gives the exact minimizer of this problem. The reason this exact solution becomes garbage
 as soon as we slightly perturb $y$ or $k$ is because the matrix $K$ is very ill-conditioned.
 The _condition number_ of a matrix $K$ tells us how much any numerical errors in a vector $b$
-can get amplified if we're trying to solve the linear system $Kx = b$. 
+can get amplified if we're trying to solve the linear system $Kx = b$.
 
 Fortunately there are ways to deal with ill-conditioned systems through regularization. There are a
 number of regularization techniques, but in our case this isn't immediately helpful because of the
@@ -240,7 +223,7 @@ $$nm\times nm$$. For example if we have a $$1024\times 1024$$ image then the ima
 order of 1MB of memory, but the matrix $K$ would take up on the order of 1TB of memory! Obviously
 that will not fit in the memory of a typical home computer, so working directly with the matrix
 $$K$$ is completely infeasible. Moreoever, while the matrix $$K$$ has a lot of structure, it is not
-sparse, so we cannot store it as a sparse matrix either. 
+sparse, so we cannot store it as a sparse matrix either.
 
 Nevertheless computing a matrix product $Kx$ is cheap, since it's just convolution. There are good
 linear solvers that only need matrix-vector products, without ever forming the matrix explicitly.
@@ -250,10 +233,7 @@ solver works best for this particular problem. Even without regularization this 
 results. Nevertheless, it's a bit finicky to get working well, and on my machine the deconvolution
 takes a full minute, as opposed to a few milliseconds for FFT-based deconvolution.
 
-    
 ![png](/blog/deconvolution_part1/part1_16_1.png)
-    
-
 
 ## Conclusion
 

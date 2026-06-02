@@ -40,33 +40,28 @@ const ordinal = (d: number): string => {
 	class="group flex flex-col h-full transition-all duration-250"
 	style="background-color: var(--surface-raised); border-radius: var(--radius-lg);"
 >
-	<!-- Teaser image -->
-	<a href={`/blog/${post.id}`} class="overflow-hidden" style="border-radius: var(--radius-md) var(--radius-md) 0 0;">
-		<div class="overflow-hidden" style="max-height: 12rem; border-radius: var(--radius-md) var(--radius-md) 0 0;">
-			{teaserMeta ? (
-				<Image
-					src={teaserMeta}
-					alt={`Teaser for ${post.data.title}`}
-					loading="lazy"
-					class="w-full h-auto max-h-48 object-contain transition-transform duration-300 group-hover:scale-105"
-					style="border-radius: var(--radius-md) var(--radius-md) 0 0;"
-					sizes="(max-width: 640px) 90vw, (max-width: 1024px) 45vw, 22rem"
-				/>
-			) : (
-				<img
-					src={teaserSrc}
-					alt={`Teaser for ${post.data.title}`}
-					loading="lazy"
-					class="w-full h-auto max-h-48 object-contain transition-transform duration-300 group-hover:scale-105"
-					style="border-radius: var(--radius-md) var(--radius-md) 0 0;"
-				/>
-			)}
-		</div>
+	<a href={`/blog/${post.id}`} class="block" style="border-radius: var(--radius-lg) var(--radius-lg) 0 0;">
+		{teaserMeta ? (
+			<Image
+				src={teaserMeta}
+				alt={`Teaser for ${post.data.title}`}
+				loading="lazy"
+				class="w-full h-auto transition-transform duration-300 group-hover:scale-105"
+				style="display: block; border-radius: var(--radius-lg) var(--radius-lg) 0 0;"
+				sizes="(max-width: 640px) 90vw, (max-width: 1024px) 45vw, 22rem"
+			/>
+		) : (
+			<img
+				src={teaserSrc}
+				alt={`Teaser for ${post.data.title}`}
+				loading="lazy"
+				class="w-full h-auto transition-transform duration-300 group-hover:scale-105"
+				style="display: block; border-radius: var(--radius-lg) var(--radius-lg) 0 0;"
+			/>
+		)}
 	</a>
 
-	<!-- Content -->
-	<div class="flex flex-col flex-1 p-4 gap-2">
-		<!-- Title -->
+	<div class="flex flex-col flex-1 p-4 gap-1">
 		<a
 			href={`/blog/${post.id}`}
 			class="text-xl font-extrabold leading-tight transition-colors duration-150 tracking-tight"
@@ -75,30 +70,20 @@ const ordinal = (d: number): string => {
 			{post.data.title}
 		</a>
 
-		<!-- Date -->
 		<p class="text-sm" style="color: var(--text-muted);">
 			{day}{ordinal(day)} of {month}, {year}
 		</p>
 
-		<!-- Excerpt with teal left rule -->
 		<p
-			class="flex-1 pl-3 my-1 leading-snug line-clamp-3 text-sm"
+			class="pl-3 my-1 leading-snug line-clamp-3 text-sm"
 			style="border-left: 2px solid var(--color-teal-500); color: var(--text-primary);"
 		>
 			{post.data.excerpt.trim()}
 		</p>
 
-		<!-- Read more -->
-		<a
-			href={`/blog/${post.id}`}
-			class="text-sm font-medium transition-colors duration-150"
-			style="color: var(--text-link);"
-		>
-			read more →
-		</a>
+		<div class="flex-1"></div>
 
-		<!-- Category chips -->
-		<div class="flex flex-wrap gap-1.5 mt-1">
+		<div class="flex flex-wrap gap-1.5">
 			{post.data.categories.map((cat) => (
 				<span
 					class="px-2 py-0.5 text-xs font-semibold uppercase tracking-wider"

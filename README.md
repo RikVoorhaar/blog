@@ -13,12 +13,12 @@ npm run dev         # → http://localhost:4321
 
 Other commands:
 
-| Command | Description |
-|---|---|
-| `npm run build` | Production build (static output to `dist/`) |
-| `npm run preview` | Preview the production build locally |
-| `npm run lint` | Prettier + ESLint |
-| `npm run format` | Auto-format with Prettier |
+| Command           | Description                                 |
+| ----------------- | ------------------------------------------- |
+| `npm run build`   | Production build (static output to `dist/`) |
+| `npm run preview` | Preview the production build locally        |
+| `npm run lint`    | Prettier + ESLint                           |
+| `npm run format`  | Auto-format with Prettier                   |
 
 ## Adding a blog post
 
@@ -32,24 +32,24 @@ src/posts/my-post.mdx
 
 ```yaml
 ---
-title: "My Post Title"
-date: "2025-06-02"
+title: 'My Post Title'
+date: '2025-06-02'
 categories: [coding, math]
-excerpt: "A one-sentence summary shown in post cards."
-teaser: "my-teaser.png"
+excerpt: 'A one-sentence summary shown in post cards.'
+teaser: 'my-teaser.png'
 ---
 ```
 
 ### Frontmatter field reference
 
-| Field | Type | Description |
-|---|---|---|
-| `title` | string | Post title. Displayed in the blog index and on the post page. |
-| `date` | string | Publication date in `YYYY-MM-DD` format. |
+| Field        | Type     | Description                                                                       |
+| ------------ | -------- | --------------------------------------------------------------------------------- |
+| `title`      | string   | Post title. Displayed in the blog index and on the post page.                     |
+| `date`       | string   | Publication date in `YYYY-MM-DD` format.                                          |
 | `categories` | string[] | Lowercase, kebab-case strings. Used for related-posts scoring and category chips. |
-| `excerpt` | string | One sentence displayed in post cards. Rendered with `line-clamp-3`. |
-| `teaser` | string | Image filename used as the card thumbnail and OG image. See below. |
-| `draft` | boolean | Optional (defaults to `false`). Set `true` to hide from production builds. |
+| `excerpt`    | string   | One sentence displayed in post cards. Rendered with `line-clamp-3`.               |
+| `teaser`     | string   | Image filename used as the card thumbnail and OG image. See below.                |
+| `draft`      | boolean  | Optional (defaults to `false`). Set `true` to hide from production builds.        |
 
 ### Images
 

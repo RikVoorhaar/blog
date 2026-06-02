@@ -15,45 +15,45 @@ automated).
 
 ### 1a. Delete dead Docker/VPS infrastructure
 
-| File | Reason |
-|---|---|
-| `Dockerfile` | Old Node SSR image build |
-| `docker-compose.yml` | Traefik + container orchestration |
-| `.dockerignore` | Exclusively Docker-related |
+| File                                 | Reason                                      |
+| ------------------------------------ | ------------------------------------------- |
+| `Dockerfile`                         | Old Node SSR image build                    |
+| `docker-compose.yml`                 | Traefik + container orchestration           |
+| `.dockerignore`                      | Exclusively Docker-related                  |
 | `.github/workflows/build-deploy.yml` | Builds Docker image → deploys to VPS runner |
 
 ### 1b. Delete old SvelteKit reference
 
-| Path | Size | Reason |
-|---|---|---|
+| Path          | Size   | Reason                                                                  |
+| ------------- | ------ | ----------------------------------------------------------------------- |
 | `_reference/` | 268 KB | Full SvelteKit source. All components have Astro equivalents in `src/`. |
 
 ### 1c. Archive migration documentation
 
 These were useful during development but aren't needed going forward:
 
-| File | Action |
-|---|---|
-| `ASTRO_MIGRATION.md` | Move to `docs/archive/` or delete |
-| `WEBSITE_FIXES.md` | Move to `docs/archive/` or delete |
+| File                    | Action                            |
+| ----------------------- | --------------------------------- |
+| `ASTRO_MIGRATION.md`    | Move to `docs/archive/` or delete |
+| `WEBSITE_FIXES.md`      | Move to `docs/archive/` or delete |
 | `MATH_RENDERING_FIX.md` | Move to `docs/archive/` or delete |
-| `LAUNCH_PLAN.md` | Keep — this is the live plan |
+| `LAUNCH_PLAN.md`        | Keep — this is the live plan      |
 
 If keeping history matters, create `docs/archive/` and move them there.
 
 ### 1d. Clean config remnants
 
-| File | Fix |
-|---|---|
-| `.prettierignore` | Remove `.svelte-kit` and `pnpm-lock.yaml` entries (dead frameworks) |
-| `.npmrc` | Either add an `engines` field to `package.json` or remove `engine-strict=true` |
+| File              | Fix                                                                            |
+| ----------------- | ------------------------------------------------------------------------------ |
+| `.prettierignore` | Remove `.svelte-kit` and `pnpm-lock.yaml` entries (dead frameworks)            |
+| `.npmrc`          | Either add an `engines` field to `package.json` or remove `engine-strict=true` |
 
 ### 1e. Remove draft posts
 
-| File | Reason |
-|---|---|
-| `src/posts/test_post.mdx.unpublish` | Test post, never published |
-| `src/posts/music_2020.mdx.unpublish` | Unpublished draft |
+| File                                 | Reason                     |
+| ------------------------------------ | -------------------------- |
+| `src/posts/test_post.mdx.unpublish`  | Test post, never published |
+| `src/posts/music_2020.mdx.unpublish` | Unpublished draft          |
 
 These don't match the content collection glob (`**/*.mdx`) so they don't affect build output,
 but they're repo clutter.
@@ -67,7 +67,7 @@ but they're repo clutter.
 
 ---
 
-## Phase 2 — CI/CD 🤖
+## Phase 2 — CI/CD ✅ 🤖
 
 **Depends on:** Phase 1a (old workflow must be deleted first).
 
@@ -98,11 +98,38 @@ jobs:
 ```
 
 **Optional extensions** (can add later, not launch-blocking):
+
 - `pa11y-ci` — accessibility regression tests (needs headless browser in CI)
 - `@lhci/cli` — Lighthouse CI for perf budgets
 - `lychee` — broken link checker on the built site
 
----
+**Handoff for Phase 6 (validation):**
+
+### Status
+
+| Subtask                  | Status          | Notes                                                                                      |
+| ------------------------ | --------------- | ------------------------------------------------------------------------------------------ |
+| 3a — date on posts       | ✅ done         | Date+categories in `BlogPostLayout` metadata bar below `<h1>`                              |
+| 3b — teaser aspect ratio | ❌ unresolved   | See `POSTCARD_HANDOVER.md` for full analysis. Requires design decision on approach A/B/C/D |
+| 3c — excerpt whitespace  | ✅ done         | `.trim()` in PostCard, spacer `div.flex-1` prevents border stretch                         |
+| 3d — CV padding          | ✅ done         | `mb-4` wrapper around bullet points in `Experience.astro`                                  |
+| 3e — nav animations      | ❌ needs rework | Current `font-semibold scale-105` not liked. Needs different approach                      |
+| 3f — CV data             | 👤 human        | Edit `src/data/cv.ts`                                                                      |
+
+### Files changed
+
+- `src/layouts/BlogPostLayout.astro` — added `date` + `categories` props; metadata bar below `<h1>`
+- `src/pages/blog/[...slug].astro` — passes date/categories to layout; removed duplicate footer
+- `src/components/PostCard.astro` — excerpt `.trim()`, spacer div instead of flex-1 on excerpt, removed read-more link, teaser section still in flux (currently `w-full h-auto`, no object-fit)
+- `src/components/cv/Experience.astro` — bullets wrapped in `<div class="mb-4">`
+- `src/layouts/Layout.astro` — nav links use `font-semibold scale-105` on active, `text-accent scale-105` on hover (needs rework)
+
+### Known caveats
+
+- The lint command fails on `dist/` HTML due to pre-existing `<div>` inside `<p>` from post content — unrelated.
+- 3b is blocked on a design decision: see `POSTCARD_HANDOVER.md` for options A–D.
+- 3e needs a fresh design approach from a human (or a new agent with clean context).
+- Phase 3f (CV data) is 👤 human.
 
 ## Phase 3 — Bug fixes & visual polish 🤖
 
@@ -131,12 +158,15 @@ container. Let the image set its own aspect ratio with a `max-height` to prevent
 excessively tall images from dominating the card.
 
 > 💡 Replace:
+>
 > ```astro
 > <div class="aspect-[16/10] overflow-hidden" ...>
 >   <Image class="w-full h-full object-cover" ... />
 > </div>
 > ```
+>
 > With a container that uses `object-contain` and no forced aspect ratio:
+>
 > ```astro
 > <div class="overflow-hidden" style="max-height: 12rem;">
 >   <Image class="w-full h-auto max-h-48 object-contain" ... />
@@ -156,9 +186,11 @@ characters that render as `<p>` breaks.
 
 1. **Automated (preferred):** In `PostCard.astro`, trim whitespace from the excerpt
    before rendering:
+
    ```astro
    {post.data.excerpt.trim()}
    ```
+
    This is a one-line fix that handles all posts.
 
 2. **Content-side:** If some excerpts genuinely need multi-paragraph formatting, switch
@@ -183,17 +215,21 @@ with `pt-4`, but there's no bottom padding after the last bullet.
 design calls for a color change and font-size transition to make it "pop."
 
 **Fix:** In `Layout.astro`, enhance the nav link styles:
+
 - Active link: `text-accent` color + slightly larger font (`font-semibold` or
   `scale-105`)
 - Hover: color transition to `text-accent`
 - Animate all transitions with `transition-all duration-200`
 
 > 💡 Change:
+>
 > ```astro
 > 'px-2 py-1 text-sm font-medium rounded transition-all duration-200',
 > 'hover:underline hover:underline-offset-4',
 > ```
+>
 > To include color and scale transforms, e.g.:
+>
 > ```astro
 > 'px-2 py-1 text-sm font-medium rounded transition-all duration-200',
 > 'hover:text-(--text-accent) hover:scale-105',
@@ -202,6 +238,7 @@ design calls for a color change and font-size transition to make it "pop."
 ### 3f. CV content update 👤
 
 **Human task.** The CV data in `src/data/cv.ts` is out of date. Update:
+
 - Work experience (new roles, end dates)
 - Skills and tools
 - Languages (proficiency levels may have changed)
@@ -212,21 +249,31 @@ Edit `src/data/cv.ts` directly — it's a single structured TypeScript file.
 
 **Handoff for Phase 6 (validation):**
 
-### Files changed
-- `src/layouts/BlogPostLayout.astro` — added `date` and `categories` props; renders metadata bar below `<h1>`
-- `src/pages/blog/[...slug].astro` — passes date/categories to layout; removed footer with duplicate date/categories
-- `src/components/PostCard.astro` — teaser: `aspect-[16/10]` + `object-cover` → `max-height: 12rem` + `object-contain`; excerpt: added `.trim()`
-- `src/components/cv/Experience.astro` — wrapped bullets in `<div class="mb-4">` for bottom spacing
-- `src/layouts/Layout.astro` — nav links: underline → `text-(--text-accent)` + `scale-105` on hover; `font-semibold scale-105` on active
+### Status
 
-### Design decisions
-- **3a:** Date/categories now appear in the `BlogPostLayout` metadata bar (before `<slot />`) on every post page. The footer with a horizontal rule above related posts was removed — the date is now at the top where readers expect it.
-- **3b:** Teaser images use `object-contain` with `max-height: 12rem` container and `max-h-48` on the image. No forced aspect ratio — images display at native proportions. SVGs (fallback path) also get `object-contain`.
-- **3e:** Active nav link is now `font-semibold` + `scale-105` (no underline). Hover uses `text-(--text-accent)` with `scale-105`. Underline decoration is removed entirely.
+| Subtask                  | Status          | Notes                                                                                      |
+| ------------------------ | --------------- | ------------------------------------------------------------------------------------------ |
+| 3a — date on posts       | ✅ done         | Date+categories in `BlogPostLayout` metadata bar below `<h1>`                              |
+| 3b — teaser aspect ratio | ❌ unresolved   | See `POSTCARD_HANDOVER.md` for full analysis. Requires design decision on approach A/B/C/D |
+| 3c — excerpt whitespace  | ✅ done         | `.trim()` in PostCard, spacer `div.flex-1` prevents border stretch                         |
+| 3d — CV padding          | ✅ done         | `mb-4` wrapper around bullet points in `Experience.astro`                                  |
+| 3e — nav animations      | ❌ needs rework | Current `font-semibold scale-105` not liked. Needs different approach                      |
+| 3f — CV data             | 👤 human        | Edit `src/data/cv.ts`                                                                      |
+
+### Files changed
+
+- `src/layouts/BlogPostLayout.astro` — added `date` + `categories` props; metadata bar below `<h1>`
+- `src/pages/blog/[...slug].astro` — passes date/categories to layout; removed duplicate footer
+- `src/components/PostCard.astro` — excerpt `.trim()`, spacer div instead of flex-1 on excerpt, removed read-more link, teaser section still in flux (currently `w-full h-auto`, no object-fit)
+- `src/components/cv/Experience.astro` — bullets wrapped in `<div class="mb-4">`
+- `src/layouts/Layout.astro` — nav links use `font-semibold scale-105` on active, `text-accent scale-105` on hover (needs rework)
 
 ### Known caveats
-- The lint command fails on `dist/` HTML files due to pre-existing `<div>` inside `<p>` nesting from post content — unrelated to these changes.
-- Phase 3f (CV data update) is a 👤 human task — not done.
+
+- The lint command fails on `dist/` HTML due to pre-existing `<div>` inside `<p>` from post content — unrelated.
+- 3b is blocked on a design decision: see `POSTCARD_HANDOVER.md` for options A–D.
+- 3e needs a fresh design approach from a human (or a new agent with clean context).
+- Phase 3f (CV data) is 👤 human.
 
 ---
 
@@ -236,35 +283,37 @@ Edit `src/data/cv.ts` directly — it's a single structured TypeScript file.
 experiment at a time, check the Cloudflare preview deploy, and keep or revert.
 
 The current `.prose` baseline:
+
 ```css
-font-size: 1.125rem;  /* ~20px on 18px base */
+font-size: 1.125rem; /* ~20px on 18px base */
 line-height: 1.6;
 max-width: 48rem;
 ```
 
 ### Body text & spacing
 
-| # | Change | Rationale |
-|---|---|---|
-| E1 | `line-height: 1.5` | 1.6 feels spacious for long-form tech writing. 1.5 is the sweet spot for Source Sans 3 |
-| E2 | `font-size: 1.0625rem` (~19px) | 20px is slightly large for body text in long posts. 19px keeps legibility, reduces "presentation-y" feel |
-| E3 | `h2, h3 { margin-top: 2.25em }` | Section headings feel too close to preceding paragraphs. More top space helps readers orient |
-| E4 | `max-width: 52rem` (was 48rem) | Gives math blocks and code snippets more horizontal room. 52rem ≈ 70 chars/line at 19px — still comfortable |
+| #   | Change                          | Rationale                                                                                                   |
+| --- | ------------------------------- | ----------------------------------------------------------------------------------------------------------- |
+| E1  | `line-height: 1.5`              | 1.6 feels spacious for long-form tech writing. 1.5 is the sweet spot for Source Sans 3                      |
+| E2  | `font-size: 1.0625rem` (~19px)  | 20px is slightly large for body text in long posts. 19px keeps legibility, reduces "presentation-y" feel    |
+| E3  | `h2, h3 { margin-top: 2.25em }` | Section headings feel too close to preceding paragraphs. More top space helps readers orient                |
+| E4  | `max-width: 52rem` (was 48rem)  | Gives math blocks and code snippets more horizontal room. 52rem ≈ 70 chars/line at 19px — still comfortable |
 
 ### Heading decoration (small marker before `h2`/`h3`)
 
 Three independent options for adding a decorative marker before section headings.
 **Suggested: E5 (teal dash).** Try one at a time.
 
-| # | CSS | Effect |
-|---|---|---|
-| E5 | `h2::before { content: '— '; color: var(--text-heading-accent); font-weight: 400; }` | Teal em-dash before headings. Editorial/literary feel, introduces the secondary teal color into content naturally. Pairs well with Raleway's decorative character. **← Suggested** |
-| E6 | `h2, h3 { padding-left: 0.75rem; border-left: 3px solid var(--color-accent-500); }` | Crimson left accent bar. Simple, clean, already works in both themes. Safest/most conventional option. |
-| E7 | `h2::before { content: ''; display: inline-block; width: 0.45em; height: 0.45em; border-radius: 50%; background: var(--color-accent-500); margin-right: 0.55em; vertical-align: 0.15em; }` | Small crimson dot. Geometric and subtle, echoes the accent color without text characters. Works well with Raleway's geometric aesthetic. |
+| #   | CSS                                                                                                                                                                                        | Effect                                                                                                                                                                             |
+| --- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| E5  | `h2::before { content: '— '; color: var(--text-heading-accent); font-weight: 400; }`                                                                                                       | Teal em-dash before headings. Editorial/literary feel, introduces the secondary teal color into content naturally. Pairs well with Raleway's decorative character. **← Suggested** |
+| E6  | `h2, h3 { padding-left: 0.75rem; border-left: 3px solid var(--color-accent-500); }`                                                                                                        | Crimson left accent bar. Simple, clean, already works in both themes. Safest/most conventional option.                                                                             |
+| E7  | `h2::before { content: ''; display: inline-block; width: 0.45em; height: 0.45em; border-radius: 50%; background: var(--color-accent-500); margin-right: 0.55em; vertical-align: 0.15em; }` | Small crimson dot. Geometric and subtle, echoes the accent color without text characters. Works well with Raleway's geometric aesthetic.                                           |
 
 All experiments are independent CSS tweaks in `.prose`.
 
 **Handoff for Phase 6 (pre-launch validation):**
+
 - **File modified:** `src/styles/app.css` — `.prose` block updated with E1–E5.
 - **E1–E4 applied:** body line-height 1.5, font-size 19px, h2/h3 margin-top 2.25em, max-width 52rem.
 - **E5 applied (revised):** crimson em-dash (`—`) ::before marker on `h2` using `var(--text-accent)`, teal em-dash on `h3`/`h4` using `var(--text-heading-accent)`.
@@ -278,6 +327,7 @@ All experiments are independent CSS tweaks in `.prose`.
 **No dependencies.**
 
 Rewrite `README.md` with:
+
 - **Stack:** Astro 6.4 + Tailwind CSS 4, hosted on Cloudflare Pages
 - **Local dev:** `npm install && npm run dev` → `localhost:4321`
 - **How to add a blog post:**
@@ -285,11 +335,11 @@ Rewrite `README.md` with:
   - Required frontmatter:
     ```yaml
     ---
-    title: "My Post Title"
-    date: "2025-06-02"
+    title: 'My Post Title'
+    date: '2025-06-02'
     categories: [coding, math]
-    excerpt: "A one-sentence summary shown in post cards."
-    teaser: "my-teaser.png"
+    excerpt: 'A one-sentence summary shown in post cards.'
+    teaser: 'my-teaser.png'
     ---
     ```
   - **Frontmatter constraints:**
@@ -348,6 +398,7 @@ Before switching DNS, manually verify every page at `rikvoorhaar.pages.dev`:
    records.
 
 2. **Merge to main:**
+
    ```bash
    git checkout main
    git merge experiment/astro
@@ -359,6 +410,7 @@ Before switching DNS, manually verify every page at `rikvoorhaar.pages.dev`:
 
 4. **Shut down VPS** (after DNS propagates — keep VPS running for a few days as
    rollback safety net):
+
    ```bash
    docker compose down    # on the VPS
    ```
@@ -393,21 +445,23 @@ Phase 7 is the final human step.
 ## Summary checklist (ordered by execution)
 
 ### 🤖 Agentic phases
+
 - [x] 1a: Delete `Dockerfile`, `docker-compose.yml`, `.dockerignore`, `.github/workflows/build-deploy.yml`
 - [x] 1b: Delete `_reference/`
 - [x] 1c: Archive `ASTRO_MIGRATION.md`, `WEBSITE_FIXES.md`, `MATH_RENDERING_FIX.md` → `docs/archive/`
 - [x] 1d: Clean `.prettierignore` (remove `.svelte-kit`, `pnpm-lock.yaml`)
 - [x] 1e: Remove `.unpublish` draft posts
-- [ ] 2: Create `.github/workflows/ci.yml` (build + lint)
+- [x] 2: Create `.github/workflows/ci.yml` (build + lint)
 - [x] 3a: Add published date below blog post title
-- [x] 3b: Fix teaser aspect ratio in PostCard (object-contain, no crop)
+- [ ] 3b: Fix teaser aspect ratio in PostCard (object-contain, no crop)
 - [x] 3c: Trim excerpt whitespace in PostCard (fix blank lines)
 - [x] 3d: Add vertical padding between CV roles
-- [x] 3e: Enhance nav link animations (color + scale)
+- [ ] 3e: Enhance nav link animations (color + scale)
 - [x] 4 (E1–E7): Typography experiments — E1–E4 body/spacing, E5–E7 heading decorations (E5 applied) ✅
 - [x] 5: Rewrite README with Astro stack + blog post how-to
 
 ### 👤 Human phases
+
 - [ ] 3f: Update CV data in `src/data/cv.ts`
 - [ ] 6: Validate entire site at `rikvoorhaar.pages.dev`
 - [ ] 7.1: Switch DNS: `rikvoorhaar.com` → Cloudflare Pages
@@ -417,6 +471,7 @@ Phase 7 is the final human step.
 - [ ] 7.5: Delete `experiment/astro` branch
 
 ### Optional / later
+
 - [ ] Add pa11y-ci or Lighthouse CI to GitHub Actions
 - [ ] Add `eslint-plugin-astro`
 - [ ] Phase 10 from ASTRO_MIGRATION.md: evaluate Sätteri for build speed

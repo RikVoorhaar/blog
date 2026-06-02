@@ -15,6 +15,7 @@ codebase. All domain knowledge comes from the planning document the user provide
 ### 1. Identify the planning document and phase
 
 The user must specify:
+
 - **Planning document** — path to the markdown file (e.g., `LAUNCH_PLAN.md`)
 - **Phase ID** — the phase label to execute (e.g., `Phase 1`, `3a`, `Phase 4`)
 
@@ -79,6 +80,7 @@ document is the source of truth, not a narrative.
 ### 6. Communicate the outcome
 
 Tell the user:
+
 - What was done (summary, not step-by-step replay)
 - Files changed (paths)
 - Anything that didn't work or needs human follow-up
@@ -92,10 +94,12 @@ they want to chain phases. Assume they'll review before continuing.
 ### Checklists with sub-tasks
 
 If a phase has sub-tasks like:
+
 ```
 - [ ] 3a: Add published date
 - [ ] 3b: Fix teaser aspect ratio
 ```
+
 Treat each as an independent task within the phase. Mark them individually.
 
 ### Multi-file phases
@@ -106,6 +110,7 @@ edits where the write sets don't overlap. Coordinate the results.
 ### Deletion-only phases
 
 For cleanup phases (remove files, delete directories):
+
 - Verify the file exists before attempting deletion
 - Check that no remaining code imports or references the deleted file
 - Run the build after all deletions to confirm nothing broke
@@ -113,6 +118,7 @@ For cleanup phases (remove files, delete directories):
 ### Human phases (👤)
 
 If the phase is marked 👤, do NOT execute it. Only provide:
+
 - What the user needs to do (summarize from the plan)
 - Links/references to the relevant sections of the plan
 - Any preparation the agent can do (e.g., open the file, show the current state)

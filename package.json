@@ -9,6 +9,7 @@
 		"dev": "astro dev",
 		"build": "astro build",
 		"preview": "astro preview",
+		"prepare": "husky",
 		"lint": "prettier --check . && eslint .",
 		"format": "prettier --write ."
 	},
@@ -20,7 +21,9 @@
 		"eslint": "^8.52.0",
 		"eslint-config-prettier": "^8.10.0",
 		"flag-icons": "^7.0.2",
+		"husky": "^9.1.7",
 		"katex": "^0.16.9",
+		"lint-staged": "^17.0.7",
 		"prettier": "^2.8.8",
 		"rehype-autolink-headings": "^7.1.0",
 		"rehype-katex": "^7.0.1",
@@ -30,6 +33,10 @@
 		"tailwindcss": "^4.3.0",
 		"tslib": "^2.6.2",
 		"typescript": "^5.2.2"
+	},
+	"lint-staged": {
+		"*.{js,ts,cjs,mjs,jsx,tsx,json,md,mdx,css,html,yml,yaml}": "prettier --write",
+		"*.{js,ts,cjs,mjs,jsx,tsx}": "eslint --fix"
 	},
 	"type": "module",
 	"dependencies": {

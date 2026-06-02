@@ -16,29 +16,35 @@ JS, Tailwind 4 `@theme` tokens in `src/styles/app.css`, MDX component map in
 
 ## Summary
 
-| # | Fix group | Original issues | Primary files | Risk |
-|---|---|---|---|---|
-| A | Math rendering | "Math doesn't render at all" | `remark-mdx-math.mjs` | Low, isolated |
-| B | CV bug fixes (dropdowns, Coursera links, work-experience sectioning) | 3 CV issues | `src/components/cv/*`, `src/pages/cv.astro` | Low–med |
-| C | Light-mode color & contrast (accent + links) | yellow too light, links too light | `src/styles/app.css` + components using accent/link colors | Med (touches many files) |
-| D | Light code theme | code is monokai in light mode | `astro.config.mjs`, `src/styles/app.css` | Low |
-| E | Typography overhaul + section highlight | fonts, size, line spacing, section "highlight font" | `package.json`, `src/styles/app.css`, `src/layouts/Layout.astro`, `SectionHeader.astro` | Med |
-| F | "Keep reading" related posts footer | add links to other posts | `src/pages/blog/[...slug].astro`, maybe new component | Low |
-| G | Dark-mode SVG diagram legibility | thesis SVGs (black text, transparent bg) unreadable in dark mode | `src/components/markdown/img.astro`, `ImgSmall.astro`, `src/styles/app.css` | Low |
+| #   | Fix group                                                            | Original issues                                                  | Primary files                                                                           | Risk                     |
+| --- | -------------------------------------------------------------------- | ---------------------------------------------------------------- | --------------------------------------------------------------------------------------- | ------------------------ |
+| A   | Math rendering                                                       | "Math doesn't render at all"                                     | `remark-mdx-math.mjs`                                                                   | Low, isolated            |
+| B   | CV bug fixes (dropdowns, Coursera links, work-experience sectioning) | 3 CV issues                                                      | `src/components/cv/*`, `src/pages/cv.astro`                                             | Low–med                  |
+| C   | Light-mode color & contrast (accent + links)                         | yellow too light, links too light                                | `src/styles/app.css` + components using accent/link colors                              | Med (touches many files) |
+| D   | Light code theme                                                     | code is monokai in light mode                                    | `astro.config.mjs`, `src/styles/app.css`                                                | Low                      |
+| E   | Typography overhaul + section highlight                              | fonts, size, line spacing, section "highlight font"              | `package.json`, `src/styles/app.css`, `src/layouts/Layout.astro`, `SectionHeader.astro` | Med                      |
+| F   | "Keep reading" related posts footer                                  | add links to other posts                                         | `src/pages/blog/[...slug].astro`, maybe new component                                   | Low                      |
+| G   | Dark-mode SVG diagram legibility                                     | thesis SVGs (black text, transparent bg) unreadable in dark mode | `src/components/markdown/img.astro`, `ImgSmall.astro`, `src/styles/app.css`             | Low                      |
 
 ---
 
 ## Fix A — Math rendering (root cause found)
 
 ### Diagnosis
+
 Math is **not** failing silently — KaTeX runs, but renders **empty** output. Verified in a
 fresh build: `dist/blog/bayes_exam/index.html` contains 36 `<span class="katex">` wrappers,
 but every one has an **empty** TeX annotation and an **empty** `katex-html` span:
 
 ```html
-<span class="katex"><span class="katex-mathml"><math ...><semantics><mrow></mrow>
-<annotation encoding="application/x-tex"></annotation></semantics></math></span>
-<span class="katex-html" aria-hidden="true"></span></span>
+<span class="katex"
+	><span class="katex-mathml"
+		><math ...
+			><semantics
+				><mrow></mrow> <annotation encoding="application/x-tex"></annotation></semantics></math
+	></span>
+	<span class="katex-html" aria-hidden="true"></span
+></span>
 ```
 
 The math **value is lost between mdast and hast**. In `remark-mdx-math.mjs`, each `math` /
@@ -53,6 +59,7 @@ correctly restored to `{`/`}` in the plugin, and KaTeX CSS is already imported i
 `Layout.astro` (`import 'katex/dist/katex.min.css'`).
 
 ### Plan
+
 - In `remark-mdx-math.mjs`, add `data.hChildren = [{ type: 'text', value: mathValue.trim() }]`
   to **all three** node-creation branches (the two `math` display branches and the
   `inlineMath` branch). This carries the TeX source into hast where `rehype-katex` reads it.
@@ -88,6 +95,7 @@ Three root causes found beyond the original `hChildren` issue:
 All three are isolated to the CV and naturally verified together on `/cv`.
 
 ### B1 — "More info" dropdowns do nothing
+
 **Root cause:** In `src/components/cv/OpenSource.astro` and `src/components/cv/Publication.astro`
 the bottom inline `<script>` references `document.getElementById('btn-{uid}')` — but Astro
 does **not** interpolate frontmatter (`{uid}`) inside `<script>` bodies; the script is bundled
@@ -101,6 +109,7 @@ Additionally, one near-identical script is emitted per instance, which Astro hoi
 or copy the Details pattern into each. Prefer one shared markup pattern to avoid drift.
 
 ### B2 — Coursera specialization links show as plain `<a>…</a>` text
+
 **Root cause:** Course entries live in `src/data/cv.ts` under `courses[].entries[].note` and
 contain raw HTML (`<a href="https://www.coursera.org/...">Coursera certificate</a>`). They are
 rendered by `src/components/cv/Education.astro` via `{entry.note}`, which **escapes** HTML.
@@ -112,6 +121,7 @@ plain text (no HTML there today) — consider `set:html` for consistency so futu
 Keep the style of the existing link colors (will be governed by Fix C tokens).
 
 ### B3 — Clearer sectioning of work experience
+
 **Current state:** `cv.astro` maps `cv.experience` into stacked `Experience.astro` blocks with
 only `mb-4`; roles run together with no separators.
 
@@ -122,6 +132,7 @@ wrapper in `cv.astro`). Keep consistent with the site's elevation system (`elev-
 `--surface-raised`). This is the most subjective item — propose 1 option, iterate on review.
 
 ### Acceptance / verification
+
 - `/cv`: clicking "More info" on every publication **and** open-source/technical-writing entry
   toggles content (chevron rotates), no console errors.
 - Coursera certificate links render as real clickable links under "Online courses".
@@ -151,6 +162,7 @@ non-first roles get `border-t` with `var(--border-subtle)` + `pt-4` + increased 
 Dark mode is fine; light mode has illegible bright-yellow text and too-light links.
 
 ### Diagnosis
+
 - The accent yellow `--color-accent-500` (`#ffe600`) is used as **text/foreground** in many
   places (brand, page `<h1>`s, section underline, `PostCard` titles, `OpenSource`/`Publication`
   titles, `Education` titles, category chips). On the light surface (`#f4f4f2`/`#ffffff`) this
@@ -161,6 +173,7 @@ Dark mode is fine; light mode has illegible bright-yellow text and too-light lin
   `var(--color-link-300)` inline regardless of theme → too light in light mode.
 
 ### Plan
+
 - Introduce **theme-aware semantic tokens** in `src/styles/app.css` so components don't each
   branch on theme. In the `html.dark`/`html:not(.light)` and `html.light` blocks add:
   - `--text-accent` → `var(--color-accent-500)` (dark) / `var(--color-accent-700)` or `-600`
@@ -177,6 +190,7 @@ Dark mode is fine; light mode has illegible bright-yellow text and too-light lin
 - Verify the yellow chosen for light mode against text on `--surface-raised`/`--surface-base`.
 
 ### Acceptance / verification
+
 - In light mode: headings, brand, links, "read more", and CV titles are clearly legible
   (target WCAG AA for body-size text where feasible; large headings may use AA-large).
 - Dark mode is visually unchanged.
@@ -193,6 +207,7 @@ and `html.light` blocks in `src/styles/app.css`. Dark mode references `--color-a
 **Accent palette swap (iteration 2):** User requested crimson/rose instead of yellow. Replaced
 the entire `--color-accent-*` ramp (and backward-compat `--color-turbo-*`/`--color-main-*`
 aliases) with Tailwind's Rose scale:
+
 - Light mode highlight: `--color-accent-700` = `#be123c` (deep crimson)
 - Dark mode highlight: `--color-accent-500` = `#f43f5e` (vibrant rose)
 - Updated `glow-accent` box-shadow from yellow to rose.
@@ -210,6 +225,7 @@ aliases) with Tailwind's Rose scale:
 from `markdown/a.astro`, `ContactItem.astro`, and `404.astro`.
 
 **Animations (iteration 3):**
+
 - `DarkMode.astro`: SVG icons now use `--text-accent` (visible in both themes). Hover adds
   accent ring (`box-shadow: 0 0 0 2px var(--text-accent)`) + surface-overlay background +
   scale-110 zoom.
@@ -230,14 +246,16 @@ chips (already have per-theme overrides).
 ## Fix D — Light code theme (Shiki)
 
 ### Diagnosis
+
 `astro.config.mjs` sets `markdown.shikiConfig.theme: 'monokai'` — a single dark theme used in
 both modes. `app.css` also forces `pre { background: var(--surface-sunken) }`, overriding the
 Shiki background.
 
 ### Plan
+
 - Switch to Shiki **dual themes** in `astro.config.mjs`:
   `shikiConfig: { themes: { light: 'github-light' /* or 'one-light'/'min-light' */, dark:
-  'monokai' /* keep, or 'github-dark' */ } }`. Astro then emits `--shiki-light*` and
+'monokai' /* keep, or 'github-dark' */ } }`. Astro then emits `--shiki-light*` and
   `--shiki-dark*` CSS variables and `style="…--shiki-dark…"` on tokens.
 - Add CSS in `app.css` to select the active theme by class: default to dark vars, and under
   `html.light` map the Shiki token `color`/`background-color`/etc. to the `--shiki-light*`
@@ -247,6 +265,7 @@ Shiki background.
 - Keep the inline-code styling (`:not(pre) > code`) as-is; only fenced blocks change.
 
 ### Acceptance / verification
+
 - Code blocks are readable in **both** themes (light theme has dark text on light bg).
 - No layout shift; `pre` border/radius preserved.
 - `npm run build` exits 0; spot-check posts with code (`ukf`, `selfhosted`, `python_docx`,
@@ -260,6 +279,7 @@ Covers: font family swap, larger body size, tighter line spacing, and the "secti
 font/color" request.
 
 ### Diagnosis
+
 - Current fonts: **Space Grotesk** (headings + body) and **JetBrains Mono** (code), self-hosted
   via `@fontsource/*` imports in `app.css`; `Layout.astro` preloads a Space Grotesk woff2.
 - `html { font-family: 'Space Grotesk' … }` sets body; a `pre,code,kbd,samp` rule sets mono.
@@ -268,6 +288,7 @@ font/color" request.
 - `SectionHeader.astro` uses `--text-primary` with a short accent underline.
 
 ### Plan
+
 - **Fonts:** add `@fontsource/raleway` (headings) and `@fontsource/source-sans-3` (body) to
   `package.json`; remove Space Grotesk (and its `@fontsource/space-grotesk` import + preload) if
   fully replaced. Import the needed weights in `app.css` (e.g. Raleway 600/700/800, Source Sans 3
@@ -287,6 +308,7 @@ font/color" request.
   headers and in-post section headings.
 
 ### Acceptance / verification
+
 - Raleway on all headings/section headers; Source Sans 3 on body; JetBrains Mono unchanged.
 - Body text noticeably larger; line spacing tighter; no overflow/wrapping regressions.
 - Section headers use the chosen highlight font+color and read well in both themes.
@@ -299,11 +321,13 @@ font/color" request.
 ## Fix F — "Keep reading" related posts footer
 
 ### Diagnosis
+
 `src/pages/blog/[...slug].astro` ends with a small footer (date + category chips). There is no
 cross-linking to other posts. A `PostCard.astro` component already exists and is used on the
 blog index.
 
 ### Plan
+
 - In `[...slug].astro`, after rendering content, compute a short list of **other** posts:
   prefer posts sharing a category with the current one, fall back to most recent, exclude the
   current post and drafts, cap at ~3.
@@ -313,11 +337,13 @@ blog index.
 - Optional: also surface this on the CV `technical_writing` section is **not** in scope.
 
 ### Acceptance / verification
+
 - Each post shows up to 3 relevant other posts at the bottom, none linking to itself.
 - Teaser images, titles, and links resolve correctly (astro:assets).
 - Looks correct in both themes; `npm run build` exits 0.
 
 ### ✅ Completed
+
 - Added `PostCard` import to `src/pages/blog/[...slug].astro`.
 - Computed `relatedPosts` in frontmatter: all non-draft posts excluding current,
   scored by category overlap (×100 weight) + date recency, capped at 3.
@@ -332,6 +358,7 @@ blog index.
 ## Fix G — Dark-mode SVG diagram legibility
 
 ### Diagnosis
+
 The diagram SVGs in `/blog/thesis` (e.g. `def-low-rank.svg`, `tt-explanation*.svg`,
 `low-rank-matrix-def.svg`, `def-tt.svg`, `explanation-tensor-opt.svg`) are **black-on-transparent**:
 verified that `def-low-rank.svg` uses `fill="rgb(0%, 0%, 0%)"` (18×) and
@@ -344,6 +371,7 @@ plain `<img>` (not inlined). So the SVG internals can't be recolored with CSS, a
 `filter: invert()` would corrupt the embedded light-blue **radial gradients** in some diagrams.
 
 ### Plan
+
 - Give diagram SVGs an opaque light backing so black text stays readable in both themes.
   Simplest robust approach: a CSS rule scoped to prose images, e.g.
   `.prose img[src$=".svg"] { background: #fff; padding: 0.5rem; border-radius: var(--radius-md); }`
@@ -357,6 +385,7 @@ plain `<img>` (not inlined). So the SVG internals can't be recolored with CSS, a
 - Leave raster diagrams (`.webp`/`.png`) untouched — they already have their own backgrounds.
 
 ### ✅ Completed
+
 - Added CSS rules in `src/styles/app.css` (after the `:is(.dark) .prose` block):
   - `:is(.dark) .prose img { background: #fff; }` — gives a white backing to all prose images
     in dark mode. Opaque images are unaffected (they cover the background); transparent
@@ -370,6 +399,7 @@ plain `<img>` (not inlined). So the SVG internals can't be recolored with CSS, a
 - Build: `npm run build` exits 0, 25 pages built.
 
 ### Acceptance / verification
+
 - In dark mode on `/blog/thesis`, every SVG diagram's text and lines are clearly legible.
 - Light mode unchanged or improved; embedded gradients render correctly (no inversion artifacts).
 - CV logos and icons are unaffected.
@@ -396,6 +426,7 @@ graph TD
 ```
 
 Recommended sequence:
+
 1. **A — Math** (critical, fully isolated, quick win).
 2. **B — CV bug fixes** (broken functionality, self-contained).
 3. **C — Light-mode color tokens** (foundational; introduces semantic tokens E reuses).
@@ -407,6 +438,7 @@ Recommended sequence:
 A, B, D, F, and G are mutually independent and could be reordered freely. C should precede E.
 
 ## Notes / non-goals
+
 - No data/content rewrites beyond rendering fixes (e.g. `cv.ts` HTML is kept; we fix how it's
   rendered).
 - Maintain the project's zero-framework-JS rule: all interactivity stays in vanilla `<script>`.

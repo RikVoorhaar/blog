@@ -1,18 +1,18 @@
 ---
-title:  "Modeling uncertainty in exam scores"
-date:   "2020-11-09"
+title: 'Modeling uncertainty in exam scores'
+date: '2020-11-09'
 categories: [data-science, statistics, education]
 excerpt: "We use exams to determine how much a student knows, but exams aren't perfect. How can we estimate the uncertainty in students' exams scores?"
-teaser: "bayes_exam.jpg"
+teaser: 'bayes_exam.jpg'
 ---
 
 We widely use exams in education to gauge the level of students. The result of an exam is really only indicator of the students actual level, and has a certainly level of uncertainty. In this article we will try to model the uncertainty in the grades of an exam through a Bayesian model, using the amount of points obtained in each question. Such an analysis may be useful in designing good exams, as in principal this error is something we would wish to minimize.
 
 ## The data
 
-We will use scores for 8 individual questions of a university math exam. We recorded scores of 100 students. Each question is worth 12 points for a total of 96 points, and students could obtain anywhere between 0 and 12 points for each question.  
+We will use scores for 8 individual questions of a university math exam. We recorded scores of 100 students. Each question is worth 12 points for a total of 96 points, and students could obtain anywhere between 0 and 12 points for each question.
 
-> Notice: this data is modified from the original in multiple ways due to privacy reasons. The modifications preserve most qualitative statistical properties._
+> Notice: this data is modified from the original in multiple ways due to privacy reasons. The modifications preserve most qualitative statistical properties.\_
 
 ## Modeling the data
 
@@ -27,11 +27,7 @@ covariance matrix of the scores we see that there doesn't seem to be a strong co
 question scores. We do however see that the 6th question has a higher variance than the other
 questions
 
-
-    
 ![png](/blog/bayes_exam/bayes_exam_3_0.png)
-    
-
 
 Now we need to obtain a good model for the conditional probability $P(G_j|S)$. We will model $G_j$
 by a binomial distribution, which corresponds to assuming $G_j$ consists of $12$ 'subproblems', of
@@ -43,7 +39,7 @@ $$
     P(G_j|S) \propto P(G_j|p_j,S)P(p_j|S),
 $$
 
-with 
+with
 
 $$
     G_j|p_j,S \sim \mathrm{Bin}(p_j,m_j).
@@ -64,7 +60,7 @@ where $\tau=0.01$ is a small regularization parameter. This model has $p_j$ cons
 if $S$ is small (and similarly $p_j\simeq 1$ if $S$ close to 96), and also has enough flexibility to
 fit our data reasonably well. The exponentials are used both to force the parameters to be positive,
 and this parametrization also improves the fit. The parameters $\alpha_i,\beta_i$ are given normal
-priors with mean $0$ and large sigma, although the fit is not sensitive on this prior. 
+priors with mean $0$ and large sigma, although the fit is not sensitive on this prior.
 
 We will model all the parameters in this model using a Monte Carlo Markov Chain (MCMC) simulation
 using `pymc3`. With `pymc3` it is very straightforward to implement this model, and requires only a
@@ -78,13 +74,9 @@ below shows the real scores on the horizontal axis, and predicted scores on vert
 vertically shaded area indicates one standard deviation. The model appears to by unbiased for lower
 scores, but picks up a slight bias for higher scores. In the original unmodified data this behavior
 was not apparent, and is therefore likely a byproduct of how the data was modified due to privacy
-concerns. 
+concerns.
 
-
-    
 ![png](/blog/bayes_exam/bayes_exam_9_0.png)
-    
-
 
 The goal of this project is to simulate the error in the exam score. Below we plot the the standard
 deviations of the predicted scores as function of total score. We compare this to a theoretical
@@ -95,11 +87,7 @@ posterior predictive, which is significantly higher. This makes sense, because f
 predictive we do not just model the error in each question score, we also have to predict the scores
 for each question given just the total score.
 
-
-    
 ![png](/blog/bayes_exam/bayes_exam_11_0.png)
-    
-
 
 To measure how well our model describes the data, we compare the posterior predictive for each
 question to the data for each question as function of total score. Here we see that our model
@@ -109,11 +97,7 @@ model the questions scores more accurately we would need to step away from the b
 However this would make the model more complicated, and the current model does give reasonable
 predictions for the most part.
 
-
-    
 ![png](/blog/bayes_exam/bayes_exam_13_0.png)
-    
-
 
 ## Evaluation the qualities of questions
 
@@ -126,16 +110,8 @@ questions 2,4,8 are quite good, whereas 1,3,6 are not as good. In particular the
 question 6 has the weakest correlation with the total score. Question 5 seems to have been
 relatively easy, whereas question 3 appears to have been difficult. Analyzing questions in such a
 manner can be useful for designing future tests, as well as determining what aspects of the course
-the students found easier or more difficult. 
+the students found easier or more difficult.
 
-
-    
 ![png](/blog/bayes_exam/bayes_exam_15_0.png)
-    
 
-
-
-    
 ![png](/blog/bayes_exam/bayes_exam_16_0.png)
-    
-

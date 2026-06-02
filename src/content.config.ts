@@ -9,8 +9,8 @@ const blog = defineCollection({
 		excerpt: z.string(),
 		teaser: z.string(),
 		categories: z.array(z.string()),
-		draft: z.boolean().default(false),
-	}),
+		draft: z.boolean().default(false)
+	})
 });
 
 export const collections = { blog };

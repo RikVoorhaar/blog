@@ -1,9 +1,9 @@
 ---
-title: "On Kalman filters and how I made them 20x faster using Rust"
-date: "2023-10-07"
+title: 'On Kalman filters and how I made them 20x faster using Rust'
+date: '2023-10-07'
 categories: [website, data-science, tools]
-excerpt: "In my first dive into Rust, I implemented an unscented Kalman filter in and made it 20x faster than the equivalent Python implementation."
-teaser: "ukf.svg"
+excerpt: 'In my first dive into Rust, I implemented an unscented Kalman filter in and made it 20x faster than the equivalent Python implementation.'
+teaser: 'ukf.svg'
 ---
 
 Python is generally fast enough -- until it's not. When you reach that point, there are several ways to speed up your Python code. However, one of the most effective approaches is to rewrite the bottleneck in a different language. Traditionally, that language has been C/C++. But now, there's another contender entering the arena:
@@ -52,7 +52,7 @@ The Kalman filter can be thought of as a two-step process: the prediction step a
 
 ### Predict step
 
-To warm up, let's focus on how to model a single, static keypoint. Imagine we have a position $x\in\mathbb R^3$ along with a $3\times 3$ covariance matrix $P$.  These represent the mean and variance of a random variable $X(0)$ at the initial time $t=0$.
+To warm up, let's focus on how to model a single, static keypoint. Imagine we have a position $x\in\mathbb R^3$ along with a $3\times 3$ covariance matrix $P$. These represent the mean and variance of a random variable $X(0)$ at the initial time $t=0$.
 
 As time passes, our estimated position $x$ remains unchanged, but the covariance matrix $P$ should grow. To model this, we can turn to Brownian motion and write $X(t) = X(0) + \eta W(t)$ where $W(t)$ represents a Wiener process (or Brownian motion), and $\eta>0$ is the noise level. The expectaton for this is $\mathbb E(X(t))=X(0)=x$, while the variance evolves according to:
 
@@ -111,7 +111,6 @@ $$
 $$
 
 While the math wasn't overly complicated, the intricacy quickly scales with more complex stochastic differential equations. Analytical integration may not always be feasible, making numerical or Monte-Carlo methods an alternative, albeit costly, approach.
-
 
 Fortunately, if our prediction is linear, we can simplify things considerably. In our case, the function $(x,v)\mapsto (x+vt,v)$ is indeed linear. Let's denote this map by $F_t$. Now, we encapsulate both $(x_k,v_k)$ together into a single variable $x_k\in\mathbb R^6$, with the covariance $P$ being a $6\times 6$ matrix. Ignoring the $(\eta_vt^3/3)I$ term, the update step simplifies to:
 
@@ -195,7 +194,7 @@ To derive the prediction and update steps of the Kalman filter we had to make on
 prediction step, or the 3 assumptions I listed in the update step. Rather it's the
 assumption that the transition map $F_t$ and the measurement map $H$ are _linear_ maps.
 
-In the case of a moving keypoint both $F_t$ and $H$ _were_ linear. However this is not always the case in more complex systems.  Take camera observations as an example.  Even ignoring lens distortion, the measurement $H$ is still a projective transformation, not a linear one. To understand why, consider the fact that if we move a point very close to a camera 1cm to the left, it might move many pixels on the image. In contrast,if that same point is several meters away then the same movement will result in a change of 1-2 pixels at best.
+In the case of a moving keypoint both $F_t$ and $H$ _were_ linear. However this is not always the case in more complex systems. Take camera observations as an example. Even ignoring lens distortion, the measurement $H$ is still a projective transformation, not a linear one. To understand why, consider the fact that if we move a point very close to a camera 1cm to the left, it might move many pixels on the image. In contrast,if that same point is several meters away then the same movement will result in a change of 1-2 pixels at best.
 
 So why do we need the linearity assumption? Simply put, if $x$ is Gaussian then so are $F_tx$ and $Hx$, but this is only true for linear maps. One can _approximate_ $F_tx$ and $Hx$ by a Gaussian using a linear approximation of the functions $F_t$ and $H$. However, has its downsides: a) the approximation may be innacurate, and b) computing the linear approximaton requires computing the Jacobian, which may be challenging and computationally expensive.
 
@@ -208,7 +207,7 @@ samples in order to get an accurate estimate.
 
 ### Sigma points and the unscented transform
 
-Why rely on _random sampling_ to estimate the mean and covariance of $f(x)$, when we can go with _deterministic sampling_ and _pick_ a robust set of samples $(s_1,\dots,s_N)$. These points are called _sigma points_. Using these, we can estimate the mean of $f(x)$ through a weighted mean $\mu=\sum_{i=1}^Nf(s_i)W^a_i$. To estimate the covariance we use $\mu$ and a second set of weights to get: $\Sigma = \sum_i W_i^c (f(s_i)-\mu)(f(s_i)-\mu)^\top$.  This method is known as the _unscented transform_ (UT). It takes a mean and covariance of a Gaussian $X$ and uses sigma points to estimte the mean and covariance of the transformed variable $f(X)$.
+Why rely on _random sampling_ to estimate the mean and covariance of $f(x)$, when we can go with _deterministic sampling_ and _pick_ a robust set of samples $(s_1,\dots,s_N)$. These points are called _sigma points_. Using these, we can estimate the mean of $f(x)$ through a weighted mean $\mu=\sum_{i=1}^Nf(s_i)W^a_i$. To estimate the covariance we use $\mu$ and a second set of weights to get: $\Sigma = \sum_i W_i^c (f(s_i)-\mu)(f(s_i)-\mu)^\top$. This method is known as the _unscented transform_ (UT). It takes a mean and covariance of a Gaussian $X$ and uses sigma points to estimte the mean and covariance of the transformed variable $f(X)$.
 
 So, how do we pick these sigma points $s_i$ and the associated weights $W^a$ and $W^c$? Technically, any set of points could work, so long as, if $f$ is the identity function, we get the original mean and covariance back. However, most people use a particular algorithm developed by van der Merwe. This algorithm uses three parameters $\alpha, \beta,\kappa$ . Given input mean and covariance $(\mu,\Sigma)$, the algorithm defines:
 
@@ -252,6 +251,7 @@ stink".
 ### Unscented Kalman Filter
 
 Armed with the unscented transform, you only need minor modifications to the Kalman filter algorithm to account for non-linear functions. Let's first look at the predict step as it used to be:
+
 $$
 \begin{align*}
   \hat x_k&\leftarrow F_tx_{k-1}\\
@@ -280,7 +280,7 @@ $$
 \end{align*}
 $$
 
-That's not too bad! This also shows you could actually swap out the unscented transform for _any_ method of estimating the mean/covariance of $f_t(X)$. 
+That's not too bad! This also shows you could actually swap out the unscented transform for _any_ method of estimating the mean/covariance of $f_t(X)$.
 
 Then what about the predict step? We have our estimate $(\hat x_k,\hat P_k)$ and an observation $(z_k, R)$. Instead of a measurment matrix $H$, we have a measurment function $h$. We start by applying the unscented transform to the estimate to put it in the measurement space:
 
@@ -316,7 +316,7 @@ blog post. Coming up next, we'll dive into my implemenaton.
 
 ## `<code>`
 
-Let's put the unscented Kalman filter to work on an actual problem. Not just to see Kalman filters in action, but also to understand why I needed to speed it up. 
+Let's put the unscented Kalman filter to work on an actual problem. Not just to see Kalman filters in action, but also to understand why I needed to speed it up.
 
 ### Model problem
 
@@ -325,7 +325,6 @@ Let's go back to the beginning of this post. We're dealing with multiple cameras
 To paint a clearer picture, I made a little simulation of a keypoint moving around in 3D projcted down to the viewpoint of two cameras. Below you can see two plots showing what each of the two cameras can see. Thanks to he noise I added the cameras don't see a smooth curve at all. This is pretty much what you would get when applying machine learning pose detection algorithms on real footage too.
 
 <Details summary="Click here to see the code for the sumulation" id="ukf-detail1">
-
 
 ```python
 from time import perf_counter
@@ -393,11 +392,10 @@ plt.xlabel("x")
 plt.ylabel("y")
 plt.title("View from camera #2")
 ```
+
 </Details>
 
-    
 ![Simulated path drawn from the point of view of two cameras](/blog/ukf/blog_post_3_1.png)
-
 
 To model this problem we use a model dimension of $6$ (that's position plus vecocity) and a measurement dimension of 2 (the pixels on a screen).
 
@@ -628,8 +626,8 @@ total_keypoints = n_filters * len(proj_points_obs1) *2
 time_per_keypoint_rust = (time_end - time_begin) / total_keypoints
 print(f"Time per keypoint (Rust): {time_per_keypoint_rust\*1e6:0.1f} µs")
 ```
-</Details>
 
+</Details>
 
 <Output>Time per keypoint (Rust): 8.1 µs</Output>
 
@@ -679,12 +677,9 @@ print(f"Rust speedup: {rust_speedup:0.1f}x")
 
 </Details>
 
-<Output>
-Time per keypoint (Python}: 120.4 µs
-Rust speedup: 14.9x
-</Output>
+<Output>Time per keypoint (Python}: 120.4 µs Rust speedup: 14.9x</Output>
 
-That's 15x speedup just for changing out a python functon for a Rust one! Here I used `UKFParallel` which  takes a list of unscented Kalman filters as input, and allows calling the update/predict functions for each Kalman filter in a batch. This is better than than using a for loop in Python, since we can limit the time spent interacting with the GIL.
+That's 15x speedup just for changing out a python functon for a Rust one! Here I used `UKFParallel` which takes a list of unscented Kalman filters as input, and allows calling the update/predict functions for each Kalman filter in a batch. This is better than than using a for loop in Python, since we can limit the time spent interacting with the GIL.
 
 Originally the idea of `UKFParallel` was to actually evaluate the predict / update functions in parallel. Unfortunately, even when the the measurement and transition functions are Rust native, we still end up waiting most of the time for Python to release the GIL. The design decision to make it very easy to use from python also means that proper parallelization requires redesigning parts of the codebase.
 
@@ -747,10 +742,7 @@ print(f"Rust speedup: {time_per_keypoint_filterpy / time_per_keypoint_rust:.1f}x
 
 </Details>
 
-<Output>
-Time per keypoint (filterpy): 176.4 µs
-Rust speedup: 21.8x
-</Output>
+<Output>Time per keypoint (filterpy): 176.4 µs Rust speedup: 21.8x</Output>
 
 We see that `filterpy` is around 22x times slower than my implementation using Rust native functions. Furthermore, (on this computer) we would spend around 5ms to process 30 keypoints using the filterpy implementation (without multithreading). In practice this means that if we're processing data from a 30fps camera stream, we would be spending roughly 1/6th of a frame just on the Kalman filter logic. With the Rust implementation this is only 1/137th of a frame -- which gives us much more time for other logic. Since we're processing data from multiple camera streams in parallel, this is a big deal!
 
@@ -797,7 +789,6 @@ As the ecosystem matures a little, I have no doubt things are going to improve e
 ### ndarray vs numpy
 
 One reason why I really enjoy writing numerical code in Python is because of numpy and its surrounding ecosystem. Rust is faster, but without good libraries for numerical array programming, it would not be so useful for me. The main library in this area is the `ndarray` crate and, as a whole, it is intended to be quite similar to `numpy`. However, with Rust's strict typing and memory management, I did find it quite tricky at times.
-
 
 For instance, in Python we might write `x+=K@y`, but with ndarray we write `x += &K.dot(&y)`, although this might change depending on whether `K` or `y` are an `Array`, `ArrayView` or `ArrayViewMut`, and sometimes we have to call `.view()`, `.to_owned()` or `.clone()` on the arrays, and sometimes we don't. Certainly at first, but still now sometimes, it just feels like trial and error is necessary to do simple things like add or multiple two arrays. However, many of these things are good; we're making it really explicit when a memory copy occurs, and we are also making sure that each piece of data has only one owner. This prevents bugs and improves performance. On the other hand, it can also be very frustrating at first when coming from a language like Python where you never have to worry about that (for better or for worse).
 

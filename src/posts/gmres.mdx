@@ -6,6 +6,7 @@ excerpt: "Linear least-squares system pop up everywhere, and there are many fast
 be looking at one such way: GMRES."
 teaser: "gmres.png"
 ---
+
 Linear algebra is the foundation of modern science, and the fact that computers can do linear algebra _very
 fast_ is one of the primary reasons modern algorithms work so well in practice. In this blog post we will dive
 into some of the principles of fast numerical linear algebra, and learn how to solve least-squares problems
@@ -23,6 +24,7 @@ $$
 Here $A$ is an $n\times n$ matrix, and $x,b\in\mathbb R^{n}$ are vectors. If $A$ is invertible, then this
 problem has a simple, unique solution: $x = A^{-1}b$. However, there are two big reasons why we should _almost never_
 use $A^{-1}$ to solve the least-squares problem in practice:
+
 1. It is expensive to compute $A^{-1}$.
 2. This solution numerically unstable.
 
@@ -30,7 +32,6 @@ Assuming $A$ doesn't have any useful structure, point 1. is not that bad. Solvin
 a smart way costs $O(n^3)$, and doing it using matrix-inversion also costs $O(n^3)$, just with a larger hidden
 constant. The real killer is the instability. To see this in action, let's take a matrix that is _almost
 singular_, and see what happens when we solve the least-squares problem.
-
 
 ```python
 import numpy as np
@@ -59,18 +60,15 @@ error = np.linalg.norm(A @ x - b) ** 2
 print(f"error for dedicated method: {error:.4e}")
 ```
 
-
 <Output>
-error for matrix inversion method: 3.6223e+02
-error for dedicated method: 2.8275e-08
+	error for matrix inversion method: 3.6223e+02 error for dedicated method: 2.8275e-08
 </Output>
 
-
 In this case we took a 20x20 matrix $A$ with ones on the diagonals, except for one entry where it has value
-``1e-20``, and then we shuffled everything around by multiplying by a random matrix. The entries of $A$ are
+`1e-20`, and then we shuffled everything around by multiplying by a random matrix. The entries of $A$ are
 not so big, but the entries of $A^{-1}$ will be _gigantic_. This results in the fact that the solution
 obtained as $x=A^{-1}b$ does not satisfy $Ax=b$ in practice. The solution found by using the `np.linalg.lstsq`
-routine is much better. 
+routine is much better.
 
 The reason that the inverse-matrix method fails badly in this case can be summarized using the _condition
 number_ $\kappa(A)$. It expresses how much the error $\|Ax-b\|$ with $x=A^{-1}b$ is going to change if we
@@ -79,11 +77,10 @@ amplified when we solve the linear system. We can compute it as the ratio betwee
 singular values of the matrix $A$:
 
 $$
-    \kappa(A) = \sigma_1(A) / \sigma_n(A) 
+    \kappa(A) = \sigma_1(A) / \sigma_n(A)
 $$
 
 In the case above the condition number is really big:
-
 
 ```python
 np.linalg.cond(A)
@@ -91,22 +88,20 @@ np.linalg.cond(A)
 
 <Output>1.1807555508404976e+16</Output>
 
-
-
 Large condition numbers mean that _any_ numerical method is going to struggle to give a good solution, but for
-numerically unstable methods the problem is a lot worse. 
+numerically unstable methods the problem is a lot worse.
 
 ## Using structure
 
 While the numerical stability of algorithms is a fascinating topic, it is not what we came here for today.
 Instead, let's revisit the first reason why using matrix inversion for solving linear problems is bad. I
 mentioned that matrix inversion and better alternatives take $O(n^3)$ to solve the least squares problem
-$$\min_a\|Ax-b\|^2$$, _if there is no extra structure on_ $$A$$ _that we can exploit_. 
+$$\min_a\|Ax-b\|^2$$, _if there is no extra structure on_ $$A$$ _that we can exploit_.
 
 What if there _is_ such structure? For example, what if $A$ is a huge sparse matrix? For example the Netflix
 dataset we considered [in this blog post](/low-rank-matrix/) is of size 480,189 x 17,769. Putting aside the
 fact that it is not square, inverting matrices of that kind of size is infeasible. Moreover, the inverse
-matrix isn't necessarily sparse anymore, so we lose that valuable structure as well. 
+matrix isn't necessarily sparse anymore, so we lose that valuable structure as well.
 
 Another example arose in my [first post on deconvolution](/deconvolution-part1/). There we tried to solve the linear problem
 
@@ -126,14 +121,13 @@ we start with some initial guess $x_0$, and then improve it until we find a solu
 We don't have much to work with; we have a vector $x_0$ and the ability fo compute matrix-vector products.
 Crucially, we assumed our matrix $A$ is _square_. This means that $x_0$ and $Ax_0$ have the same shape, and
 therefore we can also compute $A^2x_0$, or in fact $A^rx_0$ for any $r$. The idea is then to try to express
-the solution to the least-squares problem as linear combination of the vectors 
+the solution to the least-squares problem as linear combination of the vectors
 
 $$
 \mathcal K_r(A,x_0):=\{x_0, Ax_0,A^2x_0,\ldots,A^{r-1}x_0\}.
 $$
 
 This results in a class of algorithms known as _Krylov subspace methods_. Before diving further into how they work, let's see one in action. We take a 2500 x 2500 sparse matrix with 5000 non-zero entries (which includes the entire diagonal).
-
 
 ```python
 import scipy.sparse
@@ -182,14 +176,11 @@ print(f"Using sparse solver: error: {error:.4e} in time {time_taken:.1f}ms")
 ```
 
 <Output>
-Using dense solver: error: 1.4449e-25 in time 2941.5ms
-Using matrix inversion: error: 2.4763e+03 in time 507.0ms
-Using sparse solver: error: 2.5325e-13 in time 6.4ms
+	Using dense solver: error: 1.4449e-25 in time 2941.5ms Using matrix inversion: error: 2.4763e+03
+	in time 507.0ms Using sparse solver: error: 2.5325e-13 in time 6.4ms
 </Output>
 
-
 As we see above, the sparse matrix solver solves this problem in a fraction of the time, and the difference is just going to get bigger with larger matrices. Above we use the GMRES routine, and it is very simple. It constructs an orthonormal basis of the Krylov subspace $\mathcal K_m(A,x_0)$, and then finds the best solution in this subspace by solving a small $(m+1)\times m$ linear system. Before figuring out the details, below is a simple implementation:
-
 
 ```python
 def gmres(linear_map, b, x0, n_iter):
@@ -235,10 +226,9 @@ print(f"Using GMRES: error: {error:.4e} in time {time_taken:.1f}ms")
 
 <Output>Using GMRES: error: 1.1039e-15 in time 12.9ms</Output>
 
+This clearly works; it's not as fast as the `scipy` implementation of the same algorithm, but we'll do something about that soon.
 
-This clearly works; it's not as fast as the `scipy` implementation of the same algorithm, but we'll do something about that soon. 
-
-Let's take a more detailed look at what the GMRES algorithm is doing. We iteratively define an orthonormal basis $V_m = \{v_0,v_1,\dots,v_{m-1}\}$. We start with $v_0 = r_0 / \|r_0\|$, where $r_0 = b-Ax_0$ is the _residual_ of the initial guess $x_0$. In each iteration we then set $w = A v_j$, and take $v_{j+1} = w - \sum_i (w^\top v_{i})v_i$; i.e. we ensure $v_{j+1}$ is orthogonal to all previous $v_0,\dots,v_j$. Therefore $V_m$ is an orthonormal basis of the Krylov subspace $\mathcal K_m(A,r_0)$. 
+Let's take a more detailed look at what the GMRES algorithm is doing. We iteratively define an orthonormal basis $V_m = \{v_0,v_1,\dots,v_{m-1}\}$. We start with $v_0 = r_0 / \|r_0\|$, where $r_0 = b-Ax_0$ is the _residual_ of the initial guess $x_0$. In each iteration we then set $w = A v_j$, and take $v_{j+1} = w - \sum_i (w^\top v_{i})v_i$; i.e. we ensure $v_{j+1}$ is orthogonal to all previous $v_0,\dots,v_j$. Therefore $V_m$ is an orthonormal basis of the Krylov subspace $\mathcal K_m(A,r_0)$.
 
 Once we have this basis, we want to solve the minimization problem:
 
@@ -270,7 +260,7 @@ The minimization problem is therefore reduced to an $(m+1)\times m$ problem! The
 
 In the current implementation of GMRES we specify the number of steps in advance, which is not ideal. If we converge to the right solution in less steps, then we are doing unnecessary work. If we don't get a satisfying solution after the specified number of steps, we might need to start over. This is however not a big problem; we can use the output $x=x_0+V_my$ as new initialization when we restart.
 
-This gives a nice recipe for _GMRES with restarting_. We run GMRES for $m$ steps with $x_i$ as initialization to get a new estimate $x_{i+1}$. We then check if $x_{i+1}$ is good enough, if not, we repeat the GMRES procedure for another $m$ steps. 
+This gives a nice recipe for _GMRES with restarting_. We run GMRES for $m$ steps with $x_i$ as initialization to get a new estimate $x_{i+1}$. We then check if $x_{i+1}$ is good enough, if not, we repeat the GMRES procedure for another $m$ steps.
 
 It is possible to get a good estimate of the residual norm after _each_ step of GMRES, not just every $m$ steps. However, this is relatively technical to implement, so we will just consider the variation of GMRES with restarting.
 
@@ -300,7 +290,6 @@ but also the kernel $k$ itself.
 
 We solve this problem with GMRES using different number of steps between restarts, and plot how the error
 evolves over time.
-
 
 ```python
 from matplotlib import image
@@ -348,25 +337,20 @@ for n_restart in n_restart_list:
     print(f"Best loss for {n_restart} restart frequency is {error:.4e} in {time_taken:.2f}s")
     losses_dict[n_restart] = losses
 ```
+
 <Output>
-Best loss for 20 restart frequency is 9.3595e-16 in 11.32s
-Best loss for 50 restart frequency is 2.4392e-22 in 11.71s
-Best loss for 200 restart frequency is 6.3063e-28 in 17.34s
-Best loss for 500 restart frequency is 6.9367e-28 in 30.50s
+	Best loss for 20 restart frequency is 9.3595e-16 in 11.32s Best loss for 50 restart frequency is
+	2.4392e-22 in 11.71s Best loss for 200 restart frequency is 6.3063e-28 in 17.34s Best loss for 500
+	restart frequency is 6.9367e-28 in 30.50s
 </Output>
 
-
-
-    
 ![svg](/blog/gmres/gmres_13_0.svg)
-    
-
 
 We observe that with all restart frequencies we converge to a result with very low error. The larger the
 number of steps between restarts, the faster we converge. Remember however that the cost of GMRES rises as
 $$O(m^3)$$ with the number of steps $$m$$ between restarts, so a larger number of steps is not always better. For
 example we see that $m=20$ and $m=50$ produced almost identical runtime, but for $m=200$ the runtime for 2000
-total steps is already significantly bigger, and the effect is even bigger for $m=500$.  This means that if we
+total steps is already significantly bigger, and the effect is even bigger for $m=500$. This means that if we
 want to get converge as fast as possible _in terms of runtime_, we're best off with somewhere between $m=50$
 and $m=200$ steps between each reset.
 
@@ -380,11 +364,12 @@ products.
 This also means that it should be straightforward to speed up -- we just need to do the convolution on a GPU.
 It is not as simple as that however; if we just do the convolution on GPU and the rest of the operations on
 CPU, then the bottleneck quickly becomes moving the data between CPU and GPU (unless we are working on a
-system where CPU and GPU share memory). 
+system where CPU and GPU share memory).
 
 Fortunately the entire GMRES algorithm is not so complex, and we can use hardware acceleration by simply
 translating the algorithm to use a fast computational library. There are several such libraries available for
 Python:
+
 - TensorFlow
 - PyTorch
 - DASK
@@ -396,7 +381,7 @@ In this context CuPy might be the easiest to use; its syntax is very similar to 
 also like to make use of JIT (Just-in-time) compilation, particularly since this can limit unnecessary data
 movement. Furthermore, it really depends on the situation which low-level CUDA functions are best called in
 different situations (especially for something like convolution), and JIT compilation can offer significant
-optimizations here. 
+optimizations here.
 
 TensorFlow, DASK and PyTorch are really focussed on machine-learning and neural networks, and the way we
 interact with these libraries might not be the best for this kind of algorithm. In fact, I tried to make an
@@ -405,11 +390,10 @@ simply aren't the right tool for this job.
 
 Numba is also great, I could basically feed it the code I already wrote and it would probably compile the
 function and make it several times faster _on CPU_. Unfortunately, the support for GPU is still lacking quite
-a bit in Numba, and we would therefore still leave quite a bit of performance on the table.  
+a bit in Numba, and we would therefore still leave quite a bit of performance on the table.
 
 In the end we will implement it in JAX. Like CuPy, it has an API very similar to numpy which means it's easy to translation. However, it also supports JIT, meaning we can potentially make much faster functions. Without further
 ado, let's implement the GMRES algorithm in JAX and see what kind of speedup we can get.
-
 
 ```python
 import jax.numpy as jnp
@@ -479,15 +463,10 @@ print("\nProfiling functions. JAX version:")
 ```
 
 <Output>
-Compiling function:
-CPU times: user 1.94 s, sys: 578 ms, total: 2.51 s
-Wall time: 2.01 s
- 
-Profiling functions. numpy version:
-263 ms ± 25.3 ms per loop (mean ± std. dev. of 7 runs, 1 loop each)
- 
-Profiling functions. JAX version:
-9.16 ms ± 90.7 µs per loop (mean ± std. dev. of 7 runs, 100 loops each)
+	Compiling function: CPU times: user 1.94 s, sys: 578 ms, total: 2.51 s Wall time: 2.01 s Profiling
+	functions. numpy version: 263 ms ± 25.3 ms per loop (mean ± std. dev. of 7 runs, 1 loop each)
+	Profiling functions. JAX version: 9.16 ms ± 90.7 µs per loop (mean ± std. dev. of 7 runs, 100
+	loops each)
 </Output>
 
 With the JAX version running on my GPU, we get a 30x times speedup! Not bad, if you ask me. If we run the same
@@ -501,21 +480,25 @@ function and makes a big graph of all the operations that need to be done, it th
 graph, and compiles it to create a very fast function. This compilation step obviously takes some time, but
 the great thing is that we only need to do it once.
 
-Note the way we create the function `gmres_jit`: 
+Note the way we create the function `gmres_jit`:
+
 ```python
     gmres_jit = jax.jit(gmres_jax, static_argnums=[0, 3])
 ```
+
 Here we tell JAX that if the first or the fourth argument changes, the function needs to be recompiled. This
 is because both these arguments are python literals (the first is a function, the fourth is the number of
 iterations), whereas the other two arguments are arrays.
 
 The shape of the arrays `V` and `H` depend on the last argument `n_iter`. However, the compiler needs to know the shape of these arrays _at compile time_. Therefore, we need to recompile the function every time that `n_iter` changes. The same is true for the `linear_map` argument; the
-shape of the vector `w` depends on `linear_map` in principle. 
+shape of the vector `w` depends on `linear_map` in principle.
 
-Next, consider the fact that there is no more `for` loop in the code, and it is instead replaced by 
+Next, consider the fact that there is no more `for` loop in the code, and it is instead replaced by
+
 ```python
     H, V = jax.lax.fori_loop(0, n_iter, loop_body, (H, V))
 ```
+
 We could in fact use a for loop here as well, and it would give an identical result but it would take much
 longer to compile. The reason for this is that, as mentioned, JAX runs through the entire function and makes a
 graph of all the operations that need to be done. If we leave in the for loop, then each iteration of the loop
@@ -527,15 +510,14 @@ original algorithm we did not compute `(V.T) @ h` for example, but rather `(V[:j
 that, because the size of `V[:j+1]` is not known at compile time. The end result ends up being the same
 because at iteration `j`, we have `V[j+1:] = 0`. This actually means that over all the iterations of `j` we
 end up doing about double the work for this particular operation. However, because the operation is so much
-faster on a GPU this is not a big problem. 
+faster on a GPU this is not a big problem.
 
 As we can see, writing code for GPUs requires a bit more thought than writing code for CPUs. Sometimes we even
-end up with less efficient code, but this can be entirely offset by the improved speed of the GPU. 
+end up with less efficient code, but this can be entirely offset by the improved speed of the GPU.
 
 ## Condition numbers and eigenvalues
 
 We see above that GMRES provides a very fast and accurate solution to the deconvolution problem. This has a lot to do with the fact that the convolution matrix is very well-conditioned. We can see this by looking at the singular of this matrix. The convolution matrix for a 128x128 image is a bit too big to work with, but we can see what happens for 32x32 images.
-
 
 ```python
 N = 11
@@ -565,22 +547,15 @@ cond_num = svdvals[0]/svdvals[-1]
 plt.title(f"Singular values. Condition number: {cond_num:.0f}")
 ```
 
-
-
-
-    
 ![svg](/blog/gmres/gmres_19_1.svg)
-    
-
 
 As we can see, the condition number is only 4409, which makes the matrix very well-conditioned. Moreover, the
 singular values decay somewhat gradually. What's more, the convolution matrix is actually symmetric and
-positive definite. This makes the linear system relatively easy to solve, and explains why it works so well. 
+positive definite. This makes the linear system relatively easy to solve, and explains why it works so well.
 
 This is because the kernel we use -- the Gaussian kernel -- is itself symmetric. For a non-symmetric kernel,
 the situation is more complicated. Below we show what happens for a non-symmetric kernel, the same type as we
-used before in the blind deconvolution series of blog posts. 
-
+used before in the blind deconvolution series of blog posts.
 
 ```python
 from utils import random_motion_blur
@@ -613,21 +588,12 @@ plt.xlabel("Real part")
 plt.scatter(np.real(eigs), np.imag(eigs), marker=".")
 ```
 
-
-    
 ![svg](/blog/gmres/gmres_21_0.svg)
-    
 
-
-
-    
 ![svg](/blog/gmres/gmres_21_2.svg)
-    
-
 
 We see that the eigenvalues of this convolution matrix are distributed _around_ zero. The convolution matrix for the gaussian kernel is symmetric and positive definite -- all eigenvalues are positive real numbers. GMRES works really well when almost all eigenvalues lie in an ellipse _not containing zero_. That is clearly not the case here, and we in fact also see that GMRES doesn't work well for this particular problem.
 (Note that we now switch to 256x256 images instead of 128x128, since our new implementation of GMRES is much faster)
-
 
 ```python
 img = image.imread("imgs/vitus256.png")
@@ -658,13 +624,10 @@ for _ in range(n_its):
     losses.append(error)
 ```
 
-    
 ![svg](/blog/gmres/gmres_24_1.svg)
-    
-
 
 Not does it take much more iterations to converge, the final result is unsatisfactory at best. Clearly without
-further modifications the GMRES method doesn't work well for deconvolution for non-symmetric kernels. 
+further modifications the GMRES method doesn't work well for deconvolution for non-symmetric kernels.
 
 ## Changing the spectrum
 
@@ -697,7 +660,6 @@ $$
 $$
 
 let's see this in action below.
-
 
 ```python
 img = image.imread("imgs/vitus256.png")
@@ -737,19 +699,13 @@ print(f"Deconvolution in {time_taken:.2f} s")
 
     Deconvolution in 1.40 s
 
-
-
-    
 ![svg](/blog/gmres/gmres_28_0.svg)
-    
-
 
 Except for some ringing around the edges, this produces very good result. Compared to other methods of
 deconvolution (as discussed in [this blog post](/deconvolution-part3)) this in fact shows much less ringing
 artifacts. It's pretty fast as well. Even though it takes us around 2000 iterations to converge, the
-differences between the image after 50 steps or 2000 steps is not that big visually speaking. Let's see how the 
+differences between the image after 50 steps or 2000 steps is not that big visually speaking. Let's see how the
 solution develops with different numbers of iterations:
-
 
 ```python
 x0 = jnp.zeros_like(b)
@@ -768,10 +724,7 @@ for n_its in [1, 5, 10, 20, 50, 100]:
     results_dict[n_its] = (x, time_taken)
 ```
 
-    
 ![svg](/blog/gmres/gmres_31_0.svg)
-    
-
 
 After just 100 iterations the result is pretty good, and this takes just 64ms. This makes it a viable method
 for deconvolution, roughly equally as fast as Richardson-Lucy deconvolution, but suffering less from boundary

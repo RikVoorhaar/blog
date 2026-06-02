@@ -14,11 +14,11 @@ The current pipeline rewrites the **source** `.mdx` files so that, inside math, 
 special character is replaced with a literal placeholder token:
 
 | In source file | Should be |
-|---|---|
-| `LB` | `{` |
-| `RB` | `}` |
-| `US` | `_` |
-| `ST` | `*` |
+| -------------- | --------- |
+| `LB`           | `{`       |
+| `RB`           | `}`       |
+| `US`           | `_`       |
+| `ST`           | `*`       |
 
 So a line that should read:
 
@@ -156,6 +156,7 @@ literal occurrences elsewhere (e.g. "MNI**ST**", a variable named `US`) are not 
    For every post, diff the de-mangled math blocks against the `main` `.md` equivalent. The
    math content should match character-for-character (ignoring the Svelte `<script>` →
    MDX-component differences that are outside math). This catches any ambiguous reversal.
+
 3. Spot-check the trickiest posts manually: `ukf.mdx` (uses `\begin{align*}`, nested braces,
    `\overline{x_{k-1}}`), `normal_data.mdx`, `gmres.mdx`, `deconvolution_part*`,
    `discrete_function_tensor.mdx`, `low_rank_matrix.mdx`.
@@ -218,12 +219,12 @@ Run after each of Steps 2–4:
 
 ## 6. Risks & mitigations
 
-| Risk | Likelihood | Mitigation |
-|---|---|---|
-| De-mangle corrupts a literal `LB`/`US`/etc. inside math | Low | Scope replacement to math regions only; diff every post against `main` `.md`. |
-| `remark-math@6` changes class names / markup `rehype-katex` expects | Very low | v6 + rehype-katex v7 are the matched current pair; verified compiling cleanly. KaTeX CSS already imported in `Layout.astro`. |
-| Display vs inline detection differs from custom plugin | Low | `remark-math` uses standard CommonMark rules (`$$` block vs `$` inline); the original `.md` posts were authored for exactly this, so behavior should match the pre-migration site. Keep `fleqn: true`. |
-| Some posts use single-`$` vs `$$` inconsistently | Medium | The original `.md` files are the source of truth — `remark-math` handles both `$inline$` and `$$display$$`. Verify against `main` if a post looks off. |
+| Risk                                                                | Likelihood | Mitigation                                                                                                                                                                                             |
+| ------------------------------------------------------------------- | ---------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| De-mangle corrupts a literal `LB`/`US`/etc. inside math             | Low        | Scope replacement to math regions only; diff every post against `main` `.md`.                                                                                                                          |
+| `remark-math@6` changes class names / markup `rehype-katex` expects | Very low   | v6 + rehype-katex v7 are the matched current pair; verified compiling cleanly. KaTeX CSS already imported in `Layout.astro`.                                                                           |
+| Display vs inline detection differs from custom plugin              | Low        | `remark-math` uses standard CommonMark rules (`$$` block vs `$` inline); the original `.md` posts were authored for exactly this, so behavior should match the pre-migration site. Keep `fleqn: true`. |
+| Some posts use single-`$` vs `$$` inconsistently                    | Medium     | The original `.md` files are the source of truth — `remark-math` handles both `$inline$` and `$$display$$`. Verify against `main` if a post looks off.                                                 |
 
 ---
 
@@ -240,14 +241,14 @@ All changes are isolated and git-tracked:
 
 ## 8. Summary of files touched
 
-| File | Action |
-|---|---|
-| `package.json` | Bump `remark-math` `^3` → `^6` |
-| `astro.config.mjs` | Swap custom plugin for `remark-math` |
-| `remark-mdx-math.mjs` | **Delete** |
-| `escape-math-braces.mjs` | **Delete** |
+| File                             | Action                                |
+| -------------------------------- | ------------------------------------- |
+| `package.json`                   | Bump `remark-math` `^3` → `^6`        |
+| `astro.config.mjs`               | Swap custom plugin for `remark-math`  |
+| `remark-mdx-math.mjs`            | **Delete**                            |
+| `escape-math-braces.mjs`         | **Delete**                            |
 | `src/posts/*.mdx` (12 with math) | De-mangle math regions to clean LaTeX |
-| `src/posts/*.unpublish` | De-mangle if they contain math |
+| `src/posts/*.unpublish`          | De-mangle if they contain math        |
 
 Net effect: less code, no prebuild mangling step, and source math that reads exactly like the
 original blog posts — supporting `{ } _ ^ *` and `\begin{...}` natively.
