@@ -99,11 +99,8 @@ const navLinks = [
 							<a
 								href={link.href}
 								class:list={[
-									'px-2 py-1 text-sm font-medium rounded transition-all duration-200',
-									'hover:text-(--text-accent) hover:scale-105',
-									{
-										'font-semibold scale-105': active,
-									},
+									'nav-link px-2 py-1 text-sm font-medium rounded transition-all duration-200',
+									'hover:text-(--text-accent) hover:scale-115',
 								]}
 								style={active
 									? `color: var(--text-accent);`
@@ -172,3 +169,25 @@ const navLinks = [
 		</footer>
 	</body>
 </html>
+
+<style>
+	.nav-link {
+		position: relative;
+	}
+
+	.nav-link::after {
+		content: '';
+		position: absolute;
+		left: 50%;
+		bottom: 2px;
+		width: 0;
+		height: 2px;
+		background: var(--text-accent);
+		transition: width 0.2s ease, left 0.2s ease;
+	}
+
+	.nav-link:hover::after {
+		left: 0.5rem;
+		width: calc(100% - 1rem);
+	}
+</style>
