@@ -8,13 +8,11 @@ interface Props {
 
 const { post } = Astro.props;
 
-// Map teaser filenames to imported images (astro:assets)
 const teaserImages = import.meta.glob<{ default: ImageMetadata }>(
 	'../assets/teasers/*.{png,jpg,jpeg,webp}',
 	{ eager: true },
 );
 
-// Resolve teaser: try multiple key formats
 const teaserFilename = post.data.teaser;
 const keys = Object.keys(teaserImages);
 const teaserKey = keys.find((k) => k.endsWith('/' + teaserFilename));
@@ -37,17 +35,18 @@ const ordinal = (d: number): string => {
 ---
 
 <div
-	class="group flex flex-col h-full transition-all duration-250"
+	class="group flex flex-col h-full not-prose transition-all duration-250"
 	style="background-color: var(--surface-raised); border-radius: var(--radius-lg);"
 >
-	<a href={`/blog/${post.id}`} class="block" style="border-radius: var(--radius-lg) var(--radius-lg) 0 0;">
+	<a href={`/blog/${post.id}`} class="block aspect-[16/10] overflow-hidden"
+	   style="border-radius: var(--radius-lg) var(--radius-lg) 0 0;">
 		{teaserMeta ? (
 			<Image
 				src={teaserMeta}
 				alt={`Teaser for ${post.data.title}`}
 				loading="lazy"
-				class="w-full h-auto transition-transform duration-300 group-hover:scale-105"
-				style="display: block; border-radius: var(--radius-lg) var(--radius-lg) 0 0;"
+				class="w-full h-full object-contain transition-transform duration-300 group-hover:scale-105"
+				style="display: block; background: transparent; border-radius: var(--radius-lg) var(--radius-lg) 0 0;"
 				sizes="(max-width: 640px) 90vw, (max-width: 1024px) 45vw, 22rem"
 			/>
 		) : (
@@ -55,18 +54,16 @@ const ordinal = (d: number): string => {
 				src={teaserSrc}
 				alt={`Teaser for ${post.data.title}`}
 				loading="lazy"
-				class="w-full h-auto transition-transform duration-300 group-hover:scale-105"
-				style="display: block; border-radius: var(--radius-lg) var(--radius-lg) 0 0;"
+				class="w-full h-full object-contain transition-transform duration-300 group-hover:scale-105"
+				style="display: block; background: transparent; border-radius: var(--radius-lg) var(--radius-lg) 0 0;"
 			/>
 		)}
 	</a>
 
 	<div class="flex flex-col flex-1 p-4 gap-1">
-		<a
-			href={`/blog/${post.id}`}
-			class="text-xl font-extrabold leading-tight transition-colors duration-150 tracking-tight"
-			style="color: var(--text-accent);"
-		>
+		<a href={`/blog/${post.id}`}
+		   class="text-xl font-extrabold leading-tight transition-colors duration-150 tracking-tight"
+		   style="color: var(--text-accent);">
 			{post.data.title}
 		</a>
 
@@ -74,10 +71,8 @@ const ordinal = (d: number): string => {
 			{day}{ordinal(day)} of {month}, {year}
 		</p>
 
-		<p
-			class="pl-3 my-1 leading-snug line-clamp-3 text-sm"
-			style="border-left: 2px solid var(--color-teal-500); color: var(--text-primary);"
-		>
+		<p class="pl-3 my-1 leading-snug line-clamp-3 text-sm"
+		   style="border-left: 2px solid var(--color-teal-500); color: var(--text-primary);">
 			{post.data.excerpt.trim()}
 		</p>
 
@@ -85,10 +80,8 @@ const ordinal = (d: number): string => {
 
 		<div class="flex flex-wrap gap-1.5">
 			{post.data.categories.map((cat) => (
-				<span
-					class="px-2 py-0.5 text-xs font-semibold uppercase tracking-wider"
-					style="background-color: var(--color-accent-900); color: var(--color-accent-300); border-radius: var(--radius-full);"
-				>
+				<span class="px-2 py-0.5 text-xs font-semibold uppercase tracking-wider"
+				      style="background-color: var(--color-accent-900); color: var(--color-accent-300); border-radius: var(--radius-full);">
 					{cat}
 				</span>
 			))}

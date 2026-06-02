@@ -107,171 +107,26 @@ jobs:
 
 ### Status
 
-| Subtask                  | Status          | Notes                                                                                      |
-| ------------------------ | --------------- | ------------------------------------------------------------------------------------------ |
-| 3a — date on posts       | ✅ done         | Date+categories in `BlogPostLayout` metadata bar below `<h1>`                              |
-| 3b — teaser aspect ratio | ❌ unresolved   | See `POSTCARD_HANDOVER.md` for full analysis. Requires design decision on approach A/B/C/D |
-| 3c — excerpt whitespace  | ✅ done         | `.trim()` in PostCard, spacer `div.flex-1` prevents border stretch                         |
-| 3d — CV padding          | ✅ done         | `mb-4` wrapper around bullet points in `Experience.astro`                                  |
-| 3e — nav animations      | ❌ needs rework | Current `font-semibold scale-105` not liked. Needs different approach                      |
-| 3f — CV data             | 👤 human        | Edit `src/data/cv.ts`                                                                      |
+| Subtask                  | Status          | Notes                                                                                  |
+| ------------------------ | --------------- | -------------------------------------------------------------------------------------- |
+| 3a — date on posts       | ✅ done         | Date+categories in `BlogPostLayout` metadata bar below `<h1>`                          |
+| 3b — teaser aspect ratio | ✅ done         | `aspect-[16/10]` + `object-contain` + `not-prose` + `background: transparent` on image |
+| 3c — excerpt whitespace  | ✅ done         | `.trim()` in PostCard, spacer `div.flex-1` prevents border stretch                     |
+| 3d — CV padding          | ✅ done         | `mb-4` wrapper around bullet points in `Experience.astro`                              |
+| 3e — nav animations      | ❌ needs rework | Current `font-semibold scale-105` not liked. Needs different approach                  |
+| 3f — CV data             | 👤 human        | Edit `src/data/cv.ts`                                                                  |
 
 ### Files changed
 
 - `src/layouts/BlogPostLayout.astro` — added `date` + `categories` props; metadata bar below `<h1>`
 - `src/pages/blog/[...slug].astro` — passes date/categories to layout; removed duplicate footer
-- `src/components/PostCard.astro` — excerpt `.trim()`, spacer div instead of flex-1 on excerpt, removed read-more link, teaser section still in flux (currently `w-full h-auto`, no object-fit)
+- `src/components/PostCard.astro` — `not-prose` on card (fixes prose margins + white filler); `aspect-[16/10]` + `object-contain` teaser; `background: transparent` on image (overrides `.prose img` rule); excerpt `.trim()`; spacer div
 - `src/components/cv/Experience.astro` — bullets wrapped in `<div class="mb-4">`
 - `src/layouts/Layout.astro` — nav links use `font-semibold scale-105` on active, `text-accent scale-105` on hover (needs rework)
 
 ### Known caveats
 
 - The lint command fails on `dist/` HTML due to pre-existing `<div>` inside `<p>` from post content — unrelated.
-- 3b is blocked on a design decision: see `POSTCARD_HANDOVER.md` for options A–D.
-- 3e needs a fresh design approach from a human (or a new agent with clean context).
-- Phase 3f (CV data) is 👤 human.
-
-## Phase 3 — Bug fixes & visual polish 🤖
-
-**No dependencies.** Safe to iterate on `experiment/astro` while Cloudflare Pages deploys
-preview builds.
-
-### 3a. Show published date on blog post pages
-
-**Problem:** When opening a blog post, there's no visible publication date — only title
-and content.
-
-**Fix:** `BlogPostLayout.astro` already receives `title` and `description` props.
-The `[...slug].astro` page already renders date+categories in the **footer** (below
-content). Move them to appear right below the `<h1>` title, before the content.
-
-> 💡 Add `date` and `categories` props to `BlogPostLayout.astro`, render them in a
-> metadata bar between the title and `<slot />`.
-
-### 3b. Preserve teaser aspect ratio in PostCards
-
-**Problem:** `PostCard.astro` uses a fixed `aspect-[16/10]` container with `object-cover`,
-cropping teasers instead of showing the full image.
-
-**Fix:** Use `object-contain` instead of `object-cover`, and remove the fixed aspect ratio
-container. Let the image set its own aspect ratio with a `max-height` to prevent
-excessively tall images from dominating the card.
-
-> 💡 Replace:
->
-> ```astro
-> <div class="aspect-[16/10] overflow-hidden" ...>
->   <Image class="w-full h-full object-cover" ... />
-> </div>
-> ```
->
-> With a container that uses `object-contain` and no forced aspect ratio:
->
-> ```astro
-> <div class="overflow-hidden" style="max-height: 12rem;">
->   <Image class="w-full h-auto max-h-48 object-contain" ... />
-> </div>
-> ```
-
-### 3c. Suppress empty paragraphs after excerpts
-
-**Problem:** Some posts show several blank lines after the excerpt text in the blog index
-cards (reported on `ijzer` and `deconvolution_part2`).
-
-**Likely cause:** The excerpt frontmatter field may contain trailing newlines, or the
-`excerpt` YAML string is multi-line without `>-` folding, producing embedded `\n`
-characters that render as `<p>` breaks.
-
-**Fix (two approaches):**
-
-1. **Automated (preferred):** In `PostCard.astro`, trim whitespace from the excerpt
-   before rendering:
-
-   ```astro
-   {post.data.excerpt.trim()}
-   ```
-
-   This is a one-line fix that handles all posts.
-
-2. **Content-side:** If some excerpts genuinely need multi-paragraph formatting, switch
-   those posts to use YAML block scalar syntax (`>-` or `|`) and fix the rendering to
-   handle line breaks properly.
-
-### 3d. CV — more vertical padding between roles
-
-**Problem:** The horizontal `<hr>`-like border between CV roles sits immediately after
-the bullet points of the previous role, with no breathing room.
-
-**Fix:** In `Experience.astro`, add top padding (`pb-6` → `pb-8`) or adjust the
-`ExperienceBulletpoint` container. The border-t is on the experience container itself
-with `pt-4`, but there's no bottom padding after the last bullet.
-
-> 💡 Add `mb-4` or `pb-6` to the `<div>` wrapping `Experience.astro` in `cv.astro`, or
-> add bottom margin after the bullet list in `Experience.astro`.
-
-### 3e. Navigation bar — more distinct active/hover state
-
-**Problem:** Nav links have subtle underline but no color/font-size animation. The
-design calls for a color change and font-size transition to make it "pop."
-
-**Fix:** In `Layout.astro`, enhance the nav link styles:
-
-- Active link: `text-accent` color + slightly larger font (`font-semibold` or
-  `scale-105`)
-- Hover: color transition to `text-accent`
-- Animate all transitions with `transition-all duration-200`
-
-> 💡 Change:
->
-> ```astro
-> 'px-2 py-1 text-sm font-medium rounded transition-all duration-200',
-> 'hover:underline hover:underline-offset-4',
-> ```
->
-> To include color and scale transforms, e.g.:
->
-> ```astro
-> 'px-2 py-1 text-sm font-medium rounded transition-all duration-200',
-> 'hover:text-(--text-accent) hover:scale-105',
-> ```
-
-### 3f. CV content update 👤
-
-**Human task.** The CV data in `src/data/cv.ts` is out of date. Update:
-
-- Work experience (new roles, end dates)
-- Skills and tools
-- Languages (proficiency levels may have changed)
-- Publications
-- Other sections as needed
-
-Edit `src/data/cv.ts` directly — it's a single structured TypeScript file.
-
-**Handoff for Phase 6 (validation):**
-
-### Status
-
-| Subtask                  | Status          | Notes                                                                                      |
-| ------------------------ | --------------- | ------------------------------------------------------------------------------------------ |
-| 3a — date on posts       | ✅ done         | Date+categories in `BlogPostLayout` metadata bar below `<h1>`                              |
-| 3b — teaser aspect ratio | ❌ unresolved   | See `POSTCARD_HANDOVER.md` for full analysis. Requires design decision on approach A/B/C/D |
-| 3c — excerpt whitespace  | ✅ done         | `.trim()` in PostCard, spacer `div.flex-1` prevents border stretch                         |
-| 3d — CV padding          | ✅ done         | `mb-4` wrapper around bullet points in `Experience.astro`                                  |
-| 3e — nav animations      | ❌ needs rework | Current `font-semibold scale-105` not liked. Needs different approach                      |
-| 3f — CV data             | 👤 human        | Edit `src/data/cv.ts`                                                                      |
-
-### Files changed
-
-- `src/layouts/BlogPostLayout.astro` — added `date` + `categories` props; metadata bar below `<h1>`
-- `src/pages/blog/[...slug].astro` — passes date/categories to layout; removed duplicate footer
-- `src/components/PostCard.astro` — excerpt `.trim()`, spacer div instead of flex-1 on excerpt, removed read-more link, teaser section still in flux (currently `w-full h-auto`, no object-fit)
-- `src/components/cv/Experience.astro` — bullets wrapped in `<div class="mb-4">`
-- `src/layouts/Layout.astro` — nav links use `font-semibold scale-105` on active, `text-accent scale-105` on hover (needs rework)
-
-### Known caveats
-
-- The lint command fails on `dist/` HTML due to pre-existing `<div>` inside `<p>` from post content — unrelated.
-- 3b is blocked on a design decision: see `POSTCARD_HANDOVER.md` for options A–D.
 - 3e needs a fresh design approach from a human (or a new agent with clean context).
 - Phase 3f (CV data) is 👤 human.
 
@@ -453,7 +308,7 @@ Phase 7 is the final human step.
 - [x] 1e: Remove `.unpublish` draft posts
 - [x] 2: Create `.github/workflows/ci.yml` (build + lint)
 - [x] 3a: Add published date below blog post title
-- [ ] 3b: Fix teaser aspect ratio in PostCard (object-contain, no crop)
+- [x] 3b: Fix teaser aspect ratio in PostCard (object-contain, no crop)
 - [x] 3c: Trim excerpt whitespace in PostCard (fix blank lines)
 - [x] 3d: Add vertical padding between CV roles
 - [ ] 3e: Enhance nav link animations (color + scale)
