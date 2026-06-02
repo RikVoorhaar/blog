@@ -1,0 +1,24 @@
+---
+interface Props {
+	indent?: number;
+}
+
+const { indent = 0 } = Astro.props;
+const whitespaceIndent = ' '.repeat(indent);
+---
+
+<p
+	class="m-2 not-prose font-semibold text-lg uppercase tracking-wider"
+	style="color: var(--text-muted); font-family: ui-monospace, monospace;"
+>
+	Output
+</p>
+<div
+	class="not-prose ml-4 mb-4 leading-5"
+	style="border-left: 4px solid var(--color-teal-500);"
+>
+	<pre
+		class="m-0 ml-2 p-0 pl-4 overflow-x-auto"
+		style="background: transparent; color: var(--text-primary); font-family: ui-monospace, monospace;"
+	>{whitespaceIndent}<slot /></pre>
+</div>

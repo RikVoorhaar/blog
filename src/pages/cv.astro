@@ -1,0 +1,111 @@
+---
+import Layout from '../layouts/Layout.astro';
+import SectionHeader from '../components/SectionHeader.astro';
+import Experience from '../components/cv/Experience.astro';
+import Education from '../components/cv/Education.astro';
+import Skill from '../components/cv/Skill.astro';
+import Tool from '../components/cv/Tool.astro';
+import Publication from '../components/cv/Publication.astro';
+import OpenSource from '../components/cv/OpenSource.astro';
+import 'flag-icons/css/flag-icons.min.css';
+
+import cv from '../data/cv';
+---
+
+<Layout title="CV" description="Curriculum Vitae of Rik Voorhaar — Computer Vision Engineer at Grazper Technologies, PhD in mathematics.">
+	<div class="grid grid-cols-1 place-items-center w-full px-4 py-8 sm:py-16">
+		<div
+			class="max-w-4xl w-full min-w-0 p-6 sm:p-8 rounded-xl elev-1"
+			style="background-color: var(--surface-raised); color: var(--text-primary);"
+		>
+			<h1
+				class="text-3xl font-extrabold mb-4 tracking-tight"
+				style="color: var(--text-accent);"
+			>
+				Curriculum Vitae
+			</h1>
+
+			<div class="prose max-w-none">
+				<SectionHeader>Work experience</SectionHeader>
+			</div>
+			{cv.experience.map((exp, i) => (
+					<Experience
+						position={exp.position}
+						employer={exp.employer}
+						image={exp.image}
+						date_start={exp.date_start}
+						date_end={exp.date_end}
+						bullets={exp.bullets}
+						first={i === 0}
+					/>
+				))}
+
+			<div class="prose max-w-none">
+				<SectionHeader>Education</SectionHeader>
+			</div>
+			{cv.education.map((ed) => (
+				<Education
+					date_start={ed.date_start}
+					date_end={ed.date_end}
+					entries={ed.entries}
+				/>
+			))}
+
+			<div class="prose max-w-none">
+				<SectionHeader>Programming skills</SectionHeader>
+			</div>
+			{cv.skills.map((sk) => (
+				<Skill title={sk.title} skills={sk.skills} />
+			))}
+			{cv.tools.map((tool) => (
+				<Tool title={tool.title} icon={tool.icon} tools={tool.tools} />
+			))}
+
+			<div class="prose max-w-none">
+				<SectionHeader>Languages</SectionHeader>
+			</div>
+			{cv.languages.map((lang) => (
+				<Skill title={lang.title} skills={lang.skills} flags={lang.flags} />
+			))}
+
+			<div class="prose max-w-none">
+				<SectionHeader>Technical writing</SectionHeader>
+			</div>
+			{cv.technical_writing.map((tw) => (
+				<OpenSource title={tw.title} url={tw.url} info={tw.info} />
+			))}
+
+			<div class="prose max-w-none">
+				<SectionHeader>Publications</SectionHeader>
+			</div>
+			{cv.publications.map((pub) => (
+				<Publication
+					date={pub.date}
+					title={pub.title}
+					url={pub.url}
+					published={pub.published}
+					coauthors={pub.coauthors}
+					info={pub.info}
+				/>
+			))}
+
+			<div class="prose max-w-none">
+				<SectionHeader>Open source contributions</SectionHeader>
+			</div>
+			{cv.open_source.map((os) => (
+				<OpenSource title={os.title} url={os.url} info={os.info} />
+			))}
+
+			<div class="prose max-w-none">
+				<SectionHeader>Online courses</SectionHeader>
+			</div>
+			{cv.courses.map((course) => (
+				<Education
+					date_start={course.date_start}
+					date_end={course.date_end}
+					entries={course.entries}
+				/>
+			))}
+		</div>
+	</div>
+</Layout>

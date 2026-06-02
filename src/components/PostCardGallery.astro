@@ -1,0 +1,14 @@
+---
+import type { CollectionEntry } from 'astro:content';
+import PostCard from './PostCard.astro';
+
+interface Props {
+	posts: CollectionEntry<'blog'>[];
+}
+
+const { posts } = Astro.props;
+---
+
+<div class="grid gap-6 py-8 px-4 sm:px-8 max-w-6xl mx-auto w-full" style="grid-template-columns: repeat(auto-fill, minmax(18rem, 1fr));">
+	{posts.map((post) => <PostCard post={post} />)}
+</div>

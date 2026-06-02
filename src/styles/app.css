@@ -1,0 +1,358 @@
+@import 'tailwindcss';
+
+/* Self-hosted fonts (latin subset, font-display: swap built-in) */
+@import '@fontsource/raleway/latin-600.css';
+@import '@fontsource/raleway/latin-700.css';
+@import '@fontsource/raleway/latin-800.css';
+@import '@fontsource/source-sans-3/latin-400.css';
+@import '@fontsource/source-sans-3/latin-600.css';
+@import '@fontsource/source-sans-3/latin-700.css';
+@import '@fontsource/jetbrains-mono/latin-400.css';
+@import '@fontsource/jetbrains-mono/latin-600.css';
+
+@plugin "@tailwindcss/typography";
+
+@custom-variant dark (&:where(.dark, .dark *));
+
+/* ---- Base typography ---- */
+
+html {
+	font-family: 'Source Sans 3', ui-sans-serif, system-ui, sans-serif;
+	font-size: 18px;
+}
+
+h1,
+h2,
+h3,
+h4,
+h5,
+h6 {
+	font-family: 'Raleway', ui-sans-serif, system-ui, sans-serif;
+}
+
+pre,
+code,
+kbd,
+samp {
+	font-family: 'JetBrains Mono', ui-monospace, monospace;
+}
+
+@theme {
+	/* ---- Accent: crimson / rose ---- */
+	--color-accent-50: #fff1f2;
+	--color-accent-100: #ffe4e6;
+	--color-accent-200: #fecdd3;
+	--color-accent-300: #fda4af;
+	--color-accent-400: #fb7185;
+	--color-accent-500: #f43f5e;
+	--color-accent-600: #e11d48;
+	--color-accent-700: #be123c;
+	--color-accent-800: #9f1239;
+	--color-accent-900: #881337;
+	--color-accent-950: #4c0519;
+
+	/* Backward-compat aliases (remove post-Phase 7 cleanup) */
+	--color-turbo-50: #fff1f2;
+	--color-turbo-100: #ffe4e6;
+	--color-turbo-200: #fecdd3;
+	--color-turbo-300: #fda4af;
+	--color-turbo-400: #fb7185;
+	--color-turbo-500: #f43f5e;
+	--color-turbo-600: #e11d48;
+	--color-turbo-700: #be123c;
+	--color-turbo-800: #9f1239;
+	--color-turbo-900: #881337;
+	--color-turbo-950: #4c0519;
+	--color-main-50: #fff1f2;
+	--color-main-100: #ffe4e6;
+	--color-main-200: #fecdd3;
+	--color-main-300: #fda4af;
+	--color-main-400: #fb7185;
+	--color-main-500: #f43f5e;
+	--color-main-600: #e11d48;
+	--color-main-700: #be123c;
+	--color-main-800: #9f1239;
+	--color-main-900: #881337;
+	--color-main-950: #4c0519;
+
+	/* ---- Teal: secondary (replaces puerto-rico) ---- */
+	--color-teal-50: #e5fff9;
+	--color-teal-100: #bdfff2;
+	--color-teal-200: #85ffe9;
+	--color-teal-300: #41fbdf;
+	--color-teal-400: #16dfc4;
+	--color-teal-500: #00b8a2;
+	--color-teal-600: #00998c;
+	--color-teal-700: #02796f;
+	--color-teal-800: #075f59;
+	--color-teal-900: #0b4c48;
+	--color-teal-950: #002928;
+
+	/* Backward-compat alias */
+	--color-puerto-rico-50: #e5fff9;
+	--color-puerto-rico-100: #bdfff2;
+	--color-puerto-rico-200: #85ffe9;
+	--color-puerto-rico-300: #41fbdf;
+	--color-puerto-rico-400: #16dfc4;
+	--color-puerto-rico-500: #00b8a2;
+	--color-puerto-rico-600: #00998c;
+	--color-puerto-rico-700: #02796f;
+	--color-puerto-rico-800: #075f59;
+	--color-puerto-rico-900: #0b4c48;
+	--color-puerto-rico-950: #002928;
+
+	/* ---- Link: sky blue ---- */
+	--color-link-300: #7dd3fc;
+	--color-link-400: #38bdf8;
+	--color-link-600: #0284c7;
+	--color-link-700: #0369a1;
+
+	/* Keep secondary ramp for backward compat (not referenced by new code) */
+	--color-secondary-50: #f0f9fb;
+	--color-secondary-100: #d9eff4;
+	--color-secondary-200: #b8dfe9;
+	--color-secondary-300: #86c7da;
+	--color-secondary-400: #4ea7c2;
+	--color-secondary-500: #328ba8;
+	--color-secondary-600: #2d728f;
+	--color-secondary-700: #2a5c74;
+	--color-secondary-800: #2a4e60;
+	--color-secondary-900: #274252;
+	--color-secondary-950: #152a37;
+
+	/* ---- Radius scale ---- */
+	--radius-sm: 0.375rem;
+	--radius-md: 0.625rem;
+	--radius-lg: 1rem;
+	--radius-full: 9999px;
+}
+
+/* ---- Surface elevation system ---- */
+
+html.dark,
+html:not(.light) {
+	--surface-base: #0a0a0b;
+	--surface-raised: #141416;
+	--surface-overlay: #1c1c1f;
+	--surface-sunken: #060607;
+	--border-subtle: #27272a;
+	--border-strong: #3f3f46;
+	--text-primary: #fafafa;
+	--text-muted: #a1a1aa;
+	--text-accent: var(--color-accent-500);
+	--text-link: var(--color-link-300);
+	--text-heading-accent: var(--color-teal-400);
+}
+
+html.light {
+	--surface-base: #f4f4f2;
+	--surface-raised: #ffffff;
+	--surface-overlay: #fafaf9;
+	--surface-sunken: #ececea;
+	--border-subtle: #e4e4e7;
+	--border-strong: #d4d4d8;
+	--text-primary: #18181b;
+	--text-muted: #52525b;
+	--text-accent: var(--color-accent-700);
+	--text-link: var(--color-link-700);
+	--text-heading-accent: var(--color-teal-600);
+}
+
+html.dark {
+	background-color: var(--surface-base);
+}
+html.light {
+	background-color: var(--surface-base);
+}
+
+/* ---- Elevation presets (Tailwind utilities via @layer) ---- */
+
+@layer utilities {
+	.elev-0 {
+		border: 1px solid var(--border-subtle);
+	}
+	.elev-1 {
+		border: 1px solid var(--border-subtle);
+	}
+	.elev-2 {
+		border: 1px solid var(--border-strong);
+	}
+	.glow-accent {
+		box-shadow: 0 0 0 1px rgba(244, 63, 94, 0.4), 0 0 24px -6px rgba(244, 63, 94, 0.3);
+	}
+}
+
+html.dark .elev-1 {
+	box-shadow: 0 1px 0 rgba(255, 255, 255, 0.02) inset, 0 8px 24px -12px rgba(0, 0, 0, 0.6);
+}
+html.light .elev-1 {
+	box-shadow: 0 1px 2px rgba(0, 0, 0, 0.04), 0 8px 24px -12px rgba(0, 0, 0, 0.12);
+}
+
+/* ---- Prose theme (shared, replaces per-page ad-hoc prose classes) ---- */
+
+.prose {
+	--tw-prose-body: var(--text-primary);
+	--tw-prose-headings: var(--text-primary);
+	--tw-prose-links: var(--color-link-700);
+	--tw-prose-bold: var(--text-primary);
+	--tw-prose-counters: var(--text-muted);
+	--tw-prose-bullets: var(--text-muted);
+	--tw-prose-hr: var(--border-subtle);
+	--tw-prose-quotes: var(--text-primary);
+	--tw-prose-quote-borders: var(--color-teal-500);
+	--tw-prose-captions: var(--text-muted);
+	--tw-prose-code: var(--text-primary);
+	--tw-prose-pre-code: var(--text-primary);
+	--tw-prose-pre-bg: var(--surface-sunken);
+	--tw-prose-th-borders: var(--border-subtle);
+	--tw-prose-td-borders: var(--border-subtle);
+	--tw-prose-lead: var(--text-muted);
+
+	max-width: 52rem; /* --prose-max */
+	font-size: 1.0625rem;
+	line-height: 1.5;
+}
+
+.prose h1,
+.prose h2,
+.prose h3,
+.prose h4 {
+	font-family: 'Raleway', ui-sans-serif, system-ui, sans-serif;
+}
+
+.prose h2,
+.prose h3 {
+	margin-top: 2.25em;
+}
+
+.prose h2::before {
+	content: '— ';
+	color: var(--text-accent);
+	font-weight: 400;
+}
+
+.prose h3::before,
+.prose h4::before {
+	content: '— ';
+	color: var(--text-heading-accent);
+	font-weight: 400;
+}
+
+:is(.dark) .prose {
+	--tw-prose-body: var(--text-primary);
+	--tw-prose-headings: var(--text-primary);
+	--tw-prose-links: var(--color-link-300);
+	--tw-prose-bold: var(--text-primary);
+	--tw-prose-counters: var(--text-muted);
+	--tw-prose-bullets: var(--text-muted);
+	--tw-prose-hr: var(--border-subtle);
+	--tw-prose-quotes: var(--text-primary);
+	--tw-prose-quote-borders: var(--color-teal-500);
+	--tw-prose-captions: var(--text-muted);
+	--tw-prose-code: var(--text-primary);
+	--tw-prose-pre-code: var(--text-primary);
+	--tw-prose-pre-bg: var(--surface-sunken);
+	--tw-prose-th-borders: var(--border-subtle);
+	--tw-prose-td-borders: var(--border-subtle);
+	--tw-prose-lead: var(--text-muted);
+}
+
+/* ---- Dark-mode image legibility (Fix G) ---- */
+/* Transparent diagrams (SVG + raster) are unreadable on dark surfaces.
+   A white backing fixes both. Scoped to .prose — CV logos live outside it. */
+
+:is(.dark) .prose img {
+	background: #fff;
+}
+
+:is(.dark) .prose img[src$='.svg'] {
+	padding: 0.5rem;
+}
+
+/* ---- Code blocks (Shiki) ---- */
+
+pre {
+	border: 1px solid var(--border-subtle);
+	border-radius: var(--radius-md);
+	padding: 1rem 1.25rem;
+	overflow-x: auto;
+}
+
+/* Shiki dual-theme: Astro emits light-theme inline styles + --shiki-dark-* overrides.
+   This site defaults to dark, so apply dark vars unless .light is active. */
+html:not(.light) .astro-code,
+html:not(.light) .astro-code span {
+	color: var(--shiki-dark) !important;
+	background-color: var(--shiki-dark-bg) !important;
+	font-style: var(--shiki-dark-font-style) !important;
+	font-weight: var(--shiki-dark-font-weight) !important;
+	text-decoration: var(--shiki-dark-text-decoration) !important;
+}
+
+/* ---- Inline code ---- */
+
+:not(pre) > code {
+	font-weight: 600;
+	color: var(--text-primary);
+	background: var(--surface-overlay);
+	border-radius: var(--radius-sm);
+	padding: 0.15em 0.35em;
+	font-size: 0.9em;
+}
+
+:is(.dark) :not(pre) > code {
+	color: var(--color-accent-200);
+}
+
+/* ---- KaTeX ---- */
+
+.katex-display {
+	overflow: auto hidden;
+}
+
+.katex {
+	font-size: 1.1em !important;
+}
+
+/* ---- Scrollbar ---- */
+
+*::-webkit-scrollbar {
+	height: 0.5rem;
+}
+
+*::-webkit-scrollbar-thumb {
+	background-color: var(--color-teal-500);
+	border-radius: 8px;
+}
+
+*::-webkit-scrollbar-thumb:hover {
+	background: var(--color-teal-700);
+}
+
+/* ---- Dataframe tables ---- */
+
+.dataframe tbody tr th:only-of-type {
+	vertical-align: middle;
+}
+
+.dataframe tbody tr th {
+	vertical-align: top;
+}
+
+.dataframe thead th {
+	text-align: right;
+}
+
+/* ---- Text link underline animation ---- */
+
+.link-underline {
+	background-image: linear-gradient(currentColor, currentColor);
+	background-position: 0% 100%;
+	background-repeat: no-repeat;
+	background-size: 0% 1px;
+	transition: background-size 200ms cubic-bezier(0.2, 0, 0, 1);
+}
+.link-underline:hover {
+	background-size: 100% 1px;
+}

@@ -1,0 +1,85 @@
+---
+import { getCollection, render } from 'astro:content';
+import BlogPostLayout from '../../layouts/BlogPostLayout.astro';
+import PostCard from '../../components/PostCard.astro';
+import Output from '../../components/markdown/Output.astro';
+import Details from '../../components/markdown/Details.astro';
+import A from '../../components/markdown/a.astro';
+import Img from '../../components/markdown/img.astro';
+import Blockquote from '../../components/markdown/blockquote.astro';
+import ImgSmall from '../../components/markdown/ImgSmall.astro';
+
+export async function getStaticPaths() {
+	const posts = await getCollection('blog', ({ data }) => !data.draft);
+	return posts.map((post) => ({
+		params: { slug: post.id },
+		props: { post },
+	}));
+}
+
+const { post } = Astro.props;
+const { Content } = await render(post);
+
+// Resolve teaser image for OG meta (astro:assets)
+const teaserImages = import.meta.glob<{ default: ImageMetadata }>(
+	'../../assets/teasers/*.{png,jpg,jpeg,webp}',
+	{ eager: true },
+);
+const teaserMeta = teaserImages[`../../assets/teasers/${post.data.teaser}`]?.default;
+const ogImage = teaserMeta ? teaserMeta.src : `/blog/teasers/original/${post.data.teaser}`;
+
+// Related posts: prefer category matches, then most recent, exclude self & drafts
+const allPosts = await getCollection('blog', ({ data }) => !data.draft);
+const currentCategories = new Set(post.data.categories);
+const relatedPosts = allPosts
+	.filter((p) => p.id !== post.id)
+	.map((p) => ({
+		post: p,
+		score:
+			p.data.categories.filter((c) => currentCategories.has(c)).length * 100 +
+			(p.data.date.getTime() / 1e10),
+	}))
+	.sort((a, b) => b.score - a.score)
+	.map((r) => r.post);
+---
+
+<BlogPostLayout
+	title={post.data.title}
+	description={post.data.excerpt}
+	ogImage={ogImage}
+	ogType="article"
+	date={post.data.date.toLocaleDateString('en', {
+		year: 'numeric',
+		month: 'long',
+		day: 'numeric',
+	})}
+	categories={post.data.categories}
+>
+	<Content
+		components={{
+			Output,
+			Details,
+			a: A,
+			img: Img,
+			blockquote: Blockquote,
+			ImgSmall,
+		}}
+	/>
+	{relatedPosts.length > 0 && (
+		<section class="mt-16 not-prose">
+			<h2
+				class="text-2xl font-extrabold tracking-tight mb-6"
+				style="color: var(--text-accent);"
+			>
+				Keep reading
+			</h2>
+			<div
+				class="grid gap-5"
+				style="grid-template-columns: repeat(auto-fill, minmax(16rem, 1fr));"
+			>
+				{relatedPosts.map((rp) => <PostCard post={rp} />)}
+			</div>
+		</section>
+	)}
+	}
+</BlogPostLayout>

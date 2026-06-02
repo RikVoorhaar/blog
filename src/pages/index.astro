@@ -1,0 +1,117 @@
+---
+import Layout from '../layouts/Layout.astro';
+import SmallContainer from '../components/SmallContainer.astro';
+import SectionHeader from '../components/SectionHeader.astro';
+import LandingSection from '../components/landing/LandingSection.astro';
+
+const icon_size = 16;
+const stroke_width = 3;
+---
+
+<Layout title="Home" description="Personal website and blog of Rik Voorhaar — software developer from Copenhagen. Articles about data science, mathematics, and programming.">
+	<SmallContainer>
+		<h1
+			class="font-extrabold text-3xl mb-4 tracking-tight"
+			style="color: var(--text-accent);"
+		>
+			Hello
+		</h1>
+		<p class="mb-2">
+			I'm <span class="font-semibold">Rik Voorhaar</span>, a father and software developer currently
+			living in Copenhagen. This is my personal page and blog, I hope you like it.
+		</p>
+
+		<SectionHeader>About me</SectionHeader>
+		<p class="mb-2">
+			Check out <a href="/cv" class="font-semibold link-underline" style="color: var(--text-link);">my CV / resume</a> page if you want to know what I do
+			for a living.<br />
+			On a personal level here are some of my hobbies:
+		</p>
+
+		<p class="mb-2">
+			<LandingSection title="Reading">
+				<!-- BookA icon -->
+				<svg xmlns="http://www.w3.org/2000/svg" width={icon_size} height={icon_size} viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width={stroke_width} stroke-linecap="round" stroke-linejoin="round" class="inline">
+					<path d="M4 19.5v-15A2.5 2.5 0 0 1 6.5 2H20v20H6.5a2.5 2.5 0 0 1 0-5H20" />
+					<path d="m8 13 4-7 4 7" />
+					<path d="M9.1 11h5.7" />
+				</svg>
+			</LandingSection>
+			I read almost everyday. Mostly sci-fi and fantasy novels, but also many other books. You can find
+			an up-to-date list of all the books I've been reading on
+			<a class="font-semibold link-underline" style="color: var(--text-link);" href="https://www.goodreads.com/tilpo">Goodreads</a>.
+		</p>
+
+		<p class="mb-2">
+			<LandingSection title="Cooking">
+				<!-- CookingPot icon -->
+				<svg xmlns="http://www.w3.org/2000/svg" width={icon_size} height={icon_size} viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width={stroke_width} stroke-linecap="round" stroke-linejoin="round" class="inline">
+					<path d="M2 12h20" />
+					<path d="M20 12v8a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2v-8" />
+					<path d="M6 8v4" />
+					<path d="M10 4v4" />
+					<path d="M14 4v4" />
+					<path d="M18 8v4" />
+				</svg>
+			</LandingSection>
+			I'm an enthusiastic home cook, and I'm never too tired to cook a nice meal. I don't really stick
+			to any particular cuisine, and I love experimenting with new recipes.
+		</p>
+
+		<p class="mb-2">
+			<LandingSection title="Music">
+				<!-- Music icon -->
+				<svg xmlns="http://www.w3.org/2000/svg" width={icon_size} height={icon_size} viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width={stroke_width} stroke-linecap="round" stroke-linejoin="round" class="inline">
+					<path d="M9 18V5l12-2v13" />
+					<circle cx="6" cy="18" r="3" />
+					<circle cx="18" cy="16" r="3" />
+				</svg>
+			</LandingSection>
+			I've had a passion for music for a long time. I am always on the hunt for new albums, and I don't
+			stick to any particular genre. I keep track of the albums I like on
+			<a class="font-semibold link-underline" style="color: var(--text-link);" href="https://rateyourmusic.com/collection/Tilpo/oo">Rate Your Music</a>, and
+						I have been logging all the music I've been listening to on
+						<a class="font-semibold link-underline" style="color: var(--text-link);" href="https://www.last.fm/user/Tilpo">Last.fm</a> since 2010. I also play guitar
+			(sometimes).
+		</p>
+
+		<p class="mb-2">
+			<LandingSection title="Coding">
+				<!-- Code icon -->
+				<svg xmlns="http://www.w3.org/2000/svg" width={icon_size} height={icon_size} viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width={stroke_width} stroke-linecap="round" stroke-linejoin="round" class="inline">
+					<polyline points="16 18 22 12 16 6" />
+					<polyline points="8 6 2 12 8 18" />
+				</svg>
+			</LandingSection>
+			I like to code in my free time, usually as part of a deep-dive in a topic I want to learn more about.
+			If what I learned is interesting, I usually write a blog post about it.
+		</p>
+
+		<p class="mb-2">
+			<LandingSection title="Gaming">
+				<!-- Gamepad2 icon -->
+				<svg xmlns="http://www.w3.org/2000/svg" width={icon_size} height={icon_size} viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width={stroke_width} stroke-linecap="round" stroke-linejoin="round" class="inline">
+					<line x1="6" x2="10" y1="11" y2="11" />
+					<line x1="8" x2="8" y1="9" y2="13" />
+					<line x1="15" x2="15.01" y1="12" y2="12" />
+					<line x1="18" x2="18.01" y1="10" y2="10" />
+					<path d="M17.32 5H6.68a4 4 0 0 0-3.978 3.59c-.006.052-.01.101-.017.152C2.604 9.416 2 14.456 2 16a3 3 0 0 0 3 3c1 0 1.5-.5 2-1l1.414-1.414A2 2 0 0 1 9.828 16h4.344a2 2 0 0 1 1.414.586L17 18c.5.5 1 1 2 1a3 3 0 0 0 3-3c0-1.545-.604-6.584-.685-7.258-.007-.05-.011-.1-.017-.151A4 4 0 0 0 17.32 5z" />
+				</svg>
+			</LandingSection>
+			I have always enjoyed gaming in my free time, even though nowadays it's hard to find the time. My
+			favorite genres are open-world RPGs, sandbox and survivalcraft games. I also enjoy replaying games
+			from my youth, and I really enjoy staying up to date with the speedrunning community around games
+			I like.
+		</p>
+
+		<SectionHeader>About this website</SectionHeader>
+		<p>
+			I made this website from scratch using <a class="font-semibold link-underline" style="color: var(--text-link);" href="https://astro.build/">Astro</a>
+						and
+						<a class="font-semibold link-underline" style="color: var(--text-link);" href="https://tailwindcss.com/">Tailwind 4</a>. The blog posts are written in
+						markdown and rendered using <a class="font-semibold link-underline" style="color: var(--text-link);" href="https://mdxjs.com/">MDX</a>. This website is
+						hosted on <a class="font-semibold link-underline" style="color: var(--text-link);" href="https://pages.cloudflare.com/">Cloudflare Pages</a>. You can find
+						<a class="font-semibold link-underline" style="color: var(--text-link);" href="https://github.com/RikVoorhaar/blog">the source code for this website here</a>.
+		</p>
+	</SmallContainer>
+</Layout>

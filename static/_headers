@@ -1,0 +1,18 @@
+# Cloudflare Pages CDN cache headers
+# https://developers.cloudflare.com/pages/configuration/headers/
+
+# Hashed assets (JS, CSS, images from astro:assets) — immutable, 1 year
+/_astro/*
+  Cache-Control: public, max-age=31536000, immutable
+
+# Fonts — long cache, revalidate
+/fonts/*
+  Cache-Control: public, max-age=604800, must-revalidate
+
+# RSS feed — short cache, revalidate
+/rss.xml
+  Cache-Control: public, max-age=3600, must-revalidate
+
+# HTML pages — short CDN cache (Cloudflare auto-purges on deploy)
+/*
+  Cache-Control: public, max-age=0, must-revalidate

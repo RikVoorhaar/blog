@@ -1,9 +1,9 @@
 {
-    "grammarly.selectors": [
-        {
-            "language": "markdown",
-            "scheme": "file",
-            "pattern": "src/posts/selfhosted.md"
-        }
-    ]
+	"grammarly.selectors": [
+		{
+			"language": "markdown",
+			"scheme": "file",
+			"pattern": "src/posts/selfhosted.md"
+		}
+	]
 }

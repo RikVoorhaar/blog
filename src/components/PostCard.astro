@@ -1,0 +1,98 @@
+---
+import { Image } from 'astro:assets';
+import type { CollectionEntry } from 'astro:content';
+
+interface Props {
+	post: CollectionEntry<'blog'>;
+}
+
+const { post } = Astro.props;
+
+const teaserImages = import.meta.glob<{ default: ImageMetadata }>(
+	'../assets/teasers/*.{png,jpg,jpeg,webp}',
+	{ eager: true },
+);
+
+const teaserFilename = post.data.teaser;
+const keys = Object.keys(teaserImages);
+const teaserKey = keys.find((k) => k.endsWith('/' + teaserFilename));
+const teaserMeta = teaserKey ? teaserImages[teaserKey]?.default : undefined;
+const teaserSrc = `/blog/teasers/original/${teaserFilename}`;
+
+const date = post.data.date;
+const day = date.getDate();
+const month = new Intl.DateTimeFormat('en', { month: 'long' }).format(date);
+const year = date.getFullYear();
+const ordinal = (d: number): string => {
+	if (d > 3 && d < 21) return 'th';
+	switch (d % 10) {
+		case 1: return 'st';
+		case 2: return 'nd';
+		case 3: return 'rd';
+		default: return 'th';
+	}
+};
+---
+
+<div
+	class="group flex flex-col h-full not-prose transition-all duration-250"
+	style="background-color: var(--surface-raised); border-radius: var(--radius-lg);"
+>
+	<a href={`/blog/${post.id}`} class="block aspect-[16/10] overflow-hidden"
+	   style="border-radius: var(--radius-lg) var(--radius-lg) 0 0;">
+		{teaserMeta ? (
+			<Image
+				src={teaserMeta}
+				alt={`Teaser for ${post.data.title}`}
+				loading="lazy"
+				class="w-full h-full object-contain transition-transform duration-300 group-hover:scale-105"
+				style="display: block; background: transparent; border-radius: var(--radius-lg) var(--radius-lg) 0 0;"
+				sizes="(max-width: 640px) 90vw, (max-width: 1024px) 45vw, 22rem"
+			/>
+		) : (
+			<img
+				src={teaserSrc}
+				alt={`Teaser for ${post.data.title}`}
+				loading="lazy"
+				class="w-full h-full object-contain transition-transform duration-300 group-hover:scale-105"
+				style="display: block; background: transparent; border-radius: var(--radius-lg) var(--radius-lg) 0 0;"
+			/>
+		)}
+	</a>
+
+	<div class="flex flex-col flex-1 p-4 gap-1">
+		<a href={`/blog/${post.id}`}
+		   class="text-xl font-extrabold leading-tight transition-colors duration-150 tracking-tight"
+		   style="color: var(--text-accent);">
+			{post.data.title}
+		</a>
+
+		<p class="text-sm" style="color: var(--text-muted);">
+			{day}{ordinal(day)} of {month}, {year}
+		</p>
+
+		<p class="pl-3 my-1 leading-snug line-clamp-3 text-sm"
+		   style="border-left: 2px solid var(--color-teal-500); color: var(--text-primary);">
+			{post.data.excerpt.trim()}
+		</p>
+
+		<div class="flex-1"></div>
+
+		<div class="flex flex-wrap gap-1.5">
+			{post.data.categories.map((cat) => (
+				<span class="px-2 py-0.5 text-xs font-semibold uppercase tracking-wider"
+				      style="background-color: var(--color-accent-900); color: var(--color-accent-300); border-radius: var(--radius-full);">
+					{cat}
+				</span>
+			))}
+		</div>
+	</div>
+</div>
+
+<style>
+	.duration-250 { transition-duration: 250ms; }
+	html.light .group span[style*="--color-accent-900"] {
+		background-color: var(--color-accent-100) !important;
+		color: var(--color-accent-700) !important;
+	}
+</style>

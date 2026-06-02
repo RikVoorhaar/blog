@@ -1,0 +1,12 @@
+---
+import { getCollection } from 'astro:content';
+import BlogPostLayout from '../../layouts/BlogPostLayout.astro';
+import PostCardGallery from '../../components/PostCardGallery.astro';
+
+const allPosts = await getCollection('blog', ({ data }) => !data.draft);
+const posts = allPosts.sort((a, b) => b.data.date.getTime() - a.data.date.getTime());
+---
+
+<BlogPostLayout title="Blog" description="Articles about data science, mathematics, and programming">
+	<PostCardGallery posts={posts} />
+</BlogPostLayout>

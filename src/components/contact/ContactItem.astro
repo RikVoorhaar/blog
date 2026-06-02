@@ -1,0 +1,28 @@
+---
+// Contact item: icon + type label + value
+export interface Props {
+	type: string;
+	content: string;
+	href?: string;
+}
+
+const { type, content, href } = Astro.props;
+---
+
+<p class="mb-1 flex items-center gap-2">
+	<span style="color: var(--color-teal-500);">
+		<slot />
+	</span>
+	<span class="font-semibold" style="color: var(--text-accent);">{type}</span>:
+	{href ? (
+		<a
+			href={href}
+			class="font-semibold link-underline"
+			style="color: var(--text-link);"
+		>
+			{content}
+		</a>
+	) : (
+		<span>{content}</span>
+	)}
+</p>
