@@ -26,65 +26,64 @@ I finally made the courageous decision to start reading books in Danish. I want 
 my Danish, and reading the news already works fine, so folding Danish literature into my
 daily routine should grow my vocabulary fast.
 
-There was just one problem: Kobo doesn't ship a Danish dictionary. There is no official
-dictionary for Danish on the e-reader at all, and the ones you can find to install are
-basically Wiktionary. For Dutch or French, Wiktionary is amazing; for Danish it is just not
-a great resource. Whatever word you tap in a novel usually simply isn't there. Reading
-without a dictionary is hell, and reaching for my phone breaks the flow. I wanted something
-quick and easy.
+There was just one problem: Kobo doesn't ship a Danish dictionary. There's no official one
+at all, and the ones you can find to install are basically Wiktionary. For Dutch or French,
+Wiktionary is amazing; for Danish it's just not a great resource, and whatever word you tap
+in a novel usually isn't there. Reading without a dictionary is hell, and reaching for my
+phone breaks the flow. I wanted something quick and easy.
 
-So I had the idea: build a small project that generates a dictionary from the words that
-actually occur in the book. Some napkin math suggested it would be cost-effective —
-certainly less than the e-book itself.
+So I had an idea: build a small project that generates a dictionary from the words that
+actually occur in the book. Some napkin math suggested it would be cost-effective, certainly
+cheaper than the e-book itself.
 
 ## The idea
 
-The idea, more completely: take an EPUB — as long as it has no DRM — and extract every word
-in it. Many of those are inflections of the same word, so you can lemmatize them down to a
+Here's the idea in full. Take an EPUB (as long as it has no DRM) and extract every word in
+it. Many of those are inflections of the same word, so you can lemmatize them down to a
 smaller set (more on that later).
 
 Then, for each word, write a prompt containing the Danish word plus the contexts where it
-actually occurs in the book — up to a maximum, ideally the sentence before, the sentence
-itself, and the sentence after — and force the model to produce a structured output from
-which you can generate a dictionary entry. The context is doing a lot of the work here: a
-model does not reliably remember what every Danish word means, but even a little evidence of
-how the word is used is often enough to infer the meaning and translate it. It's boring, which
-is the point: EPUB in, one JSON dictionary entry per lemma out.
+actually occurs in the book: up to a maximum, ideally the sentence before, the sentence
+itself, and the sentence after. Force the model to produce structured output, and generate
+a dictionary entry from that. The context does a lot of the work. A model doesn't reliably
+remember what every Danish word means, but even a little evidence of how a word is used is
+often enough to infer the meaning and translate it. It's boring, which is the point: EPUB
+in, one JSON dictionary entry per lemma out.
 
 From there, a program called `dictgen` (I don't know exactly what it does) turns the entries
 into the HTML that the e-reader understands.
 
 The good part is that it genuinely works: every word in the book has an entry. I can't
-stress enough how useful that is. Even a very good English dictionary wouldn't have this
-property. Danish is full of compounds: you can try to decompose them yourself, but it's not
-always an option, or obvious, and no dictionary contains every possible compound. Knowing the actual book
-changes the calculus — even a fairly long book might only have 10,000–20,000 unique words,
-which you can work through in batches.
+stress enough how useful that is. Even a very good English dictionary wouldn't manage it.
+Danish is full of compounds, and you can try to decompose them yourself, but that's not
+always an option or obvious, and no dictionary contains every possible compound. Knowing the
+actual book changes the calculus. Even a fairly long book might only have 10,000–20,000
+unique words, which you can work through in batches.
 
 And because I'm bilingual in Dutch and English, the dictionary can be personalised: each
-entry has a Danish definition plus both a Dutch and an English gloss. That is fantastic for
-language learning — and you will not find it in a normal dictionary. That kind of
+entry has a Danish definition plus both a Dutch and an English gloss. That's fantastic for
+language learning, and you won't find it in a normal dictionary. That kind of
 personalisation is only possible with AI.
 
 ## A very short dictionary primer
 
-A dictionary actually has a few moving parts. First, the **lemma**: the dictionary form of a
-word. Verbs get conjugated and nouns and adjectives get inflected, but the dictionary lists
-the base form — *tage*, not *tager*, *tog* or *taget*.
+A dictionary has a few moving parts. First, the **lemma**: the dictionary form of a word.
+Verbs get conjugated and nouns and adjectives get inflected, but the dictionary lists the
+base form: _tage_, not _tager_, _tog_ or _taget_.
 
-Then there is the **surface form**: the exact string that appears in the book — the thing you
-actually tap. The dictionary essentially needs an entry for every surface form, so that a
-lookup is just a map from surface to dictionary entry.
+Then there's the **surface form**: the exact string that appears in the book, the thing you
+actually tap. The dictionary essentially needs an entry for every surface form, so a lookup
+is just a map from surface to dictionary entry.
 
-Which is exactly why the lemma matters here. An EPUB only gives you surface forms. You could
-generate an entry for each surface directly, but then you would produce the same word many
-times over — *tager*, *tog*, *taget* — at extra cost, and the entries would not necessarily
-agree with each other. Collapsing the surfaces into lemmas first, and then generating one
-entry per lemma that actually occurs in the book, is an optimisation rather than a
-requirement: it just saves money, and makes the dictionary more consistent.
+That's exactly why the lemma matters here. An EPUB only gives you surface forms. You could
+generate an entry for each surface directly, but you'd produce the same word many times over
+(_tager_, _tog_, _taget_) at extra cost, and the entries wouldn't necessarily agree with
+each other. Collapsing the surfaces into lemmas first, and then generating one entry per
+lemma that actually occurs in the book, is an optimisation rather than a requirement. It
+just saves money and makes the dictionary more consistent.
 
 And an **entry** consists of one or more **senses**: the distinct meanings of the word.
-*Gift*, for example, can mean both "poison" and "married".
+_Gift_, for example, can mean both "poison" and "married".
 
 ## How I built it
 
@@ -92,51 +91,51 @@ I've been quiet on this blog, but in the meantime I've gotten a lot of practice 
 coding. I won't claim to be an expert, but I've found a workflow that works well for me.
 
 I started by discussing the problem with Perplexity. For a project like this, a search-based
-engine that also has access to strong models is the best starting point: it covers a lot of
-blind spots. I didn't know how a dictionary is constructed, how to read an EPUB, or whether
-this was even possible. My first question was simply: can this be done at all? The answer was
-yes. Once I understood the terminology, I hammered out a rough plan with Perplexity.
+engine that also has access to strong models is the best starting point, because it covers a
+lot of blind spots. I didn't know how a dictionary is constructed, how to read an EPUB, or
+whether this was even possible, so my first question was simply: can this be done at all?
+The answer was yes. Once I understood the terminology, I hammered out a rough plan with
+Perplexity.
 
-Then I moved to a coding agent, through OpenRouter — I don't vibe-code often enough to
+Then I moved to a coding agent, through OpenRouter. I don't vibe-code often enough to
 justify a Claude subscription, and this is cheap. DeepSeek V4.1 Flash, for example, is very
-cheap and very capable; it is roughly as capable as the absolute frontier from six months
+cheap and very capable; it's roughly as capable as the absolute frontier from six months
 ago, which is kind of insane.
 
 I start with an overview of all the todos, no details, in an HTML plan that I can easily
-inspect and edit, and that contains all the context an agent needs. Then I grill it: first to
-make sure there are no blocking decisions and that the whole process is understood. The plan
-is divided into phases, each one a logical unit that can be executed on its own, like a
-ticket. For each phase I grill until I am satisfied that it says exactly what to do, and then
-execute. From that point — especially for something no more complex than this — it is pretty
+inspect and edit, and that contains all the context an agent needs. Then I grill it, first
+to make sure there are no blocking decisions and that the whole process is understood. The
+plan is divided into phases, each one a logical unit that can be executed on its own, like a
+ticket. For each phase I grill until I'm satisfied that it says exactly what to do, and then
+execute. From that point on, especially for something no more complex than this, it's pretty
 hands-off.
 
-A few decisions mattered. My first lemmatizer was Stanza, and it was unreliable: it would often
-take a surface form and produce a completely different lemma — *han* became *ha*, an
+A few decisions mattered. My first lemmatizer was Stanza, and it was unreliable: it would
+often take a surface form and produce a completely different lemma. _Han_ became _ha_, an
 expression of laughter. Then I found the [DDO full-form
-list](https://korpus.dsl.dk/resources/details/ddo-fullforms.html): a large, curated set of
-inflected-form → lemma pairs based on *Den Danske Ordbog*. It is much higher quality than
-rule-based lemmatization for Danish, and it worked far better — a neat entry for almost every
-word. Stanza is still there as a backup for the words DDO does not cover. For other languages,
-the available lemmatizers may be perfectly adequate; for Danish, maybe not.
+list](https://korpus.dsl.dk/resources/details/ddo-fullforms.html), a large, curated set of
+inflected-form → lemma pairs based on _Den Danske Ordbog_. It's much higher quality than
+rule-based lemmatization for Danish, and it worked far better, giving a neat entry for
+almost every word. Stanza is still there as a backup for the words DDO doesn't cover. For
+other languages the available lemmatizers may be perfectly adequate; for Danish, maybe not.
 
 I also tried adding cognates (Dutch is close to Danish, so a cognate is much easier to
 remember) and morphology (word composition), because both should help a learner. The models
-just aren't good at that: they hallucinate, or produce nothing useful, especially when a word
-has several senses. So I removed both.
+just aren't good at that: they hallucinate, or produce nothing useful, especially when a
+word has several senses. So I removed both.
 
 ## Picking a model
 
 For the model choice, I asked Perplexity which models made sense. It suggested a few cheap
 ones: a Qwen model, GPT-6 Luna, and Claude Haiku, all under \$0.20 per million input tokens.
 Output is cheap too, because every response is a small structured JSON object. And most of
-the input is the same for every word — only the contexts change — so it is largely
-cacheable.
+the input is the same for every word (only the contexts change), so it's largely cacheable.
 
 Then I ran a bake-off. The idea is simple: take the same 200 words, have each model produce
-its entries, then ask a judge model to compare the outputs pairwise and pick which one is
-better. From those comparisons you compute something like an ELO score, and the model with the
-higher score is better at the task. I used Mistral Large 4 as the judge, on the hunch that it
-would be good at European languages. That is not evidence-based, but it gave a good enough
+its entries, then ask a judge model to compare the outputs pairwise and pick the better one.
+From those comparisons you compute something like an ELO score, and the model with the
+higher score is better at the task. I used Mistral Large 4 as the judge, on the hunch that
+it would be good at European languages. That's not evidence-based, but it gave a good enough
 signal. Haiku won consistently, which makes sense since it was the newest of the three. That
 is what I went with, and I'm quite happy with the results.
 
@@ -144,18 +143,18 @@ is what I went with, and I'm quite happy with the results.
 
 {/* TODO: Rik's photo of the e-reader goes here (teaser + inline). */}
 
-Here is what two entries actually look like:
+Here's what two entries actually look like:
 
 <DictEntry entry={dukkeEntry} />
 
-`dukke` covers three senses across two parts of speech. The one-off compound case is even
+`dukke` covers three senses across two parts of speech. The one-off compound is even
 better:
 
 <DictEntry entry={farveblyantsregnbueEntry} />
 
 "Coloured-pencil rainbow." It occurs exactly once in the book, and no general dictionary
-would ever include it. That is the point: the dictionary covers the words the book actually
-uses — about 7,500 headwords, expanded to roughly 9,900 look-up forms.
+would ever include it. That's the point: the dictionary covers the words the book actually
+uses, about 7,500 headwords expanded to roughly 9,900 look-up forms.
 
 <details className="my-8 rounded-lg border border-black/10 bg-black/[0.02] px-4 py-3">
 <summary className="cursor-pointer font-semibold">The JSON behind these entries</summary>
@@ -164,97 +163,88 @@ uses — about 7,500 headwords, expanded to roughly 9,900 look-up forms.
 
 ```json
 {
-  "lemma": "dukke",
-  "poses": [
-    "NOUN",
-    "VERB"
-  ],
-  "frequency": 33,
-  "sent_count": 33,
-  "observed_forms": [
-    "duk",
-    "dukke",
-    "dukkede",
-    "dukker",
-    "dukket"
-  ],
-  "contexts": [
-    {
-      "id": "s009804",
-      "text": "„Hvad hvis horror vacui dukker op mellem to meteorstorme?",
-      "surface": "dukker"
-    },
-    {
-      "id": "s010312",
-      "text": "Hvem det end var, som kastede den brandbombe, må de have vidst, at vi ville dukke op.",
-      "surface": "dukke"
-    },
-    {
-      "id": "s007031",
-      "text": "Og så mærkeligt er det vel heller ikke, at der dukker en mus op på et bibliotek?",
-      "surface": "dukker"
-    },
-    {
-      "id": "s006898",
-      "text": "Måske er tegningerne bare dukket op et andet sted?",
-      "surface": "dukket"
-    },
-    {
-      "id": "s007118",
-      "text": "„Og sagde du ikke, at myren først dukkede op, da du underskrev tegningen?“",
-      "surface": "dukkede"
-    },
-    {
-      "id": "s009504",
-      "text": "I kan bruge den, hvis I af en eller anden grund ikke har nået at indstille kompasset, når horror vacui dukker op.“",
-      "surface": "dukker"
-    },
-    {
-      "id": "s006154",
-      "text": "Da jeg nærmer mig huset, er der ikke dukket nogen gode idéer op.",
-      "surface": "dukket"
-    },
-    {
-      "id": "s006768",
-      "text": "Hverken fru Holm eller pedellen er dukket op på biblioteket, da vi træder ind ad døren og ser ham ligge på knæ foran den slidte sofa.",
-      "surface": "dukket"
-    },
-    {
-      "id": "s002747",
-      "text": "„Jeg ved ikke, hvem I er, men det virker alt andet end tilfældigt, at I dukker op ud af det blå og spørger efter min far.“",
-      "surface": "dukker"
-    },
-    {
-      "id": "s009813",
-      "text": "„Så hvis horror vacui kun kan dukke op, når der er mange stjerneskud … skal vi i hvert fald sørge for at være tæt på hinanden, hver gang der er en meteorstorm?“",
-      "surface": "dukke"
-    },
-    {
-      "id": "s002381",
-      "text": "Linus dukker frem bag en reol med en fysikbog i hånden.",
-      "surface": "dukker"
-    },
-    {
-      "id": "s007315",
-      "text": "Jeg ser det ikke dukke op, men der ligger et stykke knækbrød på dynen ved siden af mit lår, da jeg endelig tør kigge væk fra blokken.",
-      "surface": "dukke"
-    },
-    {
-      "id": "s004179",
-      "text": "Der lyder skridt inde i stuen, og Alban dukker op i døråbningen ud til entréen.",
-      "surface": "dukker"
-    },
-    {
-      "id": "s010512",
-      "text": "Josefs ansigt dukker op på væggen.",
-      "surface": "dukker"
-    },
-    {
-      "id": "s000522",
-      "text": "Tanken får angsten fra drømmen til at dukke op igen, et glimt af is i hjertekulen.",
-      "surface": "dukke"
-    }
-  ]
+	"lemma": "dukke",
+	"poses": ["NOUN", "VERB"],
+	"frequency": 33,
+	"sent_count": 33,
+	"observed_forms": ["duk", "dukke", "dukkede", "dukker", "dukket"],
+	"contexts": [
+		{
+			"id": "s009804",
+			"text": "„Hvad hvis horror vacui dukker op mellem to meteorstorme?",
+			"surface": "dukker"
+		},
+		{
+			"id": "s010312",
+			"text": "Hvem det end var, som kastede den brandbombe, må de have vidst, at vi ville dukke op.",
+			"surface": "dukke"
+		},
+		{
+			"id": "s007031",
+			"text": "Og så mærkeligt er det vel heller ikke, at der dukker en mus op på et bibliotek?",
+			"surface": "dukker"
+		},
+		{
+			"id": "s006898",
+			"text": "Måske er tegningerne bare dukket op et andet sted?",
+			"surface": "dukket"
+		},
+		{
+			"id": "s007118",
+			"text": "„Og sagde du ikke, at myren først dukkede op, da du underskrev tegningen?“",
+			"surface": "dukkede"
+		},
+		{
+			"id": "s009504",
+			"text": "I kan bruge den, hvis I af en eller anden grund ikke har nået at indstille kompasset, når horror vacui dukker op.“",
+			"surface": "dukker"
+		},
+		{
+			"id": "s006154",
+			"text": "Da jeg nærmer mig huset, er der ikke dukket nogen gode idéer op.",
+			"surface": "dukket"
+		},
+		{
+			"id": "s006768",
+			"text": "Hverken fru Holm eller pedellen er dukket op på biblioteket, da vi træder ind ad døren og ser ham ligge på knæ foran den slidte sofa.",
+			"surface": "dukket"
+		},
+		{
+			"id": "s002747",
+			"text": "„Jeg ved ikke, hvem I er, men det virker alt andet end tilfældigt, at I dukker op ud af det blå og spørger efter min far.“",
+			"surface": "dukker"
+		},
+		{
+			"id": "s009813",
+			"text": "„Så hvis horror vacui kun kan dukke op, når der er mange stjerneskud … skal vi i hvert fald sørge for at være tæt på hinanden, hver gang der er en meteorstorm?“",
+			"surface": "dukke"
+		},
+		{
+			"id": "s002381",
+			"text": "Linus dukker frem bag en reol med en fysikbog i hånden.",
+			"surface": "dukker"
+		},
+		{
+			"id": "s007315",
+			"text": "Jeg ser det ikke dukke op, men der ligger et stykke knækbrød på dynen ved siden af mit lår, da jeg endelig tør kigge væk fra blokken.",
+			"surface": "dukke"
+		},
+		{
+			"id": "s004179",
+			"text": "Der lyder skridt inde i stuen, og Alban dukker op i døråbningen ud til entréen.",
+			"surface": "dukker"
+		},
+		{
+			"id": "s010512",
+			"text": "Josefs ansigt dukker op på væggen.",
+			"surface": "dukker"
+		},
+		{
+			"id": "s000522",
+			"text": "Tanken får angsten fra drømmen til at dukke op igen, et glimt af is i hjertekulen.",
+			"surface": "dukke"
+		}
+	]
 }
 ```
 
@@ -262,60 +252,42 @@ uses — about 7,500 headwords, expanded to roughly 9,900 look-up forms.
 
 ```json
 {
-  "senses": [
-    {
-      "pos": "VERB",
-      "definition_da": "pludselig vise sig eller komme frem, ofte uventet",
-      "equivalents_en": [
-        "appear",
-        "turn up",
-        "show up"
-      ],
-      "equivalents_nl": [
-        "opduiken",
-        "verschijnen"
-      ],
-      "label": "dukke op"
-    },
-    {
-      "pos": "VERB",
-      "definition_da": "bøje sig eller gemme sig hurtigt ned for at undgå noget",
-      "equivalents_en": [
-        "duck"
-      ],
-      "equivalents_nl": [
-        "bukken",
-        "duiken"
-      ],
-      "label": null
-    },
-    {
-      "pos": "NOUN",
-      "definition_da": "legetøjsfigur, der forestiller et menneske",
-      "equivalents_en": [
-        "doll"
-      ],
-      "equivalents_nl": [
-        "pop"
-      ],
-      "label": null
-    }
-  ],
-  "expressions": [
-    {
-      "da": "dukke op",
-      "en": "turn up, show up",
-      "nl": "opduiken"
-    }
-  ],
-  "note": "The noun sense is not supported by the supplied sentences; only the verb 'dukke op' is attested, so the noun sense is included as a best-effort fallback from common usage.",
-  "schema_version": "2",
-  "lemma": "dukke",
-  "frequency": 6,
-  "sent_count": 6,
-  "observed_forms": [
-    "dukke"
-  ]
+	"senses": [
+		{
+			"pos": "VERB",
+			"definition_da": "pludselig vise sig eller komme frem, ofte uventet",
+			"equivalents_en": ["appear", "turn up", "show up"],
+			"equivalents_nl": ["opduiken", "verschijnen"],
+			"label": "dukke op"
+		},
+		{
+			"pos": "VERB",
+			"definition_da": "bøje sig eller gemme sig hurtigt ned for at undgå noget",
+			"equivalents_en": ["duck"],
+			"equivalents_nl": ["bukken", "duiken"],
+			"label": null
+		},
+		{
+			"pos": "NOUN",
+			"definition_da": "legetøjsfigur, der forestiller et menneske",
+			"equivalents_en": ["doll"],
+			"equivalents_nl": ["pop"],
+			"label": null
+		}
+	],
+	"expressions": [
+		{
+			"da": "dukke op",
+			"en": "turn up, show up",
+			"nl": "opduiken"
+		}
+	],
+	"note": "The noun sense is not supported by the supplied sentences; only the verb 'dukke op' is attested, so the noun sense is included as a best-effort fallback from common usage.",
+	"schema_version": "2",
+	"lemma": "dukke",
+	"frequency": 6,
+	"sent_count": 6,
+	"observed_forms": ["dukke"]
 }
 ```
 
@@ -323,22 +295,18 @@ uses — about 7,500 headwords, expanded to roughly 9,900 look-up forms.
 
 ```json
 {
-  "lemma": "farveblyantsregnbue",
-  "poses": [
-    "NOUN"
-  ],
-  "frequency": 1,
-  "sent_count": 1,
-  "observed_forms": [
-    "farveblyantsregnbue"
-  ],
-  "contexts": [
-    {
-      "id": "s001309",
-      "text": "Jeg tænker på det lysende glasstykke fra drømmen og på den spaltede farveblyantsregnbue, som ligger i min taske.",
-      "surface": "farveblyantsregnbue"
-    }
-  ]
+	"lemma": "farveblyantsregnbue",
+	"poses": ["NOUN"],
+	"frequency": 1,
+	"sent_count": 1,
+	"observed_forms": ["farveblyantsregnbue"],
+	"contexts": [
+		{
+			"id": "s001309",
+			"text": "Jeg tænker på det lysende glasstykke fra drømmen og på den spaltede farveblyantsregnbue, som ligger i min taske.",
+			"surface": "farveblyantsregnbue"
+		}
+	]
 }
 ```
 
@@ -346,39 +314,32 @@ uses — about 7,500 headwords, expanded to roughly 9,900 look-up forms.
 
 ```json
 {
-  "senses": [
-    {
-      "pos": "NOUN",
-      "definition_da": "en regnbue lavet af farveblyanter, her en splittet række af farvede streger eller tegning",
-      "equivalents_en": [
-        "colored pencil rainbow",
-        "pencil rainbow"
-      ],
-      "equivalents_nl": [
-        "kleurpotlood-regenboog"
-      ],
-      "label": null
-    }
-  ],
-  "expressions": null,
-  "note": null,
-  "schema_version": "2",
-  "lemma": "farveblyantsregnbue",
-  "frequency": 1,
-  "sent_count": 1,
-  "observed_forms": [
-    "farveblyantsregnbue"
-  ]
+	"senses": [
+		{
+			"pos": "NOUN",
+			"definition_da": "en regnbue lavet af farveblyanter, her en splittet række af farvede streger eller tegning",
+			"equivalents_en": ["colored pencil rainbow", "pencil rainbow"],
+			"equivalents_nl": ["kleurpotlood-regenboog"],
+			"label": null
+		}
+	],
+	"expressions": null,
+	"note": null,
+	"schema_version": "2",
+	"lemma": "farveblyantsregnbue",
+	"frequency": 1,
+	"sent_count": 1,
+	"observed_forms": ["farveblyantsregnbue"]
 }
 ```
 
 </details>
 
-The whole thing took about four hours, and about \$3 in tokens to produce a dictionary for one
-more book. That is the marginal cost, not the total: the project as a whole cost closer to \$6,
-because I ran the pipeline twice and paid a judge model during the bake-off. Some entries are
-imperfect — an odd sense here, a missing name there — but every word I have tapped so far has
-had an entry.
+The whole thing took about four hours, and about \$3 in tokens to produce a dictionary for
+one more book. That's the marginal cost, not the total: the project as a whole cost closer
+to \$6, because I ran the pipeline twice and paid a judge model during the bake-off. Some
+entries are imperfect, with an odd sense here and a missing name there, but every word I've
+tapped so far has had an entry.
 
 Installing it is trivial: drop the `.zip` into the `.kobo/dict` folder on the Kobo, and it
 works immediately. That fast loop is also what made it cheap to iterate on the dictionary's
@@ -386,20 +347,19 @@ styling a couple of times.
 
 ## Reading with it
 
-I am reading a Danish book, and with a dictionary that actually covers it I look up maybe two
-or three words per page. That is few enough that it does not pull me out of the story, which
-is the whole point. I genuinely enjoy reading it; it does not feel like a chore.
+I'm reading a Danish book, and with a dictionary that actually covers it I look up maybe two
+or three words per page. That's few enough that it doesn't pull me out of the story, which
+is the whole point. I genuinely enjoy reading it; it doesn't feel like a chore.
 
-And that is the result I actually care about: I can read books in Danish now. I like fantasy
+And that's the result I actually care about: I can read books in Danish now. I like fantasy
 and science fiction, and I found Nanna Foss's
-[*Spektrum*](https://www.goodreads.com/book/show/55151429-leoniderne) through a Perplexity
-recommendation. I had started with the first Silo novel translated into Danish, but the level
-was way too high. *Spektrum* is Danish YA science fiction and fantasy, aimed at a younger
-audience. I might have
-preferred something more mature, but the writing is good and it is exactly the right level for
-me. More than enough.
+[_Spektrum_](https://www.goodreads.com/book/show/55151429-leoniderne) through a Perplexity
+recommendation. I had started with the first Silo novel translated into Danish, but the
+level was way too high. _Spektrum_ is Danish YA science fiction and fantasy, aimed at a
+younger audience. I might have preferred something more mature, but the writing is good and
+it's exactly the right level for me. More than enough.
 
-So my recommendation: once you are around B2/C1, start reading books for entertainment. Find
+So my recommendation: once you're around B2/C1, start reading books for entertainment. Find
 something at the right level, read it on an e-reader, and use a dictionary that has entries
 for everything you need. If you already speak several languages, glosses in more than one of
-them are genuinely helpful too — they make words easier to remember.
+them are genuinely helpful too, since they make words easier to remember.
