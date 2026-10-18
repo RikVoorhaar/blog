@@ -28,8 +28,25 @@ certainly less than the e-book itself.
 
 ## The idea
 
-{/* Generate the dictionary from the book itself: every tapped word gets an entry,
-   Danish definition + English/Dutch glosses, for less than the price of the book. */}
+The idea, more completely: take an EPUB — as long as it has no DRM — and extract every word
+in it. Many of those are inflections of the same word, so you can lemmatize them down to a
+smaller set (more on that later).
+
+Then, for each word, write a prompt containing the Danish word plus the contexts where it
+actually occurs in the book — up to a maximum, ideally the sentence before, the sentence
+itself, and the sentence after — and force the model to produce a structured output from
+which you can generate a dictionary entry. It's boring, which is the point: EPUB in, one
+JSON dictionary entry per lemma out.
+
+From there, a program called `dictgen` (I don't know exactly what it does) turns the entries
+into the HTML that the e-reader understands.
+
+The good part is that it genuinely works: every word in the book has an entry. I can't
+stress enough how useful that is. Even a very good English dictionary wouldn't have this
+property. Danish is full of compounds: you can try to decompose them yourself, but it's not
+always an option, or obvious, and no dictionary contains every possible compound. Knowing the actual book
+changes the calculus — even a fairly long book might only have 10,000–20,000 unique words,
+which you can work through in batches.
 
 ## A very short dictionary primer
 
