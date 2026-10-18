@@ -7,40 +7,37 @@ teaser: 'epub_dict_generator.svg'
 draft: true
 ---
 
-{/* STUB: outline only. Replace with the real narrative before un-drafting. */}
+{/* STUB. Outline only — see epub_dict_generator.notes.md for the settled plan. */}
 
 ## The problem
 
-{/* Why a generic dictionary is a poor fit for a specific novel: rare words,
-   compounds, inflected forms, and the cost of looking things up while reading. */}
+{/* Learning Danish on a Kobo; the stock dictionary misses words and breaks reading flow. */}
 
-## The pipeline
+## The idea
 
-{/* EPUB -> sentences -> DDO lemma mapping -> LLM-generated entries -> per-surface
-   assembly -> dictfile -> dictgen -> dicthtml. Include the concrete commands. */}
+{/* Generate the dictionary from the book itself: every tapped word gets an entry,
+   Danish definition + English/Dutch glosses, for less than the price of the book. */}
 
-## What the entries look like
+## A very short dictionary primer
 
-{/* Show one entry (Danish definition + English/Dutch glosses) and discuss
-   compactness: why morphology/cognates were removed after trying them. */}
+{/* lemma vs. surface form vs. entry vs. senses; why surface-vs-lemma is the hard part. */}
 
-## What went wrong
+## How I built it
 
-{/* Honest engineering notes: ebooklib rewriting epub:type, Stanza lemmatizer
-   artifacts, provider ignoring structured outputs, rate limits, malformed
-   expressions, unsupported senses leaking into the rendered entry. */}
+{/* Perplexity -> HTML plan -> grilling -> agents implement. Decisions that mattered:
+   DDO full-form lemmatization, headword as generation unit / surface as lookup key,
+   compact entries (morphology/cognates removed). */}
 
-## Measuring quality
+## Picking a model
 
-{/* The model bake-off: three candidates, listwise judging, Bradley-Terry,
-   and the focused morphology/cognates round. */}
+{/* Three-model bake-off, Mistral Large 4 as judge (a hunch, good enough), haiku wins,
+   within budget. */}
 
-## Rendering for e-ink
+## The result
 
-{/* Why simple HTML/CSS: Qt rich-text subset, two-column translation tables,
-   colour only on the labels, device testing. */}
+{/* Device photo; every tapped word has an entry; ~4 hours, ~$3 marginal cost;
+   honest caveats. */}
 
-## What is next
+## What I'd tell someone else
 
-{/* Multi-book cumulative dictionary, better handling of ambiguous surfaces,
-   and the unsupported-sense content contract. */}
+{/* Plan first; cheap planner; small bake-off; decisions are the bottleneck. */}

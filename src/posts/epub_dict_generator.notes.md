@@ -6,74 +6,97 @@ Working notes, not the post. Draft to be written by Rik.
 
 - **The story:** "I had a problem, I tried to solve it by vibecoding something, it took me
   ~4 hours, and it worked — which is kind of incredible."
-- Short pulse, **not** the usual long-form. Target roughly **800–1,200 words**. Writing
-  budget: 1–2 hours.
+- Short pulse, **not** the usual long-form. Target **~900 words** (hard cap ~1,200).
 - Audience: **general technical**, not lexicography specialists.
-- Tone: first person, concrete, honest about the trade-offs; no deep engineering
-  post-mortem of every bug.
+- First person, concrete, honest. Not a bug catalogue.
 
-## Intro (user's own words, roughly)
+## Settled decisions
 
-> I have a problem. I want to learn Danish, but Danish dictionaries suck — at least on a
-> Kobo e-reader. So I had this idea: put in an EPUB, pay roughly $3, and out comes a
-> dictionary that is way better than the stock one — it has a good entry for every single
-> word you click on.
+- **No book title.** Call it "a Danish book".
+- **Primer comes *after* the idea** (hook first, then the vocabulary).
+- **No separate "working with agents" section** — fold it into "How I built it".
+- **Include the ~$3**, with the caveat: that is the **marginal cost to produce a dictionary
+  for another book**, not the total cost of the project. There were **two full runs**
+  (v1, then a v2 rebuild) plus a **judge model** for the bake-off.
+- **Teaser:** phone photo of the e-reader showing an entry. To do by Rik.
+  Placeholder: `static/blog/teasers/original/epub_dict_generator.svg`.
 
-## What the post should cover
+## Actual numbers (for the draft)
 
-### Dictionary concepts (short primer)
+- Marginal cost per book (v2): generation **~$2.20** + collision compose **~$0.30** ≈ **$2.50**
+  → say "about $3".
+- Total spent over the project ≈ **$5.70**: v1 full run $2.71, bake-off $0.29, focused
+  judge $0.16, v2 $2.50, plus smoke tests.
+- Elapsed effort: **~4 hours** of human time (agents doing the typing).
+- Output: ~7,500 headwords → **~9,900 surface entries** installed on the device.
 
-Introduce just enough vocabulary for the rest to make sense:
+## Section order and what each must say
 
-- **lemma** — the dictionary form of a word (*tage*, not *tager/tog/taget*).
-- **surface form** — the exact string in the text that the reader taps (*tager*, *tog*).
+### 1. The problem (~100 words)
+
+- Learning Danish; reading a Danish book on a Kobo.
+- The stock dictionary is bad: misses words, poor on compounds and inflected forms, and
+  interrupts reading every time it fails.
+- Tapping a word and getting nothing is the worst part of reading in a foreign language.
+
+### 2. The idea (~150 words)
+
+- What if the dictionary were generated **from the book itself**?
+- Then every word you actually tap has an entry: a short Danish definition plus English
+  and Dutch glosses.
+- Economics: the whole thing should cost less than the book.
+- Input: one EPUB. Output: a `dicthtml` file you copy onto the device.
+
+### 3. A very short dictionary primer (~150 words)
+
+- **lemma** — the dictionary form (*tage*, not *tager/tog/taget*).
+- **surface form** — the exact string on the page that the reader taps (*tager*, *tog*).
 - **entry** — what the dictionary shows for a headword.
-- **senses** — the distinct meanings inside one entry (e.g. *gift* = poison / married).
+- **senses** — the distinct meanings inside an entry (*gift* = poison / married).
+- Why it matters: the e-reader looks up the **surface**, while dictionaries are organised
+  by **lemma**. One surface can even point at several headwords. Bridging that gap is most
+  of the work.
 
-Why it matters: the e-reader looks up the **surface form**, while a dictionary is organised
-by **lemma**. Most of the work is bridging that gap.
+### 4. How I built it (~220 words)
 
-### Decisions *I* made (keep these; they are the interesting part)
+- Workflow: talked it through with Perplexity → wrote the plan as an **HTML document** →
+  **grilled** the plan to settle the architecture → let the agents implement ("vibe-code").
+- Planner model: **DeepSeek V4.1 Flash** — good and cheap.
+- The decisions that actually mattered:
+  - **DDO full-form list for lemmatization.** Noticed it made the output better than
+    Stanza alone; a real turning point.
+  - **Generation unit = headword, lookup key = surface.** Entries are generated once per
+    headword, then assembled per surface for the device.
+  - **Compact entries.** Tried morphology/cognates first; removed them because they were
+    noisy and ate the popup.
+- Honest note: many implementation details were autonomous agent choices, but the
+  architecture was settled up front — that is what made the four hours possible.
 
-- **Use the DDO full-form list for lemmatization.** Noticed it made the output better than
-  Stanza alone. This was a real turning point.
-- **Workflow:** discuss the idea with Perplexity → write a plan as an HTML document →
-  "grill" the plan to settle architectural details → then let the model vibe-code.
-- **Cheap planner:** DeepSeek V4.1 Flash — good and cheap.
-- **Judge model:** Mistral Large 4, on the hunch that it is good at European languages.
-  Not evidence-based, but it gave a good enough signal — and that is enough.
-- **Bake-off** between three models; **haiku came out on top**, within a budget set as a
-  significant fraction of, but much less than, the price of the e-book.
+### 5. Picking a model (~150 words)
 
-### Things the agent decided autonomously (mention only if they serve the narrative)
+- Three candidate models, compared on real words from the book.
+- Judge: **Mistral Large 4**, picked on the hunch that it is good at European languages.
+  Not evidence-based — but it gave a good enough signal, and that is enough.
+- **Haiku won**, and came in within budget.
+- Cost framing: ~$2.50–3 per book; ~$6 total for the whole project (two runs + judging).
 
-The detailed engineering (library quirks, structured-output failures, rate limits,
-rendering iterations) was mostly autonomous agent work and is **not** the point of the
-post. Do not turn this into a bug catalogue.
+### 6. The result (~120 words)
 
-## Teaser image
+- Photo of the device showing an entry.
+- Every word tapped so far has an entry; clearly better than the stock dictionary.
+- ~4 hours, ~$3 marginal.
+- Honest caveats: some entries are imperfect; proper names are missing; the odd sense is
+  off.
 
-- Phone photo of the e-reader showing a dictionary entry. Simple and powerful.
-- **To do by Rik.** Current placeholder: `static/blog/teasers/original/epub_dict_generator.svg`.
+### 7. What I'd tell someone else (~100 words)
 
-## Open items
+- Plan before you generate; the plan is the cheap part.
+- Use a cheap model for planning.
+- Spend a little on a bake-off — judging is cheap compared with the build.
+- The bottleneck is decisions, not code.
 
-- Final section order (proposed below).
-- Whether to name the book.
-- Final word count.
+## Not in the post
 
-## Proposed section order
-
-1. **The problem** — reading Danish on a Kobo; stock dictionary breaks the flow.
-2. **A very short dictionary primer** — lemma vs. surface vs. entry vs. senses.
-3. **The idea** — generate the dictionary from the book itself; every word you actually
-   tap; Danish definition + English/Dutch glosses; target cost below the e-book price.
-4. **How I built it** — Perplexity → plan document → grilling → agents implement. One or
-   two decisions that mattered: DDO lemmatization, headword-as-generation-unit /
-   surface-as-lookup-key, compact entries.
-5. **Picking a model** — three-model bake-off, Mistral Large 4 as judge, haiku wins,
-   stays in budget.
-6. **The result** — installs on the device, every tapped word has an entry, photo, honest
-   caveats, ~4 hours and ~$3.
-7. **What I'd tell someone else** — three bullets: plan before generating, spend a little
-   on a bake-off, the bottleneck is decisions rather than code.
+Bug-level war stories (library quirks, structured-output failures, rate limits, rendering
+iterations) — they were mostly autonomous agent work and would pull the piece away from the
+"how this kind of project works" narrative.
