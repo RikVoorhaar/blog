@@ -12,7 +12,7 @@ Working notes, not the post. Draft to be written by Rik.
 
 ## Settled decisions
 
-- **No book title.** Call it "a Danish book".
+- **Book title only at the very end** (*Spektrum*), not in the intro.
 - **Primer comes *after* the idea** (hook first, then the vocabulary).
 - **No separate "working with agents" section** — fold it into "How I built it".
 - **Include the ~$3**, with the caveat: that is the **marginal cost to produce a dictionary
@@ -89,12 +89,13 @@ Working notes, not the post. Draft to be written by Rik.
 - Honest caveats: some entries are imperfect; proper names are missing; the odd sense is
   off.
 
-### 7. What I'd tell someone else (~100 words)
+### 7. Reading with it / conclusion (~150 words)
 
-- Plan before you generate; the plan is the cheap part.
-- Use a cheap model for planning.
-- Spend a little on a bake-off — judging is cheap compared with the build.
-- The bottleneck is decisions, not code.
+- Two or three lookups per page; it no longer breaks the flow. Genuinely enjoyable.
+- Recommendation: at B2/C1, read books for entertainment; right level; e-reader; a dictionary
+  that covers the book; glosses in more than one language help.
+- End on the real result: "I can read books in Danish now." Name *Spektrum* here only.
+- **No separate takeaway section** — it added nothing.
 
 ## Not in the post
 
