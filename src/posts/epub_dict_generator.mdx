@@ -37,8 +37,10 @@ smaller set (more on that later).
 Then, for each word, write a prompt containing the Danish word plus the contexts where it
 actually occurs in the book — up to a maximum, ideally the sentence before, the sentence
 itself, and the sentence after — and force the model to produce a structured output from
-which you can generate a dictionary entry. It's boring, which is the point: EPUB in, one
-JSON dictionary entry per lemma out.
+which you can generate a dictionary entry. The context is doing a lot of the work here: a
+model does not reliably remember what every Danish word means, but even a little evidence of
+how the word is used is often enough to infer the meaning and translate it. It's boring, which
+is the point: EPUB in, one JSON dictionary entry per lemma out.
 
 From there, a program called `dictgen` (I don't know exactly what it does) turns the entries
 into the HTML that the e-reader understands.
@@ -99,23 +101,32 @@ ticket. For each phase I grill until I am satisfied that it says exactly what to
 execute. From that point — especially for something no more complex than this — it is pretty
 hands-off.
 
-A few decisions mattered. Stanza, my first lemmatizer, was unreliable: it would often take a
-surface form and produce a completely different lemma. The DDO full-form list turned out to
-work much better — it has a neat entry for almost every word. I also tried adding cognates
-(Dutch is close to Danish, so a cognate is much easier to remember) and morphology (word
-composition), because both should help a learner. The models just aren't good at that: they
-hallucinate, or produce nothing useful, especially when a word has several senses. So I
-removed both.
+A few decisions mattered. My first lemmatizer was Stanza, and it was unreliable: it would often
+take a surface form and produce a completely different lemma — *han* became *ha*, an
+expression of laughter. Then I found the [DDO full-form
+list](https://korpus.dsl.dk/resources/details/ddo-fullforms.html): a large, curated set of
+inflected-form → lemma pairs based on *Den Danske Ordbog*. It is much higher quality than
+rule-based lemmatization for Danish, and it worked far better — a neat entry for almost every
+word. Stanza is still there as a backup for the words DDO does not cover. For other languages,
+the available lemmatizers may be perfectly adequate; for Danish, maybe not.
+
+I also tried adding cognates (Dutch is close to Danish, so a cognate is much easier to
+remember) and morphology (word composition), because both should help a learner. The models
+just aren't good at that: they hallucinate, or produce nothing useful, especially when a word
+has several senses. So I removed both.
 
 ## Picking a model
 
 For the model choice, I asked Perplexity which models made sense. It suggested a few cheap
-ones: a Qwen model, GPT-6 Luna, and Claude Haiku, all under $0.20 per million input tokens.
+ones: a Qwen model, GPT-6 Luna, and Claude Haiku, all under \$0.20 per million input tokens.
 Output is cheap too, because every response is a small structured JSON object. And most of
 the input is the same for every word — only the contexts change — so it is largely
 cacheable.
 
-Then I ran a bake-off: 200 entries, judged by Mistral Large 4 — chosen on the hunch that it
+Then I ran a bake-off. The idea is simple: take the same 200 words, have each model produce
+its entries, then ask a judge model to compare the outputs pairwise and pick which one is
+better. From those comparisons you compute something like an ELO score, and the model with the
+higher score is better at the task. I used Mistral Large 4 as the judge, on the hunch that it
 would be good at European languages. That is not evidence-based, but it gave a good enough
 signal. Haiku won consistently, which makes sense since it was the newest of the three. That
 is what I went with, and I'm quite happy with the results.
@@ -354,8 +365,8 @@ uses — about 7,500 headwords, expanded to roughly 9,900 look-up forms.
 
 </details>
 
-The whole thing took about four hours, and about $3 in tokens to produce a dictionary for one
-more book. That is the marginal cost, not the total: the project as a whole cost closer to $6,
+The whole thing took about four hours, and about \$3 in tokens to produce a dictionary for one
+more book. That is the marginal cost, not the total: the project as a whole cost closer to \$6,
 because I ran the pipeline twice and paid a judge model during the bake-off. Some entries are
 imperfect — an odd sense here, a missing name there — but every word I have tapped so far has
 had an entry.
