@@ -3,13 +3,22 @@ title: 'A dictionary generated from the book you are reading'
 date: '2026-10-18'
 categories: [coding, tools, nlp]
 excerpt: 'Generating a book-specific Danish dictionary from an EPUB and installing it on a Kobo e-reader.'
-teaser: 'epub_dict_generator.svg'
+teaser: 'epub_dict_generator.png'
 draft: false
 ---
 
+import { Image } from 'astro:assets';
 import DictEntry from '../components/DictEntry.astro';
 import dukkeEntry from '../data/dict/dukke.json';
 import farveblyantsregnbueEntry from '../data/dict/farveblyantsregnbue.json';
+import hero from '../assets/teasers/epub_dict_generator.png';
+
+<Image
+	src={hero}
+	width={1400}
+	alt="A Kobo e-reader showing the generated dictionary entry for “smertensskriget”."
+	class="rounded-lg"
+/>
 
 ## The problem
 

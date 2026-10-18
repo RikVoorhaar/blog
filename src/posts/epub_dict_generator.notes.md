@@ -18,8 +18,9 @@ Working notes, not the post. Draft to be written by Rik.
 - **Include the ~$3**, with the caveat: that is the **marginal cost to produce a dictionary
   for another book**, not the total cost of the project. There were **two full runs**
   (v1, then a v2 rebuild) plus a **judge model** for the bake-off.
-- **Teaser:** phone photo of the e-reader showing an entry. To do by Rik.
-  Placeholder: `static/blog/teasers/original/epub_dict_generator.svg`.
+- **Teaser:** phone photo of the e-reader showing the `smertensskriget` entry.
+  `src/assets/teasers/epub_dict_generator.png` (card/OG) + a resized fallback in
+  `static/blog/teasers/original/`; also used as the hero at the top of the post.
 - **Entry examples are a themed HTML component** (`src/components/DictEntry.astro`,
   data in `src/data/dict/`), not screenshots, so they adapt to the site's light/dark
   theme and need no image padding.
