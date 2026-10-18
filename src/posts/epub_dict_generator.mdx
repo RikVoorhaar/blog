@@ -120,8 +120,243 @@ is what I went with, and I'm quite happy with the results.
 
 ## The result
 
-{/* Device photo; every tapped word has an entry; ~4 hours, ~$3 marginal cost;
-   honest caveats. */}
+{/* TODO: Rik's photo of the e-reader goes here (teaser + inline). */}
+
+Here is what two entries actually look like:
+
+![The dictionary entry for "dukke"](/blog/epub_dict_generator/dukke.png)
+
+`dukke` covers three senses across two parts of speech. The one-off compound case is even
+better:
+
+![The dictionary entry for "farveblyantsregnbue"](/blog/epub_dict_generator/farveblyantsregnbue.png)
+
+"Coloured-pencil rainbow." It occurs exactly once in the book, and no general dictionary
+would ever include it. That is the point: the dictionary covers the words the book actually
+uses — about 7,500 headwords, expanded to roughly 9,900 look-up forms.
+
+<details className="my-8 rounded-lg border border-black/10 bg-black/[0.02] px-4 py-3">
+<summary className="cursor-pointer font-semibold">The JSON behind these entries</summary>
+
+**`dukke` — input (the task sent to the model)**
+
+```json
+{
+  "lemma": "dukke",
+  "poses": [
+    "NOUN",
+    "VERB"
+  ],
+  "frequency": 33,
+  "sent_count": 33,
+  "observed_forms": [
+    "duk",
+    "dukke",
+    "dukkede",
+    "dukker",
+    "dukket"
+  ],
+  "contexts": [
+    {
+      "id": "s009804",
+      "text": "„Hvad hvis horror vacui dukker op mellem to meteorstorme?",
+      "surface": "dukker"
+    },
+    {
+      "id": "s010312",
+      "text": "Hvem det end var, som kastede den brandbombe, må de have vidst, at vi ville dukke op.",
+      "surface": "dukke"
+    },
+    {
+      "id": "s007031",
+      "text": "Og så mærkeligt er det vel heller ikke, at der dukker en mus op på et bibliotek?",
+      "surface": "dukker"
+    },
+    {
+      "id": "s006898",
+      "text": "Måske er tegningerne bare dukket op et andet sted?",
+      "surface": "dukket"
+    },
+    {
+      "id": "s007118",
+      "text": "„Og sagde du ikke, at myren først dukkede op, da du underskrev tegningen?“",
+      "surface": "dukkede"
+    },
+    {
+      "id": "s009504",
+      "text": "I kan bruge den, hvis I af en eller anden grund ikke har nået at indstille kompasset, når horror vacui dukker op.“",
+      "surface": "dukker"
+    },
+    {
+      "id": "s006154",
+      "text": "Da jeg nærmer mig huset, er der ikke dukket nogen gode idéer op.",
+      "surface": "dukket"
+    },
+    {
+      "id": "s006768",
+      "text": "Hverken fru Holm eller pedellen er dukket op på biblioteket, da vi træder ind ad døren og ser ham ligge på knæ foran den slidte sofa.",
+      "surface": "dukket"
+    },
+    {
+      "id": "s002747",
+      "text": "„Jeg ved ikke, hvem I er, men det virker alt andet end tilfældigt, at I dukker op ud af det blå og spørger efter min far.“",
+      "surface": "dukker"
+    },
+    {
+      "id": "s009813",
+      "text": "„Så hvis horror vacui kun kan dukke op, når der er mange stjerneskud … skal vi i hvert fald sørge for at være tæt på hinanden, hver gang der er en meteorstorm?“",
+      "surface": "dukke"
+    },
+    {
+      "id": "s002381",
+      "text": "Linus dukker frem bag en reol med en fysikbog i hånden.",
+      "surface": "dukker"
+    },
+    {
+      "id": "s007315",
+      "text": "Jeg ser det ikke dukke op, men der ligger et stykke knækbrød på dynen ved siden af mit lår, da jeg endelig tør kigge væk fra blokken.",
+      "surface": "dukke"
+    },
+    {
+      "id": "s004179",
+      "text": "Der lyder skridt inde i stuen, og Alban dukker op i døråbningen ud til entréen.",
+      "surface": "dukker"
+    },
+    {
+      "id": "s010512",
+      "text": "Josefs ansigt dukker op på væggen.",
+      "surface": "dukker"
+    },
+    {
+      "id": "s000522",
+      "text": "Tanken får angsten fra drømmen til at dukke op igen, et glimt af is i hjertekulen.",
+      "surface": "dukke"
+    }
+  ]
+}
+```
+
+**`dukke` — output (the entry the model returned)**
+
+```json
+{
+  "senses": [
+    {
+      "pos": "VERB",
+      "definition_da": "pludselig vise sig eller komme frem, ofte uventet",
+      "equivalents_en": [
+        "appear",
+        "turn up",
+        "show up"
+      ],
+      "equivalents_nl": [
+        "opduiken",
+        "verschijnen"
+      ],
+      "label": "dukke op"
+    },
+    {
+      "pos": "VERB",
+      "definition_da": "bøje sig eller gemme sig hurtigt ned for at undgå noget",
+      "equivalents_en": [
+        "duck"
+      ],
+      "equivalents_nl": [
+        "bukken",
+        "duiken"
+      ],
+      "label": null
+    },
+    {
+      "pos": "NOUN",
+      "definition_da": "legetøjsfigur, der forestiller et menneske",
+      "equivalents_en": [
+        "doll"
+      ],
+      "equivalents_nl": [
+        "pop"
+      ],
+      "label": null
+    }
+  ],
+  "expressions": [
+    {
+      "da": "dukke op",
+      "en": "turn up, show up",
+      "nl": "opduiken"
+    }
+  ],
+  "note": "The noun sense is not supported by the supplied sentences; only the verb 'dukke op' is attested, so the noun sense is included as a best-effort fallback from common usage.",
+  "schema_version": "2",
+  "lemma": "dukke",
+  "frequency": 6,
+  "sent_count": 6,
+  "observed_forms": [
+    "dukke"
+  ]
+}
+```
+
+**`farveblyantsregnbue` — input**
+
+```json
+{
+  "lemma": "farveblyantsregnbue",
+  "poses": [
+    "NOUN"
+  ],
+  "frequency": 1,
+  "sent_count": 1,
+  "observed_forms": [
+    "farveblyantsregnbue"
+  ],
+  "contexts": [
+    {
+      "id": "s001309",
+      "text": "Jeg tænker på det lysende glasstykke fra drømmen og på den spaltede farveblyantsregnbue, som ligger i min taske.",
+      "surface": "farveblyantsregnbue"
+    }
+  ]
+}
+```
+
+**`farveblyantsregnbue` — output**
+
+```json
+{
+  "senses": [
+    {
+      "pos": "NOUN",
+      "definition_da": "en regnbue lavet af farveblyanter, her en splittet række af farvede streger eller tegning",
+      "equivalents_en": [
+        "colored pencil rainbow",
+        "pencil rainbow"
+      ],
+      "equivalents_nl": [
+        "kleurpotlood-regenboog"
+      ],
+      "label": null
+    }
+  ],
+  "expressions": null,
+  "note": null,
+  "schema_version": "2",
+  "lemma": "farveblyantsregnbue",
+  "frequency": 1,
+  "sent_count": 1,
+  "observed_forms": [
+    "farveblyantsregnbue"
+  ]
+}
+```
+
+</details>
+
+The whole thing took about four hours, and about $3 in tokens to produce a dictionary for one
+more book. That is the marginal cost, not the total: the project as a whole cost closer to $6,
+because I ran the pipeline twice and paid a judge model during the bake-off. Some entries are
+imperfect — an odd sense here, a missing name there — but every word I have tapped so far has
+had an entry.
 
 ## What I'd tell someone else
 
