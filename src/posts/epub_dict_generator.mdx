@@ -1,0 +1,46 @@
+---
+title: 'A dictionary generated from the book you are reading'
+date: '2026-10-18'
+categories: [coding, tools, nlp]
+excerpt: 'Generating a book-specific Danish dictionary from an EPUB and installing it on a Kobo e-reader.'
+teaser: 'epub_dict_generator.svg'
+draft: true
+---
+
+<!-- STUB: outline only. Replace with the real narrative before un-drafting. -->
+
+## The problem
+
+<!-- Why a generic dictionary is a poor fit for a specific novel: rare words,
+     compounds, inflected forms, and the cost of looking things up while reading. -->
+
+## The pipeline
+
+<!-- EPUB -> sentences -> DDO lemma mapping -> LLM-generated entries -> per-surface
+     assembly -> dictfile -> dictgen -> dicthtml. Include the concrete commands. -->
+
+## What the entries look like
+
+<!-- Show one entry (Danish definition + English/Dutch glosses) and discuss
+     compactness: why morphology/cognates were removed after trying them. -->
+
+## What went wrong
+
+<!-- Honest engineering notes: ebooklib rewriting epub:type, Stanza lemmatizer
+     artifacts, provider ignoring structured outputs, rate limits, malformed
+     expressions, unsupported senses leaking into the rendered entry. -->
+
+## Measuring quality
+
+<!-- The model bake-off: three candidates, listwise judging, Bradley-Terry,
+     and the focused morphology/cognates round. -->
+
+## Rendering for e-ink
+
+<!-- Why simple HTML/CSS: Qt rich-text subset, two-column translation tables,
+     colour only on the labels, device testing. -->
+
+## What is next
+
+<!-- Multi-book cumulative dictionary, better handling of ambiguous surfaces,
+     and the unsupported-sense content contract. -->
