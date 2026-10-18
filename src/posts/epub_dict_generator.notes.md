@@ -20,6 +20,9 @@ Working notes, not the post. Draft to be written by Rik.
   (v1, then a v2 rebuild) plus a **judge model** for the bake-off.
 - **Teaser:** phone photo of the e-reader showing an entry. To do by Rik.
   Placeholder: `static/blog/teasers/original/epub_dict_generator.svg`.
+- **Entry examples are a themed HTML component** (`src/components/DictEntry.astro`,
+  data in `src/data/dict/`), not screenshots, so they adapt to the site's light/dark
+  theme and need no image padding.
 
 ## Actual numbers (for the draft)
 

@@ -7,6 +7,10 @@ teaser: 'epub_dict_generator.svg'
 draft: false
 ---
 
+import DictEntry from '../components/DictEntry.astro';
+import dukkeEntry from '../data/dict/dukke.json';
+import farveblyantsregnbueEntry from '../data/dict/farveblyantsregnbue.json';
+
 ## The problem
 
 I finally made the courageous decision to start reading books in Danish. I want to improve
@@ -122,12 +126,12 @@ is what I went with, and I'm quite happy with the results.
 
 Here is what two entries actually look like:
 
-![The dictionary entry for "dukke"](/blog/epub_dict_generator/dukke.png)
+<DictEntry entry={dukkeEntry} />
 
 `dukke` covers three senses across two parts of speech. The one-off compound case is even
 better:
 
-![The dictionary entry for "farveblyantsregnbue"](/blog/epub_dict_generator/farveblyantsregnbue.png)
+<DictEntry entry={farveblyantsregnbueEntry} />
 
 "Coloured-pencil rainbow." It occurs exactly once in the book, and no general dictionary
 would ever include it. That is the point: the dictionary covers the words the book actually

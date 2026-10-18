@@ -1,0 +1,25 @@
+{
+  "senses": [
+    {
+      "pos": "NOUN",
+      "definition_da": "en regnbue lavet af farveblyanter, her en splittet række af farvede streger eller tegning",
+      "equivalents_en": [
+        "colored pencil rainbow",
+        "pencil rainbow"
+      ],
+      "equivalents_nl": [
+        "kleurpotlood-regenboog"
+      ],
+      "label": null
+    }
+  ],
+  "expressions": null,
+  "note": null,
+  "schema_version": "2",
+  "lemma": "farveblyantsregnbue",
+  "frequency": 1,
+  "sent_count": 1,
+  "observed_forms": [
+    "farveblyantsregnbue"
+  ]
+}
