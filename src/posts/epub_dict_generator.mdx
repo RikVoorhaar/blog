@@ -63,6 +63,13 @@ Then there is the **surface form**: the exact string that appears in the book �
 actually tap. The dictionary essentially needs an entry for every surface form, so that a
 lookup is just a map from surface to dictionary entry.
 
+Which is exactly why the lemma matters here. An EPUB only gives you surface forms. You could
+generate an entry for each surface directly, but then you would produce the same word many
+times over — *tager*, *tog*, *taget* — at extra cost, and the entries would not necessarily
+agree with each other. Collapsing the surfaces into lemmas first, and then generating one
+entry per lemma that actually occurs in the book, is an optimisation rather than a
+requirement: it just saves money, and makes the dictionary more consistent.
+
 And an **entry** consists of one or more **senses**: the distinct meanings of the word.
 *Gift*, for example, can mean both "poison" and "married".
 
