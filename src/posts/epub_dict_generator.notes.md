@@ -44,7 +44,8 @@ Working notes, not the post. Draft to be written by Rik.
 - What if the dictionary were generated **from the book itself**?
 - Then every word you actually tap has an entry: a short Danish definition plus English
   and Dutch glosses.
-- Economics: the whole thing should cost less than the book.
+- Economics: roughly **$3 per book** — much less than the book itself. (State the caveat
+  here or in §5: that is the marginal cost for another book, not the total project spend.)
 - Input: one EPUB. Output: a `dicthtml` file you copy onto the device.
 
 ### 3. A very short dictionary primer (~150 words)
