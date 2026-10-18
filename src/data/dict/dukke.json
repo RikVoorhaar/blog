@@ -1,56 +1,38 @@
 {
-  "senses": [
-    {
-      "pos": "VERB",
-      "definition_da": "pludselig vise sig eller komme frem, ofte uventet",
-      "equivalents_en": [
-        "appear",
-        "turn up",
-        "show up"
-      ],
-      "equivalents_nl": [
-        "opduiken",
-        "verschijnen"
-      ],
-      "label": "dukke op"
-    },
-    {
-      "pos": "VERB",
-      "definition_da": "bøje sig eller gemme sig hurtigt ned for at undgå noget",
-      "equivalents_en": [
-        "duck"
-      ],
-      "equivalents_nl": [
-        "bukken",
-        "duiken"
-      ],
-      "label": null
-    },
-    {
-      "pos": "NOUN",
-      "definition_da": "legetøjsfigur, der forestiller et menneske",
-      "equivalents_en": [
-        "doll"
-      ],
-      "equivalents_nl": [
-        "pop"
-      ],
-      "label": null
-    }
-  ],
-  "expressions": [
-    {
-      "da": "dukke op",
-      "en": "turn up, show up",
-      "nl": "opduiken"
-    }
-  ],
-  "note": "The noun sense is not supported by the supplied sentences; only the verb 'dukke op' is attested, so the noun sense is included as a best-effort fallback from common usage.",
-  "schema_version": "2",
-  "lemma": "dukke",
-  "frequency": 6,
-  "sent_count": 6,
-  "observed_forms": [
-    "dukke"
-  ]
+	"senses": [
+		{
+			"pos": "VERB",
+			"definition_da": "pludselig vise sig eller komme frem, ofte uventet",
+			"equivalents_en": ["appear", "turn up", "show up"],
+			"equivalents_nl": ["opduiken", "verschijnen"],
+			"label": "dukke op"
+		},
+		{
+			"pos": "VERB",
+			"definition_da": "bøje sig eller gemme sig hurtigt ned for at undgå noget",
+			"equivalents_en": ["duck"],
+			"equivalents_nl": ["bukken", "duiken"],
+			"label": null
+		},
+		{
+			"pos": "NOUN",
+			"definition_da": "legetøjsfigur, der forestiller et menneske",
+			"equivalents_en": ["doll"],
+			"equivalents_nl": ["pop"],
+			"label": null
+		}
+	],
+	"expressions": [
+		{
+			"da": "dukke op",
+			"en": "turn up, show up",
+			"nl": "opduiken"
+		}
+	],
+	"note": "The noun sense is not supported by the supplied sentences; only the verb 'dukke op' is attested, so the noun sense is included as a best-effort fallback from common usage.",
+	"schema_version": "2",
+	"lemma": "dukke",
+	"frequency": 6,
+	"sent_count": 6,
+	"observed_forms": ["dukke"]
 }
