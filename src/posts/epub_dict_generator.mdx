@@ -75,14 +75,48 @@ And an **entry** consists of one or more **senses**: the distinct meanings of th
 
 ## How I built it
 
-{/* Perplexity -> HTML plan -> grilling -> agents implement. Decisions that mattered:
-   DDO full-form lemmatization, headword as generation unit / surface as lookup key,
-   compact entries (morphology/cognates removed). */}
+I've been quiet on this blog, but in the meantime I've gotten a lot of practice at agentic
+coding. I won't claim to be an expert, but I've found a workflow that works well for me.
+
+I started by discussing the problem with Perplexity. For a project like this, a search-based
+engine that also has access to strong models is the best starting point: it covers a lot of
+blind spots. I didn't know how a dictionary is constructed, how to read an EPUB, or whether
+this was even possible. My first question was simply: can this be done at all? The answer was
+yes. Once I understood the terminology, I hammered out a rough plan with Perplexity.
+
+Then I moved to a coding agent, through OpenRouter — I don't vibe-code often enough to
+justify a Claude subscription, and this is cheap. DeepSeek V4.1 Flash, for example, is very
+cheap and very capable; it is roughly as capable as the absolute frontier from six months
+ago, which is kind of insane.
+
+I start with an overview of all the todos, no details, in an HTML plan that I can easily
+inspect and edit, and that contains all the context an agent needs. Then I grill it: first to
+make sure there are no blocking decisions and that the whole process is understood. The plan
+is divided into phases, each one a logical unit that can be executed on its own, like a
+ticket. For each phase I grill until I am satisfied that it says exactly what to do, and then
+execute. From that point — especially for something no more complex than this — it is pretty
+hands-off.
+
+A few decisions mattered. Stanza, my first lemmatizer, was unreliable: it would often take a
+surface form and produce a completely different lemma. The DDO full-form list turned out to
+work much better — it has a neat entry for almost every word. I also tried adding cognates
+(Dutch is close to Danish, so a cognate is much easier to remember) and morphology (word
+composition), because both should help a learner. The models just aren't good at that: they
+hallucinate, or produce nothing useful, especially when a word has several senses. So I
+removed both.
 
 ## Picking a model
 
-{/* Three-model bake-off, Mistral Large 4 as judge (a hunch, good enough), haiku wins,
-   within budget. */}
+For the model choice, I asked Perplexity which models made sense. It suggested a few cheap
+ones: a Qwen model, GPT-6 Luna, and Claude Haiku, all under $0.20 per million input tokens.
+Output is cheap too, because every response is a small structured JSON object. And most of
+the input is the same for every word — only the contexts change — so it is largely
+cacheable.
+
+Then I ran a bake-off: 200 entries, judged by Mistral Large 4 — chosen on the hunch that it
+would be good at European languages. That is not evidence-based, but it gave a good enough
+signal. Haiku won consistently, which makes sense since it was the newest of the three. That
+is what I went with, and I'm quite happy with the results.
 
 ## The result
 
