@@ -17,7 +17,7 @@ export const baseScene: SceneConfig = {
 		metalness: 0,
 		// Matte-ish plastic: a broad, restrained highlight rather than a mirror.
 		roughness: 0.62,
-		glow: 0.2
+		glow: 0.11
 	},
 
 	camera: {
@@ -35,7 +35,7 @@ export const baseScene: SceneConfig = {
 		// From screen-right and behind the object, like a window behind the table.
 		azimuth: 145,
 		elevation: 28,
-		intensity: 3.4,
+		intensity: 3.2,
 		color: '#fff7ee'
 	},
 
@@ -45,7 +45,7 @@ export const baseScene: SceneConfig = {
 		// Plain-surface colour (only used when mode is 'plain').
 		color: '#8f8880',
 		// Multiplies the wood colour map in wood mode.
-		tint: '#d9d2c9',
+		tint: '#bcae9f',
 		// One tile per 6.8 object radii — a big, quiet plank rather than fine stripes.
 		tileRadii: 6.8,
 		grainRotation: 124,
@@ -58,8 +58,8 @@ export const baseScene: SceneConfig = {
 
 	// Uniform ambient is the big lift here: it opens up the shaded side of the lattice without
 	// touching the table's cast shadow, which is what sells the contact with the surface.
-	fill: 0.5,
-	exposure: 1.1,
+	fill: 0.45,
+	exposure: 0.95,
 	shadowMapSize: 2048,
 	// Tight ortho frustum: narrow rods need texel density more than they need reach.
 	shadowSpan: 3.6
