@@ -38,13 +38,15 @@ export const baseScene: SceneConfig = {
 		color: '#fff7ee'
 	},
 
-	wood: {
-		// Trims the scan toward the darker, quieter walnut of the reference photo.
-		tint: '#bfad9b',
-		// One tile per ~1.7 object radii, so grain reads at tabletop scale.
-		tileRadii: 1.7,
+	backdrop: {
+		// Untextured: a flat matte surface, no downloads, the shadow does the work.
+		mode: 'plain',
+		color: '#8f8880',
+		roughness: 0.92,
+		// Wood variant (flip `mode` to 'wood'): a big tile and a punchy normal map.
+		tileRadii: 6.8,
 		grainRotation: 124,
-		roughness: 1
+		normalScale: 1.8
 	},
 
 	// Sky/bounce fill: enough to keep shaded orange readable, not enough to flatten contrast.
@@ -106,6 +108,6 @@ export function resolveScene(preset: string | ViewerPreset | undefined): SceneCo
 		material: { ...baseScene.material, ...extra.material },
 		camera: { ...baseScene.camera, ...extra.camera },
 		light: { ...baseScene.light, ...extra.light },
-		wood: { ...baseScene.wood, ...extra.wood }
+		backdrop: { ...baseScene.backdrop, ...extra.backdrop }
 	};
 }

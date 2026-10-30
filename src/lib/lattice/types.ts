@@ -32,15 +32,22 @@ export interface LightConfig {
 	color: string;
 }
 
-export interface WoodConfig {
-	/** Multiplies the wood colour map — use it to warm/cool and darken the plank. */
-	tint: string;
-	/** Width of one texture tile, in bounding-sphere radii. Sets how big the grain reads. */
-	tileRadii: number;
-	/** Degrees to rotate the grain in the plane. */
-	grainRotation: number;
-	/** Multiplies the roughness map. Higher is more matte. */
+export interface BackdropConfig {
+	/**
+	 * `plain` is an untextured matte surface — no texture downloads, the cast shadow carries
+	 * the image. `wood` loads the PBR wood set for the photograph look.
+	 */
+	mode: 'plain' | 'wood';
+	/** Surface colour (in wood mode this multiplies the colour map). */
+	color: string;
+	/** 0–1. Higher is more matte. */
 	roughness: number;
+	/** Wood only: width of one texture tile, in bounding-sphere radii. */
+	tileRadii: number;
+	/** Wood only: degrees to rotate the grain in the plane. */
+	grainRotation: number;
+	/** Wood only: normal-map strength. */
+	normalScale: number;
 }
 
 export interface MaterialConfig {
@@ -60,7 +67,7 @@ export interface SceneConfig {
 	material: MaterialConfig;
 	camera: CameraConfig;
 	light: LightConfig;
-	wood: WoodConfig;
+	backdrop: BackdropConfig;
 	/** Ambient/hemisphere fill — deliberately small, just to keep shadows readable. */
 	fill: number;
 	/** Tone-mapping exposure. */

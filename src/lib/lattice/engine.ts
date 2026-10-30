@@ -54,8 +54,8 @@ export async function mount({ src, preset, canvas, textures, onReady }: MountOpt
 	renderer.shadowMap.type = THREE.PCFSoftShadowMap;
 
 	const scene = new THREE.Scene();
-	// Safety net before the table is visible: a plain warm brown, not black.
-	scene.background = new THREE.Color('#2c1f16');
+	// Matches the backdrop surface so there is never a visible seam or horizon.
+	scene.background = new THREE.Color(config.backdrop.color);
 
 	const camera = new THREE.PerspectiveCamera(config.camera.fov, 1, 0.01, 5000);
 	const controls = new OrbitControls(camera, canvas);
@@ -69,20 +69,26 @@ export async function mount({ src, preset, canvas, textures, onReady }: MountOpt
 	// ---------------------------------------------------------------- on-demand rendering
 	let frame = 0;
 	let dirty = true;
+	let ticking = false;
 
-	const renderFrame = () => {
+	const tick = () => {
 		frame = 0;
+		ticking = true;
 		const moved = controls.update();
+		ticking = false;
 		if (moved || dirty) {
 			renderer.render(scene, camera);
 			dirty = false;
 		}
-		if (moved || dirty) frame = requestAnimationFrame(renderFrame);
+		// Keep going only while damping is still moving the camera. `requestRender` is a
+		// no-op mid-tick, so exactly one chain of frames can ever exist.
+		if (moved) frame = requestAnimationFrame(tick);
 	};
 
 	const requestRender = () => {
 		dirty = true;
-		if (!frame) frame = requestAnimationFrame(renderFrame);
+		if (ticking || frame) return;
+		frame = requestAnimationFrame(tick);
 	};
 
 	controls.addEventListener('change', requestRender);
@@ -91,7 +97,8 @@ export async function mount({ src, preset, canvas, textures, onReady }: MountOpt
 	const resize = () => {
 		const width = canvas.clientWidth || canvas.parentElement?.clientWidth || 1;
 		const height = canvas.clientHeight || canvas.parentElement?.clientHeight || 1;
-		const cap = width < 640 ? 1.5 : 1.75;
+		// Two canvases on a retina screen is a lot of pixels; 1.5 is visually indistinguishable.
+		const cap = width < 640 ? 1.25 : 1.5;
 		renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, cap));
 		renderer.setSize(width, height, false);
 		camera.aspect = width / height;
@@ -144,49 +151,58 @@ export async function mount({ src, preset, canvas, textures, onReady }: MountOpt
 	});
 	scene.add(model);
 
-	// -------------------------------------------------------------------- wooden tabletop
-	const [colorImg, normalImg, roughnessImg] = await Promise.all([
-		loadImage(textures.color),
-		loadImage(textures.normal),
-		loadImage(textures.roughness)
-	]);
+	// ----------------------------------------------------------------------- backdrop
+	// 'plain' is a flat matte surface: no texture downloads at all, and the cast shadow does
+	// the visual work. 'wood' swaps in the PBR set for the photograph look.
+	const tile = radius * config.backdrop.tileRadii;
+	const tableSize = tile * 40;
+	let surfaceMaterial: THREE.MeshStandardMaterial;
+	let surfaceMaps: THREE.Texture[] = [];
 
-	const anisotropy = Math.min(16, renderer.capabilities.getMaxAnisotropy());
-	const woodMaps = {
-		map: new THREE.Texture(colorImg),
-		normalMap: new THREE.Texture(normalImg),
-		roughnessMap: new THREE.Texture(roughnessImg)
-	};
-	woodMaps.map.colorSpace = THREE.SRGBColorSpace;
-	for (const texture of Object.values(woodMaps)) {
-		texture.wrapS = texture.wrapT = THREE.RepeatWrapping;
-		texture.anisotropy = anisotropy;
-		texture.needsUpdate = true;
+	if (config.backdrop.mode === 'wood') {
+		const [colorImg, normalImg, roughnessImg] = await Promise.all([
+			loadImage(textures.color),
+			loadImage(textures.normal),
+			loadImage(textures.roughness)
+		]);
+
+		const anisotropy = Math.min(16, renderer.capabilities.getMaxAnisotropy());
+		const maps = {
+			map: new THREE.Texture(colorImg),
+			normalMap: new THREE.Texture(normalImg),
+			roughnessMap: new THREE.Texture(roughnessImg)
+		};
+		maps.map.colorSpace = THREE.SRGBColorSpace;
+		const repeat = tableSize / tile;
+		for (const texture of Object.values(maps)) {
+			texture.wrapS = texture.wrapT = THREE.RepeatWrapping;
+			texture.anisotropy = anisotropy;
+			texture.repeat.set(repeat, repeat);
+			texture.rotation = config.backdrop.grainRotation * DEG;
+			texture.center.set(0.5, 0.5);
+			texture.needsUpdate = true;
+		}
+
+		surfaceMaps = Object.values(maps);
+		surfaceMaterial = new THREE.MeshStandardMaterial({
+			color: new THREE.Color(config.backdrop.color),
+			...maps,
+			normalScale: new THREE.Vector2(config.backdrop.normalScale, config.backdrop.normalScale),
+			roughness: config.backdrop.roughness,
+			metalness: 0
+		});
+	} else {
+		surfaceMaterial = new THREE.MeshStandardMaterial({
+			color: new THREE.Color(config.backdrop.color),
+			roughness: config.backdrop.roughness,
+			metalness: 0
+		});
 	}
 
-	const tile = radius * config.wood.tileRadii;
-	const tableSize = tile * 40;
-	const repeat = tableSize / tile;
-	Object.values(woodMaps).forEach((texture) => texture.repeat.set(repeat, repeat));
-	woodMaps.map.rotation =
-		woodMaps.normalMap.rotation =
-		woodMaps.roughnessMap.rotation =
-			config.wood.grainRotation * DEG;
-	woodMaps.map.center.set(0.5, 0.5);
-	woodMaps.normalMap.center.set(0.5, 0.5);
-	woodMaps.roughnessMap.center.set(0.5, 0.5);
-
-	const woodMaterial = new THREE.MeshStandardMaterial({
-		color: new THREE.Color(config.wood.tint),
-		map: woodMaps.map,
-		normalMap: woodMaps.normalMap,
-		roughnessMap: woodMaps.roughnessMap,
-		normalScale: new THREE.Vector2(0.5, 0.5),
-		roughness: config.wood.roughness,
-		metalness: 0
-	});
-
-	const table = new THREE.Mesh(new THREE.PlaneGeometry(tableSize, tableSize, 1, 1), woodMaterial);
+	const table = new THREE.Mesh(
+		new THREE.PlaneGeometry(tableSize, tableSize, 1, 1),
+		surfaceMaterial
+	);
 	table.rotation.x = -Math.PI / 2;
 	table.receiveShadow = true;
 	scene.add(table);
@@ -280,6 +296,12 @@ export async function mount({ src, preset, canvas, textures, onReady }: MountOpt
 
 	resizeObserver.observe(canvas.parentElement ?? canvas);
 	resize();
+
+	// The light and the object are both static, so the shadow map is rendered once and then
+	// reused. Re-rendering an 80k-triangle depth pass every frame was the main interaction cost.
+	renderer.shadowMap.autoUpdate = false;
+	renderer.shadowMap.needsUpdate = true;
+	requestRender();
 	onReady?.();
 
 	// -------------------------------------------------------------------------- teardown
@@ -295,8 +317,8 @@ export async function mount({ src, preset, canvas, textures, onReady }: MountOpt
 		resizeObserver.disconnect();
 
 		// Textures were created per viewer from shared images, so they are ours to free.
-		Object.values(woodMaps).forEach((texture) => texture.dispose());
-		woodMaterial.dispose();
+		surfaceMaps.forEach((texture) => texture.dispose());
+		surfaceMaterial.dispose();
 		material.dispose();
 		table.geometry.dispose();
 		model.traverse((child) => {
