@@ -1,0 +1,153 @@
+---
+/**
+ * A photograph-style Three.js viewer for a printable lattice mesh.
+ *
+ * Only pages that render this component pull in Three.js: the engine is imported
+ * dynamically from `mount.ts`, and the mesh + wood textures are hashed assets referenced
+ * from this component. Nothing is imported by the global layout.
+ */
+import woodColor from '../assets/textures/wood/wood_color.jpg?url';
+import woodNormal from '../assets/textures/wood/wood_normal.jpg?url';
+import woodRoughness from '../assets/textures/wood/wood_roughness.jpg?url';
+
+interface Props {
+	/** Hashed URL of a `.glb` mesh (import it with `?url`). */
+	src: string;
+	/** Key into `src/lib/lattice/presets.ts`. */
+	preset?: string;
+	/** Caption shown under the viewer; omit for a bare viewer. */
+	label?: string;
+	/** CSS aspect-ratio for the stage. */
+	aspect?: string;
+}
+
+const { src, preset, label, aspect = '4 / 3' } = Astro.props;
+---
+
+<figure
+	class="lattice-viewer not-prose"
+	data-lattice-viewer
+	data-src={src}
+	data-preset={preset}
+	data-texture-color={woodColor}
+	data-texture-normal={woodNormal}
+	data-texture-roughness={woodRoughness}
+>
+	<div class="lattice-viewer__stage" style={`aspect-ratio: ${aspect};`}>
+		<canvas data-canvas class="lattice-viewer__canvas" aria-label={label ?? 'Interactive 3D model'}>
+		</canvas>
+		<p class="lattice-viewer__status" data-status>Loading…</p>
+		<button type="button" class="lattice-viewer__reset" data-reset>Reset view</button>
+		<p class="lattice-viewer__hint">Drag to orbit · scroll to zoom</p>
+	</div>
+	{label && <figcaption class="lattice-viewer__caption">{label}</figcaption>}
+</figure>
+
+<script>
+	import '../lib/lattice/mount';
+</script>
+
+<style>
+	.lattice-viewer {
+		margin: 2rem 0;
+	}
+
+	.lattice-viewer__stage {
+		position: relative;
+		width: 100%;
+		overflow: hidden;
+		border-radius: var(--radius-md);
+		/* Warm placeholder so the box never flashes white or black while loading. */
+		background: radial-gradient(circle at 40% 30%, #4a3323, #241a12 70%);
+	}
+
+	.lattice-viewer__canvas {
+		display: block;
+		width: 100%;
+		height: 100%;
+		opacity: 0;
+		transition: opacity 400ms ease;
+		touch-action: pan-y;
+	}
+
+	.lattice-viewer[data-state='ready'] .lattice-viewer__canvas {
+		opacity: 1;
+	}
+
+	.lattice-viewer__status {
+		position: absolute;
+		inset: 0;
+		display: grid;
+		place-items: center;
+		margin: 0;
+		font-size: 0.875rem;
+		letter-spacing: 0.04em;
+		text-transform: uppercase;
+		color: rgba(255, 236, 214, 0.7);
+	}
+
+	.lattice-viewer__status[hidden] {
+		display: none;
+	}
+
+	.lattice-viewer__reset,
+	.lattice-viewer__hint {
+		position: absolute;
+		bottom: 0.75rem;
+		opacity: 0;
+		transition: opacity 200ms ease;
+		pointer-events: none;
+	}
+
+	.lattice-viewer[data-state='ready'] .lattice-viewer__reset,
+	.lattice-viewer[data-state='ready'] .lattice-viewer__hint {
+		opacity: 1;
+	}
+
+	.lattice-viewer__reset {
+		right: 0.75rem;
+		pointer-events: auto;
+		padding: 0.35rem 0.75rem;
+		border: 1px solid rgba(255, 236, 214, 0.35);
+		border-radius: var(--radius-full);
+		background: rgba(24, 16, 10, 0.55);
+		color: rgba(255, 246, 235, 0.9);
+		font-size: 0.75rem;
+		letter-spacing: 0.03em;
+		cursor: pointer;
+		backdrop-filter: blur(6px);
+	}
+
+	.lattice-viewer__reset:hover {
+		background: rgba(24, 16, 10, 0.75);
+	}
+
+	.lattice-viewer__hint {
+		left: 0.9rem;
+		margin: 0;
+		font-size: 0.7rem;
+		letter-spacing: 0.02em;
+		color: rgba(255, 246, 235, 0.55);
+	}
+
+	.lattice-viewer__caption {
+		margin-top: 0.5rem;
+		font-size: 0.85rem;
+		text-align: center;
+		font-style: italic;
+		color: var(--text-muted);
+	}
+
+	@media (max-width: 640px) {
+		.lattice-viewer__hint {
+			display: none;
+		}
+	}
+
+	@media (prefers-reduced-motion: reduce) {
+		.lattice-viewer__canvas,
+		.lattice-viewer__reset {
+			transition: none;
+		}
+	}
+</style>

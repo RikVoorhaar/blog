@@ -1,0 +1,53 @@
+---
+title: 'Lattice viewer — test harness'
+date: '2026-10-30'
+categories: [3d-printing, code]
+excerpt: 'Throwaway page for iterating on the Three.js lattice viewer.'
+teaser: 'printed_platonic_solids.jpg'
+draft: false
+---
+
+import LatticeViewer from '../components/LatticeViewer.astro';
+import cube from '../assets/models/platonic/cube_T5_S2.glb?url';
+import tetrahedron from '../assets/models/platonic/tetrahedron_T5_S2.glb?url';
+import octahedron from '../assets/models/platonic/octahedron_T5_S2.glb?url';
+import icosahedron from '../assets/models/platonic/icosahedron_T5_S2.glb?url';
+import dodecahedron from '../assets/models/platonic/dodecahedron_T5_S2.glb?url';
+
+_Development harness for the lattice viewer. Not part of the real post._
+
+## Cube
+
+<LatticeViewer src={cube} preset="cube" label="Cube · Ø1.8 mm rods · 58 × 58 × 58 mm" />
+
+## Tetrahedron
+
+<LatticeViewer
+	src={tetrahedron}
+	preset="tetrahedron"
+	label="Tetrahedron · Ø1.8 mm rods · 115 × 115 × 97 mm"
+/>
+
+## Octahedron
+
+<LatticeViewer
+	src={octahedron}
+	preset="octahedron"
+	label="Octahedron · Ø1.8 mm rods · 84 × 84 × 61 mm"
+/>
+
+## Icosahedron
+
+<LatticeViewer
+	src={icosahedron}
+	preset="icosahedron"
+	label="Icosahedron · Ø1.8 mm rods · 68 × 71 × 120 mm"
+/>
+
+## Dodecahedron
+
+<LatticeViewer
+	src={dodecahedron}
+	preset="dodecahedron"
+	label="Dodecahedron · Ø1.8 mm rods · 66 × 62 × 102 mm"
+/>
