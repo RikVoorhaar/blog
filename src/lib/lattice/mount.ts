@@ -41,11 +41,10 @@ async function activate(root: HTMLElement) {
 	const preset = root.dataset.preset;
 	const textures = {
 		color: root.dataset.textureColor,
-		normal: root.dataset.textureNormal,
-		roughness: root.dataset.textureRoughness
+		normal: root.dataset.textureNormal
 	};
 
-	if (!canvas || !src || !textures.color || !textures.normal || !textures.roughness) {
+	if (!canvas || !src || !textures.color || !textures.normal) {
 		setState(root, 'error', 'Viewer is missing its mesh or textures.');
 		return;
 	}
@@ -58,7 +57,7 @@ async function activate(root: HTMLElement) {
 			src,
 			preset,
 			canvas,
-			textures: textures as { color: string; normal: string; roughness: string },
+			textures: textures as { color: string; normal: string },
 			onReady: () => setState(root, 'ready')
 		});
 		mounted.set(root, { handle });

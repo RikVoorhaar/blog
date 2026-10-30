@@ -20,7 +20,7 @@ export interface MountOptions {
 	preset?: string;
 	canvas: HTMLCanvasElement;
 	/** Texture URLs; supplied by the Astro component so Vite can hash them. */
-	textures: { color: string; normal: string; roughness: string };
+	textures: { color: string; normal: string };
 	onReady?: () => void;
 }
 
@@ -54,8 +54,10 @@ export async function mount({ src, preset, canvas, textures, onReady }: MountOpt
 	renderer.shadowMap.type = THREE.PCFSoftShadowMap;
 
 	const scene = new THREE.Scene();
-	// Matches the backdrop surface so there is never a visible seam or horizon.
-	scene.background = new THREE.Color(config.backdrop.color);
+	// Matches the backdrop so there is never a visible seam or horizon.
+	scene.background = new THREE.Color(
+		config.backdrop.mode === 'wood' ? '#241a12' : config.backdrop.color
+	);
 
 	const camera = new THREE.PerspectiveCamera(config.camera.fov, 1, 0.01, 5000);
 	const controls = new OrbitControls(camera, canvas);
@@ -135,10 +137,16 @@ export async function mount({ src, preset, canvas, textures, onReady }: MountOpt
 	const radius = Math.max(size.length() / 2, 1e-3);
 
 	// --------------------------------------------------------------- orange PLA material
+	const plaColor = new THREE.Color(config.material.color);
 	const material = new THREE.MeshStandardMaterial({
-		color: new THREE.Color(config.material.color),
+		color: plaColor,
 		metalness: config.material.metalness,
 		roughness: config.material.roughness,
+		// A whisper of self-illumination in the object's own colour: with self-shadowing off,
+		// this is what keeps the underside of the lattice from going muddy, without lifting the
+		// tabletop and washing out the cast shadow.
+		emissive: plaColor,
+		emissiveIntensity: config.material.glow,
 		flatShading: false
 	});
 
@@ -147,7 +155,9 @@ export async function mount({ src, preset, canvas, textures, onReady }: MountOpt
 		const mesh = child as THREE.Mesh;
 		mesh.material = material;
 		mesh.castShadow = true;
-		mesh.receiveShadow = true;
+		// Off by default: self-shadowing a lattice produces dense hard shadow bands that read
+		// nothing like a real print, which is lit from every side by the room.
+		mesh.receiveShadow = config.selfShadow;
 	});
 	scene.add(model);
 
@@ -156,21 +166,21 @@ export async function mount({ src, preset, canvas, textures, onReady }: MountOpt
 	// the visual work. 'wood' swaps in the PBR set for the photograph look.
 	const tile = radius * config.backdrop.tileRadii;
 	const tableSize = tile * 40;
-	let surfaceMaterial: THREE.MeshStandardMaterial;
+	// Lambert on purpose: a diffuse-only surface has no specular lobe, so the tabletop never
+	// flares when the camera swings toward the key light. It still receives the cast shadow.
+	let surfaceMaterial: THREE.MeshLambertMaterial;
 	let surfaceMaps: THREE.Texture[] = [];
 
 	if (config.backdrop.mode === 'wood') {
-		const [colorImg, normalImg, roughnessImg] = await Promise.all([
+		const [colorImg, normalImg] = await Promise.all([
 			loadImage(textures.color),
-			loadImage(textures.normal),
-			loadImage(textures.roughness)
+			loadImage(textures.normal)
 		]);
 
 		const anisotropy = Math.min(16, renderer.capabilities.getMaxAnisotropy());
 		const maps = {
 			map: new THREE.Texture(colorImg),
-			normalMap: new THREE.Texture(normalImg),
-			roughnessMap: new THREE.Texture(roughnessImg)
+			normalMap: new THREE.Texture(normalImg)
 		};
 		maps.map.colorSpace = THREE.SRGBColorSpace;
 		const repeat = tableSize / tile;
@@ -184,18 +194,14 @@ export async function mount({ src, preset, canvas, textures, onReady }: MountOpt
 		}
 
 		surfaceMaps = Object.values(maps);
-		surfaceMaterial = new THREE.MeshStandardMaterial({
-			color: new THREE.Color(config.backdrop.color),
+		surfaceMaterial = new THREE.MeshLambertMaterial({
+			color: new THREE.Color(config.backdrop.tint),
 			...maps,
-			normalScale: new THREE.Vector2(config.backdrop.normalScale, config.backdrop.normalScale),
-			roughness: config.backdrop.roughness,
-			metalness: 0
+			normalScale: new THREE.Vector2(config.backdrop.normalScale, config.backdrop.normalScale)
 		});
 	} else {
-		surfaceMaterial = new THREE.MeshStandardMaterial({
-			color: new THREE.Color(config.backdrop.color),
-			roughness: config.backdrop.roughness,
-			metalness: 0
+		surfaceMaterial = new THREE.MeshLambertMaterial({
+			color: new THREE.Color(config.backdrop.color)
 		});
 	}
 
@@ -231,13 +237,15 @@ export async function mount({ src, preset, canvas, textures, onReady }: MountOpt
 	scene.add(key);
 	scene.add(key.target);
 
-	// Warm sky fill: keeps the shaded orange readable without flattening the contrast.
-	// It must stay warm — a blue fill desaturates the orange into salmon.
-	const fill = new THREE.HemisphereLight('#f7ece0', '#6b4a33', config.fill * 0.5);
+	// Uniform ambient: lifts every surface equally, so shaded struts stay close in tone to the
+	// lit ones while the table's directional cast shadow keeps its contrast.
+	scene.add(new THREE.AmbientLight('#fff3e2', config.fill));
+
+	// A little sky/ground gradient on top, plus a soft bounce from the opposite side.
+	const fill = new THREE.HemisphereLight('#f7ece0', '#6b4a33', config.fill * 0.35);
 	scene.add(fill);
 
-	// A warm bounce from the opposite side, standing in for light returning off the table.
-	const bounce = new THREE.DirectionalLight('#ffe2bd', config.fill * 0.55);
+	const bounce = new THREE.DirectionalLight('#ffe2bd', config.fill * 0.3);
 	bounce.position.copy(direction(config.light.azimuth + 180, 42)).multiplyScalar(lightDistance);
 	scene.add(bounce);
 

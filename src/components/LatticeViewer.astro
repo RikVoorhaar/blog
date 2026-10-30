@@ -8,7 +8,6 @@
  */
 import woodColor from '../assets/textures/wood/wood_color.jpg?url';
 import woodNormal from '../assets/textures/wood/wood_normal.jpg?url';
-import woodRoughness from '../assets/textures/wood/wood_roughness.jpg?url';
 
 interface Props {
 	/** Hashed URL of a `.glb` mesh (import it with `?url`). */
@@ -31,7 +30,6 @@ const { src, preset, label, aspect = '4 / 3' } = Astro.props;
 	data-preset={preset}
 	data-texture-color={woodColor}
 	data-texture-normal={woodNormal}
-	data-texture-roughness={woodRoughness}
 >
 	<div class="lattice-viewer__stage" style={`aspect-ratio: ${aspect};`}>
 		<canvas data-canvas class="lattice-viewer__canvas" aria-label={label ?? 'Interactive 3D model'}>

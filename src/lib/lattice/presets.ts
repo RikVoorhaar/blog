@@ -16,7 +16,8 @@ export const baseScene: SceneConfig = {
 		color: '#ff8417',
 		metalness: 0,
 		// Matte-ish plastic: a broad, restrained highlight rather than a mirror.
-		roughness: 0.62
+		roughness: 0.62,
+		glow: 0.2
 	},
 
 	camera: {
@@ -34,24 +35,31 @@ export const baseScene: SceneConfig = {
 		// From screen-right and behind the object, like a window behind the table.
 		azimuth: 145,
 		elevation: 28,
-		intensity: 5.4,
+		intensity: 3.4,
 		color: '#fff7ee'
 	},
 
 	backdrop: {
-		// Untextured: a flat matte surface, no downloads, the shadow does the work.
-		mode: 'plain',
+		// Wood: the surface pattern does real work under a raking light.
+		mode: 'wood',
+		// Plain-surface colour (only used when mode is 'plain').
 		color: '#8f8880',
-		roughness: 0.92,
-		// Wood variant (flip `mode` to 'wood'): a big tile and a punchy normal map.
+		// Multiplies the wood colour map in wood mode.
+		tint: '#d9d2c9',
+		// One tile per 6.8 object radii — a big, quiet plank rather than fine stripes.
 		tileRadii: 6.8,
 		grainRotation: 124,
-		normalScale: 1.8
+		// The scan's relief is subtle; this pushes it far enough to catch the light.
+		normalScale: 0.9
 	},
 
-	// Sky/bounce fill: enough to keep shaded orange readable, not enough to flatten contrast.
-	fill: 1.6,
-	exposure: 1.2,
+	// The object is lit evenly by the room; it never shadow-maps itself.
+	selfShadow: false,
+
+	// Uniform ambient is the big lift here: it opens up the shaded side of the lattice without
+	// touching the table's cast shadow, which is what sells the contact with the surface.
+	fill: 0.5,
+	exposure: 1.1,
 	shadowMapSize: 2048,
 	// Tight ortho frustum: narrow rods need texel density more than they need reach.
 	shadowSpan: 3.6

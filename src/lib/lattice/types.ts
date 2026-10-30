@@ -38,10 +38,10 @@ export interface BackdropConfig {
 	 * the image. `wood` loads the PBR wood set for the photograph look.
 	 */
 	mode: 'plain' | 'wood';
-	/** Surface colour (in wood mode this multiplies the colour map). */
+	/** Plain-surface colour (only used when `mode` is `plain`). */
 	color: string;
-	/** 0–1. Higher is more matte. */
-	roughness: number;
+	/** Wood mode only: multiplies the colour map. */
+	tint: string;
 	/** Wood only: width of one texture tile, in bounding-sphere radii. */
 	tileRadii: number;
 	/** Wood only: degrees to rotate the grain in the plane. */
@@ -57,9 +57,21 @@ export interface MaterialConfig {
 	metalness: number;
 	/** Base roughness; the printed-plastic sheen comes from this plus the key light. */
 	roughness: number;
+	/**
+	 * Self-illumination, 0–1. Stands in for the room light bouncing around inside the lattice:
+	 * it lifts the object's shaded side without touching the tabletop, which keeps the cast
+	 * shadow dark and crisp.
+	 */
+	glow: number;
 }
 
 export interface SceneConfig {
+	/**
+	 * Let the object shadow itself. Off by default: a real lattice print is lit from every
+	 * direction by the room, so it reads much more evenly than a hard shadow-mapped model.
+	 * It still casts onto the table either way.
+	 */
+	selfShadow: boolean;
 	/** Extra rotation applied to the model, in degrees (X, Y, Z). */
 	orientation: [number, number, number];
 	/** Uniform scale applied after loading; 1 is "as exported". */
