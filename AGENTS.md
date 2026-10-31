@@ -47,6 +47,9 @@ the opposite of what a draft flag is for.
 or replace it with an `unlisted` flag that still builds a route). It is deliberately out
 of scope for now; do not leave a new draft-dependent feature behind when you touch it.
 
+Tracked in <https://github.com/RikVoorhaar/blog/issues/10> — delete this section when
+that lands.
+
 ## Three.js viewer rules
 
 `src/components/LatticeViewer.astro` + `src/lib/lattice/` render the printable lattices.
