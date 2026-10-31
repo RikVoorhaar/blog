@@ -43,9 +43,8 @@ its bundle only lands on pages that use it.
 A `draft: true` post gets **no route at all**, so it cannot be previewed — the flag does
 the opposite of what a draft flag is for.
 
-**This should be removed** (treat every post as public and use the branch for staging,
-or replace it with an `unlisted` flag that still builds a route). It is deliberately out
-of scope for now; do not leave a new draft-dependent feature behind when you touch it.
+**Decision: the option should be deleted outright** — we never use it, and branches are what
+staging is for. Kept here only until that lands; do not add new draft-dependent code.
 
 Tracked in <https://github.com/RikVoorhaar/blog/issues/10> — delete this section when
 that lands.
