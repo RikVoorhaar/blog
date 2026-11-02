@@ -115,6 +115,18 @@ export const presets: Record<string, ViewerPreset> = {
 		shadowSpan: 3.4
 	},
 
+	/**
+	 * The §1 second figure: a figure-8 immersed Klein bottle cage, relaxed so no two rods
+	 * collide. Wide and flat, so the camera sits lower than the sphere's to show the tube
+	 * passing through its own sheet.
+	 */
+	klein: {
+		label: 'Klein bottle',
+		colorMode: 'slope',
+		camera: { ...baseScene.camera, distance: 5.4, elevation: 38, azimuth: 34, targetShift: 0.45 },
+		shadowSpan: 3.4
+	},
+
 	dodecahedron: {
 		label: 'Dodecahedron',
 		camera: { ...baseScene.camera, distance: 8.0, elevation: 34, azimuth: 30, targetShift: 0.65 },

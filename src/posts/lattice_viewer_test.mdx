@@ -15,6 +15,8 @@ import icosahedron from '../assets/models/platonic/icosahedron_T5_S2.glb?url';
 import dodecahedron from '../assets/models/platonic/dodecahedron_T5_S2.glb?url';
 import sphere from '../assets/models/surface/sphere_n06.glb?url';
 import sphereSlope from '../assets/blog/3d_print_platonic_solids/sphere_slope.webp?url';
+import klein from '../assets/models/surface/klein_n16x14.glb?url';
+import kleinSlope from '../assets/blog/3d_print_platonic_solids/klein_slope.webp?url';
 
 _Development harness for the lattice viewer. Not part of the real post._
 
@@ -62,4 +64,14 @@ _Development harness for the lattice viewer. Not part of the real post._
 	modes
 	fallback={sphereSlope}
 	label="Sphere · Ø1.8 mm rods · 100 mm diameter · coloured by each rod's own angle above horizontal (0° blue → 90° yellow)"
+/>
+
+## Klein bottle
+
+<LatticeViewer
+	src={klein}
+	preset="klein"
+	modes
+	fallback={kleinSlope}
+	label="Klein bottle · Ø1.8 mm rods · 224 nodes, 448 rods · coloured by each rod's own angle above horizontal"
 />
