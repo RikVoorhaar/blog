@@ -18,9 +18,13 @@ interface Props {
 	label?: string;
 	/** CSS aspect-ratio for the stage. */
 	aspect?: string;
+	/** Show a colour-mode toggle (orange / baked slope colours). */
+	modes?: boolean;
+	/** Hashed URL of a still image shown when JavaScript is off. */
+	fallback?: string;
 }
 
-const { src, preset, label, aspect = '4 / 3' } = Astro.props;
+const { src, preset, label, aspect = '4 / 3', modes = false, fallback } = Astro.props;
 ---
 
 <figure
@@ -35,8 +39,27 @@ const { src, preset, label, aspect = '4 / 3' } = Astro.props;
 		<canvas data-canvas class="lattice-viewer__canvas" aria-label={label ?? 'Interactive 3D model'}>
 		</canvas>
 		<p class="lattice-viewer__status" data-status>Loading…</p>
+		{
+			modes && (
+				<div class="lattice-viewer__modes" role="group" aria-label="Colour mode">
+					<button type="button" class="lattice-viewer__mode" data-colormode="orange" aria-pressed="false">
+						Orange
+					</button>
+					<button type="button" class="lattice-viewer__mode" data-colormode="slope" aria-pressed="false">
+						Angles
+					</button>
+				</div>
+			)
+		}
 		<button type="button" class="lattice-viewer__reset" data-reset>Reset view</button>
 		<p class="lattice-viewer__hint">Drag to orbit · scroll to zoom</p>
+		{
+			fallback && (
+				<noscript>
+					<img class="lattice-viewer__fallback" src={fallback} alt={label ?? ''} />
+				</noscript>
+			)
+		}
 	</div>
 	{label && <figcaption class="lattice-viewer__caption">{label}</figcaption>}
 </figure>
@@ -86,6 +109,46 @@ const { src, preset, label, aspect = '4 / 3' } = Astro.props;
 
 	.lattice-viewer__status[hidden] {
 		display: none;
+	}
+
+	.lattice-viewer__fallback {
+		position: absolute;
+		inset: 0;
+		width: 100%;
+		height: 100%;
+		object-fit: cover;
+	}
+
+	.lattice-viewer__modes {
+		position: absolute;
+		top: 0.75rem;
+		right: 0.75rem;
+		display: flex;
+		gap: 0.25rem;
+		opacity: 0;
+		transition: opacity 200ms ease;
+	}
+
+	.lattice-viewer[data-state='ready'] .lattice-viewer__modes {
+		opacity: 1;
+	}
+
+	.lattice-viewer__mode {
+		padding: 0.25rem 0.6rem;
+		border: 1px solid rgba(255, 236, 214, 0.25);
+		border-radius: var(--radius-full);
+		background: rgba(24, 16, 10, 0.5);
+		color: rgba(255, 246, 235, 0.7);
+		font-size: 0.7rem;
+		letter-spacing: 0.02em;
+		cursor: pointer;
+		backdrop-filter: blur(6px);
+	}
+
+	.lattice-viewer__mode[aria-pressed='true'] {
+		background: rgba(255, 236, 214, 0.85);
+		border-color: transparent;
+		color: #241a12;
 	}
 
 	.lattice-viewer__reset,
@@ -144,7 +207,8 @@ const { src, preset, label, aspect = '4 / 3' } = Astro.props;
 
 	@media (prefers-reduced-motion: reduce) {
 		.lattice-viewer__canvas,
-		.lattice-viewer__reset {
+		.lattice-viewer__reset,
+		.lattice-viewer__modes {
 			transition: none;
 		}
 	}

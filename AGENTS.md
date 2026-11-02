@@ -65,4 +65,13 @@ The constraints matter more than the code:
   textures, and the WebGL context.
 - Meshes are `.glb`, generated from the parent project's STLs with
   `uv run python -m printable_surfaces.glb`. Do not commit raw multi-megabyte STLs into
-  the blog; regenerate the GLB instead.
+  the blog; regenerate the GLB instead. The STL→GLB conversion drops vertex colours, so a
+  coloured mesh goes through **PLY** (`... sphere_n06.ply -o .../sphere_n06.glb`).
+- **Colour modes.** A mesh may carry a baked `COLOR_0` scale (see the parent's
+  `lattice.build_frame_mesh(color_by="elevation")`). Pass `modes` to the component for a
+  toggle; `preset.colorMode` picks the opening mode. Slope mode is matte and uses a neutral
+  lift, because a white specular highlight desaturates a colour ramp. Meshes without
+  `COLOR_0` always fall back to orange.
+- **No-JS fallback.** Pass `fallback` (a still image, in the same camera, in the default
+  colour mode) so the figure is not an empty box without JavaScript. Capture it from the
+  canvas with the overlays hidden.

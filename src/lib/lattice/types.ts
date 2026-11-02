@@ -63,9 +63,26 @@ export interface MaterialConfig {
 	 * shadow dark and crisp.
 	 */
 	glow: number;
+	/**
+	 * Neutral lift applied in `slope` mode instead of `glow`. A vertex colour multiplies the
+	 * base colour, so the orange emissive cannot be used there without tinting the scale; a
+	 * small flat white keeps the dark end of the ramp off the floor without shifting hues.
+	 */
+	slopeGlow: number;
 }
 
+/**
+ * How the object is coloured.
+ *
+ * `orange` is the printed-PLA look. `slope` uses the mesh's baked `COLOR_0` attribute — for
+ * the sphere figure that is each rod's own angle above horizontal — and is only available
+ * on meshes that carry one.
+ */
+export type ColorMode = 'orange' | 'slope';
+
 export interface SceneConfig {
+	/** Which colour mode a viewer opens in. */
+	colorMode: ColorMode;
 	/**
 	 * Let the object shadow itself. Off by default: a real lattice print is lit from every
 	 * direction by the room, so it reads much more evenly than a hard shadow-mapped model.

@@ -13,6 +13,8 @@ import tetrahedron from '../assets/models/platonic/tetrahedron_T5_S2.glb?url';
 import octahedron from '../assets/models/platonic/octahedron_T5_S2.glb?url';
 import icosahedron from '../assets/models/platonic/icosahedron_T5_S2.glb?url';
 import dodecahedron from '../assets/models/platonic/dodecahedron_T5_S2.glb?url';
+import sphere from '../assets/models/surface/sphere_n06.glb?url';
+import sphereSlope from '../assets/blog/3d_print_platonic_solids/sphere_slope.webp?url';
 
 _Development harness for the lattice viewer. Not part of the real post._
 
@@ -50,4 +52,14 @@ _Development harness for the lattice viewer. Not part of the real post._
 	src={dodecahedron}
 	preset="dodecahedron"
 	label="Dodecahedron · Ø1.8 mm rods · 66 × 62 × 102 mm"
+/>
+
+## Sphere
+
+<LatticeViewer
+	src={sphere}
+	preset="sphere"
+	modes
+	fallback={sphereSlope}
+	label="Sphere · Ø1.8 mm rods · 100 mm diameter · coloured by each rod's own angle above horizontal (0° blue → 90° yellow)"
 />

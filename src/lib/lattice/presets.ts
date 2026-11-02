@@ -17,7 +17,9 @@ export const baseScene: SceneConfig = {
 		metalness: 0,
 		// Matte-ish plastic: a broad, restrained highlight rather than a mirror.
 		roughness: 0.62,
-		glow: 0.11
+		glow: 0.11,
+		// Enough to keep the blue end of the slope ramp readable on a dark tabletop.
+		slopeGlow: 0.02
 	},
 
 	camera: {
@@ -52,6 +54,9 @@ export const baseScene: SceneConfig = {
 		// The scan's relief is subtle; this pushes it far enough to catch the light.
 		normalScale: 0.9
 	},
+
+	// Meshes without baked colours ignore this and stay orange.
+	colorMode: 'orange',
 
 	// The object is lit evenly by the room; it never shadow-maps itself.
 	selfShadow: false,
@@ -97,6 +102,17 @@ export const presets: Record<string, ViewerPreset> = {
 		camera: { ...baseScene.camera, distance: 7.8, elevation: 32, azimuth: 40, targetShift: 0.6 },
 		light: { ...baseScene.light, elevation: 28 },
 		shadowSpan: 3.5
+	},
+
+	/**
+	 * The §1 figure: a 100 mm sphere cage whose rods are coloured by their own slope. It
+	 * opens on the colours, because the colours *are* the argument; the toggle offers orange.
+	 */
+	sphere: {
+		label: 'Sphere',
+		colorMode: 'slope',
+		camera: { ...baseScene.camera, distance: 6.2, elevation: 33, azimuth: 34, targetShift: 0.8 },
+		shadowSpan: 3.4
 	},
 
 	dodecahedron: {

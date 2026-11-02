@@ -8,6 +8,7 @@
  */
 
 import type { ViewerHandle } from './engine';
+import type { ColorMode } from './types';
 
 interface Mounted {
 	handle: ViewerHandle;
@@ -20,7 +21,8 @@ function stageOf(root: HTMLElement) {
 	return {
 		canvas: root.querySelector<HTMLCanvasElement>('[data-canvas]'),
 		reset: root.querySelector<HTMLButtonElement>('[data-reset]'),
-		status: root.querySelector<HTMLElement>('[data-status]')
+		status: root.querySelector<HTMLElement>('[data-status]'),
+		modes: Array.from(root.querySelectorAll<HTMLButtonElement>('[data-colormode]'))
 	};
 }
 
@@ -62,6 +64,25 @@ async function activate(root: HTMLElement) {
 		});
 		mounted.set(root, { handle });
 		reset?.addEventListener('click', handle.reset);
+
+		// Colour-mode toggle: only the buttons whose mode the mesh actually supports do
+		// anything, so a viewer without baked colours never shows one.
+		const { modes } = stageOf(root);
+		const syncModes = () => {
+			for (const button of modes) {
+				button.setAttribute(
+					'aria-pressed',
+					String(button.dataset.colormode === handle.getColorMode())
+				);
+			}
+		};
+		for (const button of modes) {
+			button.addEventListener('click', () => {
+				handle.setColorMode(button.dataset.colormode as ColorMode);
+				syncModes();
+			});
+		}
+		syncModes();
 	} catch (error) {
 		console.error('[lattice-viewer]', error);
 		setState(root, 'error', 'This browser could not start the 3D viewer.');
@@ -99,8 +120,10 @@ function observeAll() {
 function disposeAll() {
 	for (const [root, entry] of mounted) {
 		entry.handle.dispose();
-		const { reset } = stageOf(root);
+		const { reset, modes } = stageOf(root);
+		// Replacing the node drops its listeners, which is all the cleanup these need.
 		if (reset) reset.replaceWith(reset.cloneNode(true));
+		for (const button of modes) button.replaceWith(button.cloneNode(true));
 		mounted.delete(root);
 	}
 	observer?.disconnect();

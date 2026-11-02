@@ -13,7 +13,7 @@ import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
 
 import { loadArrayBuffer, loadImage } from './assets';
 import { resolveScene } from './presets';
-import type { SceneConfig } from './types';
+import type { ColorMode, SceneConfig } from './types';
 
 export interface MountOptions {
 	src: string;
@@ -26,6 +26,9 @@ export interface MountOptions {
 
 export interface ViewerHandle {
 	reset: () => void;
+	/** Switch between printed-orange and the mesh's baked `COLOR_0` scale. */
+	setColorMode: (mode: ColorMode) => void;
+	getColorMode: () => ColorMode;
 	dispose: () => void;
 }
 
@@ -150,9 +153,11 @@ export async function mount({ src, preset, canvas, textures, onReady }: MountOpt
 		flatShading: false
 	});
 
+	let hasVertexColors = false;
 	model.traverse((child) => {
 		if (!(child as THREE.Mesh).isMesh) return;
 		const mesh = child as THREE.Mesh;
+		if (mesh.geometry.getAttribute('color')) hasVertexColors = true;
 		mesh.material = material;
 		mesh.castShadow = true;
 		// Off by default: self-shadowing a lattice produces dense hard shadow bands that read
@@ -160,6 +165,26 @@ export async function mount({ src, preset, canvas, textures, onReady }: MountOpt
 		mesh.receiveShadow = config.selfShadow;
 	});
 	scene.add(model);
+
+	// ------------------------------------------------------------- colour mode
+	// `slope` shows the mesh's baked per-vertex scale: the vertex colour multiplies the base
+	// colour, so the base goes white and the object's own glow is switched off, otherwise the
+	// orange emissive would tint every colour on the ramp.
+	let colorMode: ColorMode = config.colorMode === 'slope' && hasVertexColors ? 'slope' : 'orange';
+	const applyColorMode = (mode: ColorMode) => {
+		colorMode = mode === 'slope' && hasVertexColors ? 'slope' : 'orange';
+		const slope = colorMode === 'slope';
+		material.vertexColors = slope;
+		// A white specular highlight is invisible on orange and ruinous on a colour scale: it
+		// desaturates every rod it lands on. Slope mode is fully matte.
+		material.roughness = slope ? 1 : config.material.roughness;
+		material.color.set(slope ? '#ffffff' : plaColor);
+		material.emissive.set(slope ? '#ffffff' : plaColor);
+		material.emissiveIntensity = slope ? config.material.slopeGlow : config.material.glow;
+		material.needsUpdate = true;
+		requestRender();
+	};
+	applyColorMode(colorMode);
 
 	// ----------------------------------------------------------------------- backdrop
 	// 'plain' is a flat matte surface: no texture downloads at all, and the cast shadow does
@@ -338,7 +363,12 @@ export async function mount({ src, preset, canvas, textures, onReady }: MountOpt
 		renderer.forceContextLoss();
 	};
 
-	return { reset, dispose } satisfies ViewerHandle;
+	return {
+		reset,
+		setColorMode: applyColorMode,
+		getColorMode: () => colorMode,
+		dispose
+	} satisfies ViewerHandle;
 }
 
 export type { SceneConfig };
