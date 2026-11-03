@@ -17,6 +17,8 @@ import sphere from '../assets/models/surface/sphere_n06.glb?url';
 import sphereSlope from '../assets/blog/3d_print_platonic_solids/sphere_slope.webp?url';
 import klein from '../assets/models/surface/klein_n16x14.glb?url';
 import kleinSlope from '../assets/blog/3d_print_platonic_solids/klein_slope.webp?url';
+import kleinBottle from '../assets/models/surface/klein_bottle_n22x10.glb?url';
+import kleinBottleSlope from '../assets/blog/3d_print_platonic_solids/klein_bottle_slope.webp?url';
 
 _Development harness for the lattice viewer. Not part of the real post._
 
@@ -74,4 +76,14 @@ _Development harness for the lattice viewer. Not part of the real post._
 	modes
 	fallback={kleinSlope}
 	label="Klein bottle · Ø1.8 mm rods · 224 nodes, 448 rods · coloured by each rod's own angle above horizontal"
+/>
+
+## Klein bottle (bottle embedding)
+
+<LatticeViewer
+	src={kleinBottle}
+	preset="kleinBottle"
+	modes
+	fallback={kleinBottleSlope}
+	label="Klein bottle · Ø1.8 mm rods · 100 mm tall · 220 nodes, 440 rods · coloured by each rod's own angle above horizontal"
 />

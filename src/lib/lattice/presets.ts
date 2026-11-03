@@ -127,6 +127,20 @@ export const presets: Record<string, ViewerPreset> = {
 		shadowSpan: 3.4
 	},
 
+	/**
+	 * The conventional bottle-shaped immersion: 100 mm tall, 63 mm wide. Tall and narrow, so
+	 * the camera stands further back and lower than the sphere's.
+	 */
+	kleinBottle: {
+		label: 'Klein bottle',
+		colorMode: 'slope',
+		camera: { ...baseScene.camera, distance: 7.4, elevation: 24, azimuth: 34, targetShift: 0.75 },
+		// A 100 mm tall object throws a much longer shadow than a 40 mm one; a steeper key
+		// keeps it inside the frame.
+		light: { ...baseScene.light, elevation: 42 },
+		shadowSpan: 3.4
+	},
+
 	dodecahedron: {
 		label: 'Dodecahedron',
 		camera: { ...baseScene.camera, distance: 8.0, elevation: 34, azimuth: 30, targetShift: 0.65 },
