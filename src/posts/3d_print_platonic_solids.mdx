@@ -37,9 +37,9 @@ Ever wanted a 3D-printed Klein bottle for your desk? You can't have one. Not a r
 
 </div>
 
-I have a glass Klein bottle, but it just sits on a shelf because its super fragile. But a squishy Klein bottle made of TPU -- now that's a neat toy for me and my kids. But if you have a look at the render, you can see the problem if you know anything about 3D printing: many of the rods are close to horizontal. A material like PLA tends to become a stringy mess if you print it at angles less than 45' from vertical, and TPU is even less forgiving needing about 30' from vertical. But here we've got almost horizontal edges!
+I have a glass Klein bottle, but it just sits on a shelf because it's super fragile. But a squishy Klein bottle made of TPU -- now that would be a neat toy for me and my kids. So let's print one. If you have a look at the render, the colors give the problem away: the rods are colored by their own angle, and many of them are close to horizontal. PLA tends to turn into a stringy mess if you print it below about 45° from horizontal, and TPU is even less forgiving: it wants about 60°. Here we've got edges that are almost horizontal.
 
-I had the idea that maybe we can find a triangulation of the Klein bottle that you CAN print easily, maybe by stretching the shape a bit, and then having an algorithm that pushes rods to be closer to vertical. But things get tricky near the top. Maybe things get easier with a simpler shape. Let's have a look at the sphere instead:
+I had the idea that maybe there is a triangulation of the Klein bottle that you _can_ print easily: stretch the shape a bit, and then have an algorithm push the rods closer to vertical. But things get tricky near the top. Maybe they get easier with a simpler shape. Let's look at the sphere instead:
 
 <div style="max-width: 640px; margin-inline: auto;">
 
@@ -53,33 +53,33 @@ I had the idea that maybe we can find a triangulation of the Klein bottle that y
 
 </div>
 
-Same problem -- many rods are close to horizontal. And it doesn't go away. A rod is always close to tangential to the surface of the sphere, and near the top and bottom the sphere's normal is nearly vertical, and thus all the rods must be near horizontal. On the bottom we can fix this with supports, but at the top this is a lost cause.
+Same problem -- many rods are close to horizontal. And it doesn't go away. A finer mesh doesn't help either: subdividing makes the rods shorter, not steeper. A rod on the surface is always close to tangential, and near the top and bottom the sphere's normal is nearly vertical, so every rod up there has to be near horizontal. On the bottom we can fix this with supports, but at the top it's a lost cause.
 
 ## When is a shape printable
 
 At this point I gave up on having a squishy Klein bottle, but I was still determined to get a cool looking mathematical shape out of it. Based on what we have learned, we can make two adjustments:
 
-- Shapes that gradually shift from vertical to horizontal don't work -> let's try printing polytopes, which skip the gradual transitions
-- The top is always going to be a problem with hollow shapes -> Let's make them filled.
+- Shapes that gradually shift from vertical to horizontal don't work -> let's try polytopes, which skip the gradual transitions
+- The top is always going to be a problem with hollow shapes -> so let's fill the inside with more lattice.
 
 So given a polytope, we want to find a lattice that:
 
-- Has rods and nodes parallel to the faces of the polytope, with roughly constant density (so that the surface is well-defined)
-- Fills the inside of the polytope with roughly equal density
+- Has rods and nodes lying in the faces of the polytope, with roughly constant density, so the surface reads clearly
+- Fills the inside of the polytope with a lattice of roughly equal density
 
-Then we need additional rules to make it _printable without supports_. For a shape to be printable, we should (for PLA) avoid angles below 45' from horizontal, and any shape must be supported from something below. But there is one need exception: bridges. If you span a horizontal gap of about ~10mm, then you don't need anything supporting below it, so long as the starting and end points are well supported.
+Then we need some extra rules to make it _printable without supports_. For PLA we want to avoid rods below about 45° from horizontal, and every rod needs to be supported from something below. There is one exception: bridges. If you span a horizontal gap of 10 mm or so, you don't need anything under it, as long as both ends are well supported.
 
 We can encode this as some additional rules for the lattice:
 
-- A rods need to be either:
-  - above \alpha from horizontal, _or_:
-  - exactly horizontal (with effectively no margin for error), with a maximum length of 10mm (unless it's on the build plate)
-- A node in the lattice needs to be supported _from below_ by at least two (non-horizontal) rods.
+- A rod needs to be either:
+  - above $\alpha$ from horizontal, _or_:
+  - exactly horizontal (with effectively no margin for error), with a maximum length of 10 mm (unless it is on the build plate)
+- A node in the lattice needs to be supported _from below_ by at least two non-horizontal rods.
 
-We choose \alpha the critical angle for the filament material, for PLA this is 45' roughly, but we choose 48' so there's a bit of room for error.
+We pick $\alpha$ as the critical angle for the material. For PLA it is roughly 45°, and we use 48° to leave a bit of room for error.
 
-For a polytope to be printable, we then at a minimum need all it's faces to be _either_ horizontal or sufficiently steep (the normal needs to be more than \alpha from vertical)
+For a polytope to print, at a minimum all of its faces need to be _either_ horizontal or steep enough: the normal needs to be more than $\alpha$ from vertical. A horizontal face at the bottom is fine, since it sits on the build plate.
 
-Is that enough? Well, I think so. I didn't prove it mathematically, but it does work in practice. To do this in practice, I started with the platonic solids and stretched them were needed to ensure the faces are sufficiently steep. Then I just had to find the right lattice. And not just ANY lattice that satisfies the rules above, but I also wanted it to have an organic-but-geometric look.
+Is that enough? I think so. I didn't prove it, but it does work in practice. I started with the Platonic solids and stretched them where needed so their faces were steep enough. Then I just had to find the right lattice. And not just ANY lattice that satisfies those rules -- I wanted one that looked organic but geometric.
 
 ## The lattice algorithm
