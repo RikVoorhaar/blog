@@ -7,11 +7,25 @@ teaser: 'printed_platonic_solids.jpg'
 draft: false
 ---
 
+import { Image } from 'astro:assets';
 import LatticeViewer from '../components/LatticeViewer.astro';
+import hero from '../assets/teasers/printed_platonic_solids.jpg';
 import kleinBottle from '../assets/models/surface/klein_bottle_n22x10.glb?url';
 import kleinBottleSlope from '../assets/blog/3d_print_platonic_solids/klein_bottle_slope.webp?url';
+import sphere from '../assets/models/surface/sphere_n06.glb?url';
+import sphereSlope from '../assets/blog/3d_print_platonic_solids/sphere_slope.webp?url';
+
+<Image
+	src={hero}
+	width={1100}
+	alt="Orange 3D-printed lattices of the Platonic solids on a wooden table."
+	class="rounded-lg"
+	style="max-width: 560px; display: block; margin-inline: auto;"
+/>
 
 Ever wanted a 3D-printed Klein bottle for your desk? You can't have one. Not a real one, anyway. A Klein bottle doesn't fit in three dimensions; the surface has to pass through itself, and that's the part you're not supposed to notice. I wanted the part you're supposed to notice: the edges, thinned out until you can see the whole shape at once. Too bad it turns into spaghetti when you try to print it.
+
+<div style="max-width: 640px; margin-inline: auto;">
 
 <LatticeViewer
 	src={kleinBottle}
@@ -20,3 +34,52 @@ Ever wanted a 3D-printed Klein bottle for your desk? You can't have one. Not a r
 	fallback={kleinBottleSlope}
 	label="Klein bottle · Ø1.8 mm rods · colored by each rod's own angle above horizontal"
 />
+
+</div>
+
+I have a glass Klein bottle, but it just sits on a shelf because its super fragile. But a squishy Klein bottle made of TPU -- now that's a neat toy for me and my kids. But if you have a look at the render, you can see the problem if you know anything about 3D printing: many of the rods are close to horizontal. A material like PLA tends to become a stringy mess if you print it at angles less than 45' from vertical, and TPU is even less forgiving needing about 30' from vertical. But here we've got almost horizontal edges!
+
+I had the idea that maybe we can find a triangulation of the Klein bottle that you CAN print easily, maybe by stretching the shape a bit, and then having an algorithm that pushes rods to be closer to vertical. But things get tricky near the top. Maybe things get easier with a simpler shape. Let's have a look at the sphere instead:
+
+<div style="max-width: 640px; margin-inline: auto;">
+
+<LatticeViewer
+	src={sphere}
+	preset="sphere"
+	modes
+	fallback={sphereSlope}
+	label="Sphere · Ø1.8 mm rods · colored by each rod's own angle above horizontal"
+/>
+
+</div>
+
+Same problem -- many rods are close to horizontal. And it doesn't go away. A rod is always close to tangential to the surface of the sphere, and near the top and bottom the sphere's normal is nearly vertical, and thus all the rods must be near horizontal. On the bottom we can fix this with supports, but at the top this is a lost cause.
+
+## When is a shape printable
+
+At this point I gave up on having a squishy Klein bottle, but I was still determined to get a cool looking mathematical shape out of it. Based on what we have learned, we can make two adjustments:
+
+- Shapes that gradually shift from vertical to horizontal don't work -> let's try printing polytopes, which skip the gradual transitions
+- The top is always going to be a problem with hollow shapes -> Let's make them filled.
+
+So given a polytope, we want to find a lattice that:
+
+- Has rods and nodes parallel to the faces of the polytope, with roughly constant density (so that the surface is well-defined)
+- Fills the inside of the polytope with roughly equal density
+
+Then we need additional rules to make it _printable without supports_. For a shape to be printable, we should (for PLA) avoid angles below 45' from horizontal, and any shape must be supported from something below. But there is one need exception: bridges. If you span a horizontal gap of about ~10mm, then you don't need anything supporting below it, so long as the starting and end points are well supported.
+
+We can encode this as some additional rules for the lattice:
+
+- A rods need to be either:
+  - above \alpha from horizontal, _or_:
+  - exactly horizontal (with effectively no margin for error), with a maximum length of 10mm (unless it's on the build plate)
+- A node in the lattice needs to be supported _from below_ by at least two (non-horizontal) rods.
+
+We choose \alpha the critical angle for the filament material, for PLA this is 45' roughly, but we choose 48' so there's a bit of room for error.
+
+For a polytope to be printable, we then at a minimum need all it's faces to be _either_ horizontal or sufficiently steep (the normal needs to be more than \alpha from vertical)
+
+Is that enough? Well, I think so. I didn't prove it mathematically, but it does work in practice. To do this in practice, I started with the platonic solids and stretched them were needed to ensure the faces are sufficiently steep. Then I just had to find the right lattice. And not just ANY lattice that satisfies the rules above, but I also wanted it to have an organic-but-geometric look.
+
+## The lattice algorithm
