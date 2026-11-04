@@ -7,4 +7,16 @@ teaser: 'printed_platonic_solids.jpg'
 draft: false
 ---
 
+import LatticeViewer from '../components/LatticeViewer.astro';
+import kleinBottle from '../assets/models/surface/klein_bottle_n22x10.glb?url';
+import kleinBottleSlope from '../assets/blog/3d_print_platonic_solids/klein_bottle_slope.webp?url';
+
 Ever wanted a 3D-printed Klein bottle for your desk? You can't have one. Not a real one, anyway. A Klein bottle doesn't fit in three dimensions; the surface has to pass through itself, and that's the part you're not supposed to notice. I wanted the part you're supposed to notice: the edges, thinned out until you can see the whole shape at once. Too bad it turns into spaghetti when you try to print it.
+
+<LatticeViewer
+	src={kleinBottle}
+	preset="kleinBottle"
+	modes
+	fallback={kleinBottleSlope}
+	label="Klein bottle · Ø1.8 mm rods · colored by each rod's own angle above horizontal"
+/>
