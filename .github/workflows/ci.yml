@@ -5,6 +5,7 @@ on:
     branches: [main]
   pull_request:
     branches: [main]
+    types: [opened, synchronize, reopened, ready_for_review]
 
 jobs:
   build:
@@ -20,6 +21,9 @@ jobs:
       - run: npm run lint
 
   ai-docs:
+    # A post keeps its plan in ai-docs/ while it is being written, and the draft PR is the
+    # preview, so the check only matters once the PR is ready.
+    if: github.event_name == 'push' || github.event.pull_request.draft == false
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v6
