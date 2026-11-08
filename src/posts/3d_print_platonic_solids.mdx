@@ -1,0 +1,126 @@
+---
+title: 'An algorithm for organic 3D printable polytopes'
+date: '2026-10-29'
+categories: [mathematics, code, 3d-printing]
+excerpt: "I made an algorithm for 3D printing mathematical shapes. Here's how I did it."
+teaser: 'printed_platonic_solids.jpg'
+draft: false
+---
+
+import { Image } from 'astro:assets';
+import LatticeViewer from '../components/LatticeViewer.astro';
+import SolidSwitcher from '../components/SolidSwitcher.astro';
+import hero from '../assets/teasers/printed_platonic_solids.jpg';
+import kleinBottle from '../assets/models/surface/klein_bottle_n22x10.glb?url';
+import kleinBottleSlope from '../assets/blog/3d_print_platonic_solids/klein_bottle_slope.webp?url';
+import sphere from '../assets/models/surface/sphere_n06.glb?url';
+import sphereSlope from '../assets/blog/3d_print_platonic_solids/sphere_slope.webp?url';
+
+<Image
+	src={hero}
+	width={1100}
+	alt="Orange 3D-printed lattices of the Platonic solids on a wooden table."
+	class="rounded-lg"
+	style="max-width: 560px; display: block; margin-inline: auto;"
+/>
+
+Ever wanted a 3D-printed Klein bottle for your desk? You can't have one. Not a real one, anyway. A Klein bottle doesn't fit in three dimensions; the surface has to pass through itself, and that's the part you're not supposed to notice. I wanted the part you're supposed to notice: the edges, thinned out until you can see the whole shape at once. Too bad it turns into spaghetti when you try to print it.
+
+<div style="max-width: 640px; margin-inline: auto;">
+
+<LatticeViewer
+	src={kleinBottle}
+	preset="kleinBottle"
+	modes
+	fallback={kleinBottleSlope}
+	label="Klein bottle · Ø1.8 mm rods · colored by each rod's own angle above horizontal"
+/>
+
+</div>
+
+I have a glass Klein bottle, but it just sits on a shelf because it's super fragile. But a squishy Klein bottle made of TPU -- now that would be a neat toy for me and my kids. So let's print one. If you have a look at the render, the colors give the problem away: the rods are colored by their own angle, and many of them are close to horizontal. PLA tends to turn into a stringy mess if you print it below about 45° from horizontal, and TPU is even less forgiving: it wants about 60°. Here we've got edges that are almost horizontal.
+
+I had the idea that maybe there is a triangulation of the Klein bottle that you _can_ print easily: stretch the shape a bit, and then have an algorithm push the rods closer to vertical. But things get tricky near the top. Maybe they get easier with a simpler shape. Let's look at the sphere instead:
+
+<div style="max-width: 640px; margin-inline: auto;">
+
+<LatticeViewer
+	src={sphere}
+	preset="sphere"
+	modes
+	fallback={sphereSlope}
+	label="Sphere · Ø1.8 mm rods · colored by each rod's own angle above horizontal"
+/>
+
+</div>
+
+Same problem -- many rods are close to horizontal. And it doesn't go away. A finer mesh doesn't help either: subdividing makes the rods shorter, not steeper. A rod on the surface is always close to tangential, and near the top and bottom the sphere's normal is nearly vertical, so every rod up there has to be near horizontal. On the bottom we can fix this with supports, but at the top it's a lost cause.
+
+## When is a shape printable
+
+At this point I gave up on having a squishy Klein bottle, but I was still determined to get a cool looking mathematical shape out of it. Based on what we have learned, we can make two adjustments:
+
+- Shapes that gradually shift from vertical to horizontal don't work -> let's try polytopes, which skip the gradual transitions
+- The top is always going to be a problem with hollow shapes -> so let's fill the inside with more lattice.
+
+So given a polytope, we want to find a lattice that:
+
+- Has rods and nodes lying in the faces of the polytope, with roughly constant density, so the surface reads clearly
+- Fills the inside of the polytope with a lattice of roughly equal density
+
+Then we need some extra rules to make it _printable without supports_. For PLA we want to avoid rods below about 45° from horizontal, and every rod needs to be supported from something below. There is one exception: bridges. If you span a horizontal gap of 10 mm or so, you don't need anything under it, as long as both ends are well supported.
+
+We can encode this as some additional rules for the lattice:
+
+- A rod needs to be either:
+  - above $\alpha$ from horizontal, _or_:
+  - exactly horizontal (with effectively no margin for error), with a maximum length of 10 mm (unless it is on the build plate)
+- A node in the lattice needs to be supported _from below_ by at least two non-horizontal rods.
+
+We pick $\alpha$ as the critical angle for the material. For PLA it is roughly 45°, and we use 48° to leave a bit of room for error.
+
+For a polytope to print, at a minimum all of its faces need to be _either_ horizontal or steep enough: the normal needs to be more than $\alpha$ from vertical. A horizontal face at the bottom is fine, since it sits on the build plate.
+
+Is that enough? I think so. I didn't prove it, but it does work in practice. I started with the Platonic solids and stretched them where needed so their faces were steep enough. Then I just had to find the right lattice. And not just ANY lattice that satisfies those rules -- I wanted one that looked organic but geometric.
+
+## The lattice algorithm
+
+We want an organic arrangement that satisfies the printability rules. The core idea is this: start with a random arrangement of nodes, push the nodes in the right direction until they are printable, and then connect them with rods.
+
+A random arrangement by itself can have a very organic look, but it's not printable, and it may have very short or very long rods. I think an arrangement where the nodes are roughly equally spaced, with no regular pattern to it, is perfect.
+
+Ignoring printability for a second: if you take a random arrangement and let the points repel each other, you already end up with something roughly equally spaced, without a regular pattern. The force between two nodes is proportional to how much closer they are than a fixed cutoff distance $r_c$, and zero beyond it:
+
+$$
+F(r) = \begin{cases}
+2(r_c - r) & r < r_c,\\
+0 & r \ge r_c.
+\end{cases}
+$$
+
+We also need to keep in mind the shape of the object. To make sure the surface is clearly defined, we seed points on the edges and faces of the polytope. Points on an edge slide along that edge, points on a face slide around inside that face, and the polytope's own edges are rods in the lattice. On a slanted face we place the points from the bottom up, each one so that it already has two parents inside the same face. Nothing inside the solid can hold an overhanging face up, so it has to hold itself up, and that's how.
+
+But we can't ignore printability. We also want the rods to have a minimum length of 8 mm and a maximum of 28 mm, for aesthetic reasons. The most important rule is that every node has two parents: nodes below it, at least $\alpha$ above horizontal, at a distance between those two limits. So for every node we look for the two nodes most likely to be good parents, and add a smooth penalty that makes them parents.
+
+These forces are applied iteratively. Each step, every node moves a little depending on the forces on it, and the best parents are recomputed. Repeat 900 steps, and you hopefully converge on something nice.
+
+At this point we have nodes, but not a lattice. We could connect every pair that satisfies the printability rules, but then nodes end up with very high degree, which is not the look I was going for. So instead we pick the rods with a mixed-integer program, keeping the degree of every node between 3 and 6 if we can. The MIP puts a cost on each rod: it wants rods of about 15 mm, and it prefers rods near the critical angle. Anything shallower than the critical angle is not allowed, horizontal bridges being the one exception. Rods can't touch, and every node on a face needs a couple of rods lying in that face, so the surface reads as a surface. Then it finds the cheapest set of rods. The solution depends a lot on how you assign the costs, so it took some tweaking to get right.
+
+This gets us pretty far, but then the rubber hits the road. Here are some of the issues I ran into, and what I did about them:
+
+- _Isotropic spacing._ Repulsion on its own spreads nodes out evenly, but parents are easier to find if nodes line up vertically. So vertical distance counts for a bit less than horizontal, which pushes nodes further apart vertically and makes the pair above you steeper.
+- _Horizontal faces._ The bottom face sits on the build plate, so it's exempt. The top face is a ceiling: it only gets horizontal rods of at most 10 mm, and every node on it needs a steep post from the inside.
+- _Face nodes with nothing under them._ Sometimes a node on an upward face has no inside node underneath it to support it. So there's an anchor term in the forces that pulls the nearest inside node directly underneath the face node.
+- _Nodes without enough parents._ If the MIP leaves a node without enough support, we move it to a spot where it can be supported and solve again. If it's still stuck, we add a rod by hand, even if that pushes a node over the degree limit. A few nodes can still end up unsupported.
+- _Almost-horizontal rods._ A rod at 4.9° is a legal bridge and one at 5.1° isn't, so at the end every rod that's close to horizontal is snapped to exactly horizontal.
+- _The dodecahedron and icosahedron._ Regular, they aren't printable, so they get stretched until their faces are steep enough. No longer truly Platonic, but they still look cool.
+
+This is still a simplification. Most of the small details are battle scars: run the algorithm on a solid, find something wrong with the lattice, and add a fix for that particular failure mode. Even then it's not perfect, but I'm happy with the results.
+
+<SolidSwitcher />
+
+They printed first try, which was nice, and they look great. They're on my desk now, and I have no idea what to do with them, but they do look cool.
+
+I made this whole thing with a lot of help from an AI, which really let me focus on the algorithm and on how to make it look cool, instead of on actually doing the implementation, which would just take up a lot of time that I don't have. I wanted to explore the intersection between AI and art and engineering, and I think I got that. Thinking together with an AI about an algorithm, and making something cool out of it, is very satisfying, and I'm super happy with the result.
+
+If you want to poke at the code, it's on GitHub, but fair warning, it's pretty rough: [RikVoorhaar/printable-surfaces](https://github.com/RikVoorhaar/printable-surfaces).
