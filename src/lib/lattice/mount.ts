@@ -117,15 +117,31 @@ function observeAll() {
 	});
 }
 
+/**
+ * Mount one viewer right away, bypassing the "near the viewport" gate.
+ *
+ * Used by components that create a viewer element themselves — the solid switcher builds a
+ * fresh canvas per switch, so it cannot wait for the intersection observer.
+ */
+export async function mountViewer(root: HTMLElement) {
+	observer?.unobserve(root);
+	await activate(root);
+}
+
+/** Tear one viewer down and release its GPU resources. A no-op if it never mounted. */
+export function disposeViewer(root: HTMLElement) {
+	const entry = mounted.get(root);
+	if (!entry) return;
+	entry.handle.dispose();
+	const { reset, modes } = stageOf(root);
+	// Replacing the nodes drops their listeners, which is all the cleanup these need.
+	if (reset) reset.replaceWith(reset.cloneNode(true));
+	for (const button of modes) button.replaceWith(button.cloneNode(true));
+	mounted.delete(root);
+}
+
 function disposeAll() {
-	for (const [root, entry] of mounted) {
-		entry.handle.dispose();
-		const { reset, modes } = stageOf(root);
-		// Replacing the node drops its listeners, which is all the cleanup these need.
-		if (reset) reset.replaceWith(reset.cloneNode(true));
-		for (const button of modes) button.replaceWith(button.cloneNode(true));
-		mounted.delete(root);
-	}
+	for (const root of Array.from(mounted.keys())) disposeViewer(root);
 	observer?.disconnect();
 	observer = null;
 }

@@ -9,6 +9,7 @@ draft: false
 
 import { Image } from 'astro:assets';
 import LatticeViewer from '../components/LatticeViewer.astro';
+import SolidSwitcher from '../components/SolidSwitcher.astro';
 import hero from '../assets/teasers/printed_platonic_solids.jpg';
 import kleinBottle from '../assets/models/surface/klein_bottle_n22x10.glb?url';
 import kleinBottleSlope from '../assets/blog/3d_print_platonic_solids/klein_bottle_slope.webp?url';
@@ -116,7 +117,7 @@ This gets us pretty far, but then the rubber hits the road. Here are some of the
 
 This is still a simplification. Most of the small details are battle scars: run the algorithm on a solid, find something wrong with the lattice, and add a fix for that particular failure mode. Even then it's not perfect, but I'm happy with the results.
 
-{/* Solid switcher: five labelled buttons, lazy-load the GLB on click, orange/angles modes, tetrahedron first. */}
+<SolidSwitcher />
 
 They printed first try, which was nice, and they look great. They're on my desk now, and I have no idea what to do with them, but they do look cool.
 

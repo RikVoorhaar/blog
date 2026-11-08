@@ -1,0 +1,197 @@
+---
+/**
+ * One lattice viewer plus five buttons that swap the solid.
+ *
+ * Only the selected solid's `.glb` is ever fetched: each shell is an inert `<template>`, and
+ * its mesh URL is only touched once the shell is cloned into the stage and mounted. The
+ * switcher tears the previous viewer down before building the next one, so there is exactly
+ * one live WebGL context at a time. Three.js itself still only arrives via `mount.ts`.
+ */
+import { Image } from 'astro:assets';
+import LatticeViewer from './LatticeViewer.astro';
+import teaser from '../assets/teasers/printed_platonic_solids.jpg';
+import tetrahedron from '../assets/models/platonic/tetrahedron_T5_S2.glb?url';
+import cube from '../assets/models/platonic/cube_T5_S2.glb?url';
+import octahedron from '../assets/models/platonic/octahedron_T5_S2.glb?url';
+import icosahedron from '../assets/models/platonic/icosahedron_T5_S2.glb?url';
+import dodecahedron from '../assets/models/platonic/dodecahedron_T5_S2.glb?url';
+
+const solids = [
+	{ id: 'tetrahedron', label: 'Tetrahedron', src: tetrahedron },
+	{ id: 'cube', label: 'Cube', src: cube },
+	{ id: 'octahedron', label: 'Octahedron', src: octahedron },
+	{ id: 'icosahedron', label: 'Icosahedron', src: icosahedron },
+	{ id: 'dodecahedron', label: 'Dodecahedron', src: dodecahedron }
+];
+---
+
+<div class="solid-switcher not-prose" data-solid-switcher data-first="tetrahedron">
+	<div class="solid-switcher__buttons" role="group" aria-label="Platonic solid">
+		{
+			solids.map((solid) => (
+				<button
+					type="button"
+					class="solid-switcher__button"
+					data-solid={solid.id}
+					aria-pressed={solid.id === 'tetrahedron'}
+				>
+					{solid.label}
+				</button>
+			))
+		}
+	</div>
+	<div class="solid-switcher__stage" data-solid-stage>
+		<noscript>
+			<Image
+				src={teaser}
+				width={1100}
+				alt="Orange 3D-printed lattice models of the five Platonic solids on a wooden table."
+				class="solid-switcher__fallback"
+			/>
+		</noscript>
+	</div>
+	{
+		solids.map((solid) => (
+			<template data-solid-shell={solid.id}>
+				<LatticeViewer src={solid.src} preset={solid.id} modes />
+			</template>
+		))
+	}
+</div>
+
+<script>
+	import { disposeViewer, mountViewer } from '../lib/lattice/mount';
+
+	const root = document.querySelector<HTMLElement>('[data-solid-switcher]');
+	if (root) start(root);
+
+	function start(root: HTMLElement) {
+		const stage = root.querySelector<HTMLElement>('[data-solid-stage]');
+		const buttons = Array.from(root.querySelectorAll<HTMLButtonElement>('[data-solid]'));
+		const shells = new Map<string, HTMLTemplateElement>();
+		for (const shell of root.querySelectorAll<HTMLTemplateElement>('[data-solid-shell]')) {
+			const id = shell.dataset.solidShell;
+			if (id) shells.set(id, shell);
+		}
+		if (!stage || !buttons.length || !shells.size) return;
+
+		let current: HTMLElement | null = null;
+		let shown: string | null = null;
+		let generation = 0;
+
+		const press = (id: string) => {
+			for (const button of buttons) {
+				button.setAttribute('aria-pressed', String(button.dataset.solid === id));
+			}
+		};
+
+		const select = async (id: string) => {
+			if (id === shown) return;
+			const shell = shells.get(id);
+			if (!shell) return;
+
+			// Every switch outruns any mount still in flight; the older one disposes itself when
+			// it lands rather than leaving a second context behind.
+			const gen = ++generation;
+			shown = id;
+			press(id);
+
+			// One viewer at a time: release the old canvas, geometry and WebGL context before
+			// the next solid is fetched.
+			if (current) {
+				disposeViewer(current);
+				current = null;
+			}
+
+			// A fresh canvas every time: `engine.dispose()` kills the old context, so a canvas
+			// cannot be reused. The component's module script is already on the page, so drop
+			// the inert copy Astro leaves in each template.
+			const fragment = shell.content.cloneNode(true) as DocumentFragment;
+			fragment.querySelectorAll('script').forEach((script) => script.remove());
+			stage.replaceChildren(fragment);
+
+			const figure = stage.querySelector<HTMLElement>('[data-lattice-viewer]');
+			if (!figure) return;
+
+			await mountViewer(figure);
+			if (gen !== generation) {
+				disposeViewer(figure);
+				return;
+			}
+			current = figure;
+		};
+
+		const first = root.dataset.first ?? buttons[0].dataset.solid;
+		if (first) {
+			root.dataset.ready = '';
+			void select(first);
+		}
+
+		for (const button of buttons) {
+			button.addEventListener('click', () => {
+				const id = button.dataset.solid;
+				if (id) void select(id);
+			});
+		}
+	}
+</script>
+
+<style>
+	.solid-switcher {
+		margin: 2rem 0;
+	}
+
+	.solid-switcher__buttons {
+		display: flex;
+		flex-wrap: wrap;
+		justify-content: center;
+		gap: 0.35rem;
+		margin-bottom: 0.75rem;
+	}
+
+	/* Without JavaScript the buttons do nothing; the static image stands in for the viewer. */
+	.solid-switcher:not([data-ready]) .solid-switcher__buttons {
+		display: none;
+	}
+
+	/* Same treatment as the in-viewer Orange / Angles buttons. */
+	.solid-switcher__button {
+		padding: 0.25rem 0.6rem;
+		border: 1px solid rgba(255, 236, 214, 0.25);
+		border-radius: var(--radius-full);
+		background: rgba(24, 16, 10, 0.5);
+		color: rgba(255, 246, 235, 0.7);
+		font-size: 0.7rem;
+		letter-spacing: 0.02em;
+		cursor: pointer;
+		backdrop-filter: blur(6px);
+	}
+
+	.solid-switcher__button[aria-pressed='true'] {
+		background: rgba(255, 236, 214, 0.85);
+		border-color: transparent;
+		color: #241a12;
+	}
+
+	.solid-switcher__stage {
+		position: relative;
+		overflow: hidden;
+		aspect-ratio: 4 / 3;
+		border-radius: var(--radius-md);
+		/* Same warm placeholder as the viewer itself, so the box never flashes white. */
+		background: radial-gradient(circle at 40% 30%, #4a3323, #241a12 70%);
+	}
+
+	/* The viewer normally carries its own block spacing; inside the stage it fills the box. */
+	.solid-switcher__stage > :global(.lattice-viewer) {
+		margin: 0;
+	}
+
+	:global(.solid-switcher__fallback) {
+		position: absolute;
+		inset: 0;
+		width: 100%;
+		height: 100%;
+		object-fit: cover;
+	}
+</style>
