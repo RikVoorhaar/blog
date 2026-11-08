@@ -10,13 +10,23 @@ export interface Props {
 	date_end: string;
 	bullets: string[];
 	first?: boolean;
+	wideLogo?: boolean;
 }
 
-const { position, employer, image, date_start, date_end, bullets, first = false } = Astro.props;
+const {
+	position,
+	employer,
+	image,
+	date_start,
+	date_end,
+	bullets,
+	first = false,
+	wideLogo = false
+} = Astro.props;
 ---
 
 <div class={`flex flex-col md:flex-row mb-6 pt-4 ${first ? '' : 'border-t'}`} style={first ? undefined : 'border-color: var(--border-subtle);'}>
-	<div class="w-20 mr-0 md:mr-6 flex-shrink-0 pb-0">
+	<div class={`${wideLogo ? 'w-44' : 'w-20'} mr-0 md:mr-6 flex-shrink-0 pb-0`}>
 		<img src={image} alt={employer} class="w-full mb-0 h-auto" />
 	</div>
 	<div class="flex-grow">

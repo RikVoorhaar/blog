@@ -2,6 +2,7 @@ interface ExperienceEntry {
 	position: string;
 	employer: string;
 	image: string;
+	wide_logo?: boolean;
 	date_start: string;
 	date_end: string;
 	bullets: string[];
@@ -74,7 +75,8 @@ const cv: CV = {
 		{
 			position: 'Senior Computer Vision Engineer',
 			employer: 'Johnson & Johnson MedTech',
-			image: '/cv/jnj.png',
+			image: '/cv/jnj.svg',
+			wide_logo: true,
 			date_start: 'August 2026',
 			date_end: 'Current',
 			bullets: ['Develop computer vision solutions for the OTTAVA robotic surgery platform.']
