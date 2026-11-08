@@ -18,3 +18,15 @@ jobs:
       - run: npm ci
       - run: npm run build
       - run: npm run lint
+
+  ai-docs:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+      - name: AI docs must not be tracked
+        run: |
+          if git ls-files ai-docs | grep -q .; then
+            echo "::error::ai-docs/ is checked in; delete it before merging."
+            git ls-files ai-docs
+            exit 1
+          fi
