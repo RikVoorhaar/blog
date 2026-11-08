@@ -83,3 +83,38 @@ For a polytope to print, at a minimum all of its faces need to be _either_ horiz
 Is that enough? I think so. I didn't prove it, but it does work in practice. I started with the Platonic solids and stretched them where needed so their faces were steep enough. Then I just had to find the right lattice. And not just ANY lattice that satisfies those rules -- I wanted one that looked organic but geometric.
 
 ## The lattice algorithm
+
+We want an organic arrangement that satisfies the printability rules. The core idea is this: start with a random arrangement of nodes, push the nodes in the right direction until they are printable, and then connect them with rods.
+
+A random arrangement by itself can have a very organic look, but it's not printable, and it may have very short or very long rods. I think an arrangement where the nodes are roughly equally spaced, with no regular pattern to it, is perfect.
+
+Ignoring printability for a second: if you take a random arrangement and let the points repel each other, you already end up with something roughly equally spaced, without a regular pattern. The force between two nodes is proportional to how much closer they are than a fixed cutoff distance $r_c$, and zero beyond it:
+
+$$
+F(r) = \begin{cases}
+2(r_c - r) & r < r_c,\\
+0 & r \ge r_c.
+\end{cases}
+$$
+
+If we only use repulsion, we get an isotropic distribution: nodes are just as likely to sit above each other as beside each other. That's not quite what we want. A node needs two parents below it, and that works better if nodes line up vertically instead of sitting side by side, so we make the repulsion slightly anisotropic: vertical distance counts a bit less than horizontal distance. That pushes nodes further apart vertically than horizontally, which makes the pair above you steeper.
+
+We also need to keep in mind the shape of the object. To make sure the surface is clearly defined, we seed points on the edges and faces of the polytope. Points on an edge slide along that edge, points on a face slide around inside that face, and the polytope's own edges are rods in the lattice. On a slanted face we place the points from the bottom up, each one so that it already has two parents inside the same face. Nothing inside the solid can hold an overhanging face up, so it has to hold itself up, and that's how.
+
+But we can't ignore printability. We also want the rods to have a minimum length of 8 mm and a maximum of 28 mm, for aesthetic reasons. The most important rule is that every node has two parents: nodes below it, at least $\alpha$ above horizontal, at a distance between those two limits. So for every node we look for the two nodes most likely to be good parents, and add a smooth penalty that makes them parents.
+
+These forces are applied iteratively. Each step, every node moves a little depending on the forces on it, and the best parents are recomputed. Repeat 900 steps, and you hopefully converge on something nice.
+
+At this point we have nodes, but not a lattice. We could connect every pair that satisfies the printability rules, but then nodes end up with very high degree, which is not the look I was going for. So instead we pick the rods with a mixed-integer program, keeping the degree of every node between 3 and 6 if we can. The MIP puts a cost on each rod: it wants rods of about 15 mm, and it prefers rods near the critical angle. Anything shallower than the critical angle is not allowed, horizontal bridges being the one exception. Rods can't touch, and every node on a face needs a couple of rods lying in that face, so the surface reads as a surface. Then it finds the cheapest set of rods. The solution depends a lot on how you assign the costs, so it took some tweaking to get right.
+
+This gets us pretty far, but then the rubber hits the road. Here are some of the issues I ran into, and what I did about them:
+
+- _Horizontal faces._ The bottom face sits on the build plate, so it's exempt. The top face is a ceiling: it only gets horizontal rods of at most 10 mm, and every node on it needs a steep post from the inside.
+- _Face nodes with nothing under them._ Sometimes a node on an upward face has no inside node underneath it to support it. So there's an anchor term in the forces that pulls the nearest inside node directly underneath the face node.
+- _Nodes without enough parents._ If the MIP leaves a node without enough support, we move it to a spot where it can be supported and solve again. If it's still stuck, we add a rod by hand, even if that pushes a node over the degree limit. A few nodes can still end up unsupported.
+- _Almost-horizontal rods._ A rod at 4.9° is a legal bridge and one at 5.1° isn't, so at the end every rod that's close to horizontal is snapped to exactly horizontal.
+- _The dodecahedron and icosahedron._ Regular, they aren't printable, so they get stretched until their faces are steep enough. No longer truly Platonic, but they still look cool.
+
+This is still a simplification. Most of the small details are battle scars: run the algorithm on a solid, find something wrong with the lattice, and add a fix for that particular failure mode. Even then it's not perfect, but I'm happy with the results.
+
+{/* Solid switcher: five labelled buttons, lazy-load the GLB on click, orange/angles modes, tetrahedron first. */}
