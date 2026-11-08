@@ -73,11 +73,22 @@ export interface CV {
 const cv: CV = {
 	experience: [
 		{
+			position: 'Senior Computer Vision Engineer',
+			employer: 'Johnson & Johnson MedTech',
+			image: '/cv/jnj.png',
+			date_start: 'August 2026',
+			date_end: 'Current',
+			bullets: [
+				'Develop computer vision capabilities for robotic surgery in a regulated medical-device environment.',
+				'Work across the CV development lifecycle, from data and model development through evaluation and deployment.'
+			]
+		},
+		{
 			position: 'Computer Vision Engineer',
 			employer: 'Grazper Technologies',
 			image: '/cv/grazper_circle.svg',
 			date_start: 'January 2023',
-			date_end: 'Current',
+			date_end: 'July 2026',
 			bullets: [
 				'Filed 3 patent applications and owned dataset/model licensing compliance — including identifying a licensing issue tainting training data and derived models, and driving a full re-annotation remediation.',
 				'Designed a multi-camera 3D pose auto-annotation pipeline: cross-camera association, uncertainty-weighted triangulation in JAX, and optimisation-based temporal filtering. Over 95% of frames met or exceeded human annotation quality on many sequences.',
