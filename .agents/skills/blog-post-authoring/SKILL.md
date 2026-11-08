@@ -108,20 +108,18 @@ Use the draft PR by default. The local server is faster for a small change.
 
 - Push the branch. Commits stay local until you need this.
 - Open the PR as a draft (`gh pr create --draft`), or reuse the one from an earlier push.
-- Cloudflare Pages comments on the PR once it has built. Pull the branch URL out of that
-  comment:
+- Cloudflare Pages comments on the PR once it has built. Read the branch URL from that
+  comment; long branch names are truncated in the alias, so do not build the URL by hand:
 
   ```sh
-  gh pr view <n> --json comments --jq '.comments[].body' | grep -o 'https://[a-z0-9-]*\.rikvoorhaar\.pages\.dev'
+  gh pr view <n> --json comments --jq '.comments[].body' \
+    | grep -A2 "Branch Preview URL" | grep -o "https://[a-z0-9.-]*\.pages\.dev" | head -1
   ```
 
-  The last match is the branch preview; the one before it is the commit preview. The
-  branch alias is `https://<branch>.rikvoorhaar.pages.dev` with `/` turned into `-`, so it
-  can be constructed if the comment has not arrived yet. Deploys take a minute or two.
+  Deploys take a minute or two. If the comment has not arrived yet, say so and fall back
+  to the local server.
 
-- Point the user at `https://<branch>.rikvoorhaar.pages.dev/blog/<slug>` in chat, so they
-  do not have to open the PR. If the comment has not appeared yet, say so and fall back to
-  the local server.
+- Point the user at `<that URL>/blog/<slug>` in chat, so they do not have to open the PR.
 
 **Local server.**
 
