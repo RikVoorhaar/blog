@@ -64,7 +64,6 @@ export interface CV {
 	skills: SkillEntry[];
 	tools: ToolEntry[];
 	languages: LanguageEntry[];
-	technical_writing: LinkEntry[];
 	publications: PublicationEntry[];
 	open_source: LinkEntry[];
 	courses: CourseEntry[];
@@ -73,20 +72,25 @@ export interface CV {
 const cv: CV = {
 	experience: [
 		{
+			position: 'Senior Computer Vision Engineer',
+			employer: 'Johnson & Johnson MedTech',
+			image: '/cv/jnj.png',
+			date_start: 'August 2026',
+			date_end: 'Current',
+			bullets: ['Develop computer vision solutions for the OTTAVA robotic surgery platform.']
+		},
+		{
 			position: 'Computer Vision Engineer',
 			employer: 'Grazper Technologies',
 			image: '/cv/grazper_circle.svg',
 			date_start: 'January 2023',
-			date_end: 'Current',
+			date_end: 'July 2026',
 			bullets: [
 				'Filed 3 patent applications and owned dataset/model licensing compliance — including identifying a licensing issue tainting training data and derived models, and driving a full re-annotation remediation.',
 				'Designed a multi-camera 3D pose auto-annotation pipeline: cross-camera association, uncertainty-weighted triangulation in JAX, and optimisation-based temporal filtering. Over 95% of frames met or exceeded human annotation quality on many sequences.',
-				'Patched YOLO26 and RTMO to expose per-keypoint uncertainty at inference; calibrated raw outputs to pixel-scale errors for downstream 3D reconstruction.',
 				'Built an internal MLOps platform over PostgreSQL — deterministic, cached, distributed component execution powering annotation, evaluation, and training-data pipelines.',
 				'Owned pose-model training end-to-end: custom dataset loaders, augmentations, and fine-tuning for production conditions.',
-				'Built full-stack internal tools (Python + Svelte): a multi-camera ArUco calibration tool (sub-cm accuracy at 5–10 m, patent filed) and a microservice orchestration manager UI.',
-				'Co-maintained core infrastructure as one of two go-to engineers: PostgreSQL, Docker, GitHub Actions, Grafana, and MLflow.',
-				'Tracked CV/ML literature and presented internal deep-dives on pose estimation, tracking, and monocular 3D methods.'
+				'Built full-stack internal tools (Python + Svelte): a multi-camera ArUco calibration tool (sub-cm accuracy at 5–10 m, patent filed) and a microservice orchestration manager UI.'
 			]
 		},
 		{
@@ -201,29 +205,6 @@ const cv: CV = {
 			title: 'Basic (A1-A2)',
 			skills: ['Japanese', 'Russian', 'Spanish'],
 			flags: ['jp', 'ru', 'es']
-		}
-	],
-
-	technical_writing: [
-		{
-			url: '/blog',
-			title: 'rikvoorhaar.com/blog — 19 technical posts',
-			info: 'ML/CV, uncertainty quantification, numerical methods, and performance engineering.'
-		},
-		{
-			url: '/blog/discrete_function_tensor',
-			title: 'Machine learning with discretized functions and tensors',
-			info: 'Accessible explainer of the TTML paper — tensor trains for supervised machine learning.'
-		},
-		{
-			url: '/blog/ukf',
-			title: 'Kalman filters and how I made them 20× faster using Rust',
-			info: 'High-performance Unscented Kalman Filter in Rust/PyO3 for multi-camera tracking.'
-		},
-		{
-			url: '/blog/deconvolution_part1',
-			title: 'Blind deconvolution (4-part series)',
-			info: 'Wiener filtering, sparse image priors, Richardson–Lucy, and Bayesian blind deconvolution.'
 		}
 	],
 
