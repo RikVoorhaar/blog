@@ -49,7 +49,6 @@ teaser: 'my-teaser.png'
 | `categories` | string[] | Lowercase, kebab-case strings. Used for related-posts scoring and category chips. |
 | `excerpt`    | string   | One sentence displayed in post cards. Rendered with `line-clamp-3`.               |
 | `teaser`     | string   | Image filename used as the card thumbnail and OG image. See below.                |
-| `draft`      | boolean  | Optional (defaults to `false`). Set `true` to hide from production builds.        |
 
 ### Images
 

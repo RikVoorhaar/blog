@@ -3,7 +3,7 @@ import { getCollection } from 'astro:content';
 import BlogPostLayout from '../../layouts/BlogPostLayout.astro';
 import PostCardGallery from '../../components/PostCardGallery.astro';
 
-const allPosts = await getCollection('blog', ({ data }) => !data.draft);
+const allPosts = await getCollection('blog');
 const posts = allPosts.sort((a, b) => b.data.date.getTime() - a.data.date.getTime());
 ---
 
