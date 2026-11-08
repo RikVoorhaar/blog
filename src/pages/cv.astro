@@ -69,13 +69,6 @@ import cv from '../data/cv';
 			))}
 
 			<div class="prose max-w-none">
-				<SectionHeader>Technical writing</SectionHeader>
-			</div>
-			{cv.technical_writing.map((tw) => (
-				<OpenSource title={tw.title} url={tw.url} info={tw.info} />
-			))}
-
-			<div class="prose max-w-none">
 				<SectionHeader>Publications</SectionHeader>
 			</div>
 			{cv.publications.map((pub) => (

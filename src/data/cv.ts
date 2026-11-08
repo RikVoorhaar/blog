@@ -64,7 +64,6 @@ export interface CV {
 	skills: SkillEntry[];
 	tools: ToolEntry[];
 	languages: LanguageEntry[];
-	technical_writing: LinkEntry[];
 	publications: PublicationEntry[];
 	open_source: LinkEntry[];
 	courses: CourseEntry[];
@@ -212,29 +211,6 @@ const cv: CV = {
 			title: 'Basic (A1-A2)',
 			skills: ['Japanese', 'Russian', 'Spanish'],
 			flags: ['jp', 'ru', 'es']
-		}
-	],
-
-	technical_writing: [
-		{
-			url: '/blog',
-			title: 'rikvoorhaar.com/blog — 19 technical posts',
-			info: 'ML/CV, uncertainty quantification, numerical methods, and performance engineering.'
-		},
-		{
-			url: '/blog/discrete_function_tensor',
-			title: 'Machine learning with discretized functions and tensors',
-			info: 'Accessible explainer of the TTML paper — tensor trains for supervised machine learning.'
-		},
-		{
-			url: '/blog/ukf',
-			title: 'Kalman filters and how I made them 20× faster using Rust',
-			info: 'High-performance Unscented Kalman Filter in Rust/PyO3 for multi-camera tracking.'
-		},
-		{
-			url: '/blog/deconvolution_part1',
-			title: 'Blind deconvolution (4-part series)',
-			info: 'Wiener filtering, sparse image priors, Richardson–Lucy, and Bayesian blind deconvolution.'
 		}
 	],
 
