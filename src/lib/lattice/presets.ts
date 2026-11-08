@@ -151,7 +151,7 @@ export const presets: Record<string, ViewerPreset> = {
 
 /** Merge a preset (by key) over the shared defaults. */
 export function resolveScene(preset: string | ViewerPreset | undefined): SceneConfig {
-	const extra: ViewerPreset = typeof preset === 'string' ? presets[preset] ?? {} : preset ?? {};
+	const extra: ViewerPreset = typeof preset === 'string' ? (presets[preset] ?? {}) : (preset ?? {});
 	return {
 		...baseScene,
 		...extra,

@@ -18,6 +18,11 @@ export default defineConfig({
 	// During SSG this generates /path/index.html for each route.
 	trailingSlash: 'ignore',
 
+	// Astro 7 defaults to JSX whitespace handling, which strips spaces around inline
+	// elements (e.g. "on <a>Goodreads</a>" renders as "onGoodreads"). Keep the
+	// HTML-aware v6 behaviour so rendered prose is unchanged.
+	compressHTML: true,
+
 	// Cloudflare Pages redirects mirrored for local preview.
 	// Phase 8 will add public/_redirects for the CDN; these are Astro-native duplicates.
 	redirects: {
