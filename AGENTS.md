@@ -28,26 +28,13 @@ npm run format
 
 ## Posts and frontmatter
 
-`title`, `date`, `excerpt`, `teaser`, `categories` are required; `draft` defaults to
-`false`. Post URLs are `/blog/<file-stem>`.
+`title`, `date`, `excerpt`, `teaser`, `categories` are required. Post URLs are
+`/blog/<file-stem>`.
 
 Markdown components (`Output`, `Details`, `a`, `img`, `blockquote`, `ImgSmall`) are wired
 up once in `src/pages/blog/[...slug].astro` and apply to every post. Anything heavier or
 interactive — like `LatticeViewer.astro` — should be **imported in the post itself**, so
 its bundle only lands on pages that use it.
-
-### Known problem: the `draft` flag
-
-`draft` is filtered in **four** places (`[...slug].astro`, `blog/index.astro`,
-`rss.xml.ts`, and implicitly anywhere else a `getCollection('blog')` call is added).
-A `draft: true` post gets **no route at all**, so it cannot be previewed — the flag does
-the opposite of what a draft flag is for.
-
-**Decision: the option should be deleted outright** — we never use it, and branches are what
-staging is for. Kept here only until that lands; do not add new draft-dependent code.
-
-Tracked in <https://github.com/RikVoorhaar/blog/issues/10> — delete this section when
-that lands.
 
 ## Three.js viewer rules
 

@@ -10,7 +10,7 @@ import Blockquote from '../../components/markdown/blockquote.astro';
 import ImgSmall from '../../components/markdown/ImgSmall.astro';
 
 export async function getStaticPaths() {
-	const posts = await getCollection('blog', ({ data }) => !data.draft);
+	const posts = await getCollection('blog');
 	return posts.map((post) => ({
 		params: { slug: post.id },
 		props: { post },
@@ -28,8 +28,8 @@ const teaserImages = import.meta.glob<{ default: ImageMetadata }>(
 const teaserMeta = teaserImages[`../../assets/teasers/${post.data.teaser}`]?.default;
 const ogImage = teaserMeta ? teaserMeta.src : `/blog/teasers/original/${post.data.teaser}`;
 
-// Related posts: prefer category matches, then most recent, exclude self & drafts
-const allPosts = await getCollection('blog', ({ data }) => !data.draft);
+// Related posts: prefer category matches, then most recent, exclude self
+const allPosts = await getCollection('blog');
 const currentCategories = new Set(post.data.categories);
 const relatedPosts = allPosts
 	.filter((p) => p.id !== post.id)
