@@ -97,8 +97,6 @@ F(r) = \begin{cases}
 \end{cases}
 $$
 
-If we only use repulsion, we get an isotropic distribution: nodes are just as likely to sit above each other as beside each other. That's not quite what we want. A node needs two parents below it, and that works better if nodes line up vertically instead of sitting side by side, so we make the repulsion slightly anisotropic: vertical distance counts a bit less than horizontal distance. That pushes nodes further apart vertically than horizontally, which makes the pair above you steeper.
-
 We also need to keep in mind the shape of the object. To make sure the surface is clearly defined, we seed points on the edges and faces of the polytope. Points on an edge slide along that edge, points on a face slide around inside that face, and the polytope's own edges are rods in the lattice. On a slanted face we place the points from the bottom up, each one so that it already has two parents inside the same face. Nothing inside the solid can hold an overhanging face up, so it has to hold itself up, and that's how.
 
 But we can't ignore printability. We also want the rods to have a minimum length of 8 mm and a maximum of 28 mm, for aesthetic reasons. The most important rule is that every node has two parents: nodes below it, at least $\alpha$ above horizontal, at a distance between those two limits. So for every node we look for the two nodes most likely to be good parents, and add a smooth penalty that makes them parents.
@@ -109,6 +107,7 @@ At this point we have nodes, but not a lattice. We could connect every pair that
 
 This gets us pretty far, but then the rubber hits the road. Here are some of the issues I ran into, and what I did about them:
 
+- _Isotropic spacing._ Repulsion on its own spreads nodes out evenly, but parents are easier to find if nodes line up vertically. So vertical distance counts for a bit less than horizontal, which pushes nodes further apart vertically and makes the pair above you steeper.
 - _Horizontal faces._ The bottom face sits on the build plate, so it's exempt. The top face is a ceiling: it only gets horizontal rods of at most 10 mm, and every node on it needs a steep post from the inside.
 - _Face nodes with nothing under them._ Sometimes a node on an upward face has no inside node underneath it to support it. So there's an anchor term in the forces that pulls the nearest inside node directly underneath the face node.
 - _Nodes without enough parents._ If the MIP leaves a node without enough support, we move it to a spot where it can be supported and solve again. If it's still stuck, we add a rod by hand, even if that pushes a node over the degree limit. A few nodes can still end up unsupported.
