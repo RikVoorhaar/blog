@@ -1,6 +1,6 @@
 # Agent instructions — blog
 
-Astro 6.4 static site (MDX posts, Tailwind 4, no UI framework). Package manager is
+Astro 7.4 static site (MDX posts, Tailwind 4, no UI framework). Package manager is
 **npm** (`package-lock.json` is the lockfile).
 
 ## Commands
