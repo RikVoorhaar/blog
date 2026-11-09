@@ -8,6 +8,8 @@ excerpt: 'Building a QR code decoder from scratch in Python — the algorithms, 
 
 import qrAnatomy from '../assets/blog/qr-reader/qr-anatomy.png?url';
 import qrVersions from '../assets/blog/qr-reader/qr-versions.png?url';
+import rleScan from '../assets/blog/qr-reader/rle-scan.gif?url';
+import candidateClustering from '../assets/blog/qr-reader/candidate-clustering.gif?url';
 import floodFillSuccess from '../assets/blog/qr-reader/flood-fill-success.gif?url';
 import floodFillFailure from '../assets/blog/qr-reader/flood-fill-failure.gif?url';
 import rayProfileSignal from '../assets/blog/qr-reader/ray-profile-signal.png?url';
@@ -67,7 +69,12 @@ The real world is messy, and we might instead have a perfectly valid finder patt
 
 You may think that 30% is a pretty loose threshold, and you'd be right. But there are good reasons for this. First of all, it's easy to throw away false positives later, so we are optimizing for high recall at this point. On the other hand, QR codes can be rotated, blurred, distorted by perspective, etc., so a loose threshold is really necessary in practice. Even then this method is not ideal. Just one rogue pixel can mess everything up. There are ways around that, but it works well enough in practice. It's rather effective for something so cheap and simple!
 
-{/* Insert figure of image annotated by RLE matching a QR code */}
+The animation below shows the scan in action: the binary image is recolored, the scanline sweeps down, and every 1:1:3:1:1 match leaves a box behind.
+
+<img
+	src={rleScan}
+	alt="A binary QR image with a horizontal scanline sweeping down. Each 1:1:3:1:1 match leaves an orange candidate box behind."
+/>
 
 Observe however that a finder pattern can have may matching RLE 5-tuples. We ideally only only output one candidate region per finder pattern, so we have to group the RLE 5-tuples that belong to the same finder pattern somehow. This fortunately really easy! Well, it took a few tries to get right, but you know, it's easy in hind sight.
 What I settled on after some painful trial and error is the following approach.
@@ -81,9 +88,14 @@ The full procedure is to take a cluster, check it against all other clusters, an
 
 At first I tried fancier clustering approaches like agglomerative clustering, and different overlap metrics. Some methods were too expensive, but most simply didn't work that well and would for example refuse to merge candidates, or end up with a cluster center that is not really represenative of the finder patterns center. My approach works and is fast and simple, but I have no good intuition why it works better than other approaches I tried. I think that the simple merge rule just ends up capturing the right geometry.
 
-{/* Insert picture with qr code with finder patterns identified and correctly clustered, but with some false positives. */}
-
 This clustering step reduces the number of candidate finder patterns substantially, but we're not done yet! There is a cheap trick to substantially reduce false positives. A real finder pattern still looks like a finder pattern if you rotate it 90', because, well, it's a square (duh). So we can just take a look at the RLE in the vertical direction (column by column instead of row by row). If our candidate finder pattern also has a match on the RLE in the vertical direction (with a slightly firther relaxed threshold) then we keep it, else we throw it out.
+
+The animation below shows both steps on a real photo. The raw candidates merge into five clusters, and the vertical check throws out the two false positives in the QR data region, leaving the three finder patterns.
+
+<img
+	src={candidateClustering}
+	alt="Raw RLE candidates merging into cluster boxes, followed by a vertical check that rejects two false positives and keeps the three finder patterns."
+/>
 
 ## Finding the corners
 
