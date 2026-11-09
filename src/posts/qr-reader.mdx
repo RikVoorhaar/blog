@@ -196,7 +196,7 @@ Suppose we have found three finder patterns and their corners. Which one is the 
 
 <img
 	src={tripletAmbiguity}
-	alt="Five candidate finder patterns outlined on an upside-down version-20 QR code, with no correct triplet marked."
+	alt="Four candidate finder patterns outlined on an upside-down version-5 QR code, with no correct triplet marked."
 />
 
 ### The first attempt: colinear edges
@@ -213,7 +213,7 @@ The catch is that we do not know which edge is which. Corner order is arbitrary 
 
 <img
 	src={tripletColinearity}
-	alt="Outer edges of all candidate finders extended as lines, with two true collinear pairs in green and a false cross-pair in red, plus a zoom showing the 7-module offset."
+	alt="Outer edges of two adjacent finders extended as lines, with two true collinear pairs in green and a false cross-pair in red, plus a zoom showing the 7-module offset."
 />
 
 The threshold was the problem. I normalized the offset by the distance between finders. As the version goes up, the finders stay 7 modules wide while the distance between them grows, so the score for a wrong pair — one finder’s top edge against the other’s bottom edge — keeps shrinking. Eventually it passes, the true pair produces four matches instead of two, and the “exactly two” rule throws it out. Short edges make it worse: fewer pixels, noisier angles, more accidental parallels.
