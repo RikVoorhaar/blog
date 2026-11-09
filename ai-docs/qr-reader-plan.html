@@ -80,8 +80,10 @@
 					<h2 class="text-lg font-semibold text-stone-100">Algorithm orientation (refresher)</h2>
 					<p class="mt-2 text-stone-400">
 						Short version: the corner finder went through three ideas. The first two are in the
-						history, the third is the current production path. The descriptions below are
-						reconstructed from the current code and the old commits, not from memory.
+						history, the third is the current production path. Choosing the triplet is a separate
+						story with two genuinely different algorithms: pairwise edge colinearity, then centre
+						geometry. The descriptions below are reconstructed from the current code and the old
+						commits, not from memory.
 					</p>
 
 					<div class="mt-4 space-y-4">
@@ -281,6 +283,163 @@
 								</p>
 							</div>
 						</details>
+
+						<details open class="rounded-lg border border-stone-800 bg-stone-900/40">
+							<summary class="cursor-pointer px-4 py-3 font-medium text-stone-100">
+								4. Choosing the triplet: edge colinearity → centre geometry
+							</summary>
+							<div class="space-y-3 border-t border-stone-800 px-4 py-4 text-sm text-stone-400">
+								<p>
+									Current entry point: <code>find_valid_triplets</code> in
+									<code>detector/finder_pattern.py</code>, called from
+									<code>detector/detector.py</code> after ray fitting and deduplication. It replaced
+									the pairwise-association route in <code>d7ec775</code> and was simplified to
+									corner-derived geometry in <code>2e53f22</code>.
+								</p>
+								<p>
+									<strong class="text-stone-200">Why a triplet at all.</strong> Three plausible
+									finder patterns are not enough. There can be false positives, and a single finder
+									is almost square with fourfold rotational symmetry, so it cannot tell you which
+									edge is “up” or “right.” The triplet supplies the global context: pick the corner
+									of the L, then use the two inter-centre vectors to assign top-left, top-right and
+									bottom-left.
+								</p>
+
+								<p>
+									<strong class="text-stone-200"
+										>Attempt 1 — pairwise outer-edge colinearity (<code>f3f1a1d</code>).</strong
+									>
+									For every pair of finder patterns, compare their four outer edges. If two pairs of
+									edges are nearly parallel and nearly collinear, the finder patterns are
+									“associated.” Build an association graph, then look for an L-shape: finder
+									<code>B</code> is connected to <code>A</code> and <code>C</code>, but
+									<code>A</code> and <code>C</code> are not connected, and the associations use
+									different edges of <code>B</code>. Then <code>B</code> is the top-left finder.
+								</p>
+								<ul class="list-disc space-y-1 pl-5">
+									<li>
+										<code>check_association</code> used <code>angle_tol = 0.1</code> rad and
+										<code>offset_tol = 0.15</code>, and required <em>exactly two</em> passing
+										colinear segment pairs.
+									</li>
+									<li>
+										<code>max_offset</code> normalized the endpoint-to-line distance by the distance
+										between the two segment midpoints. That makes the score depend on the distance
+										between finder patterns, not just on their local geometry.
+									</li>
+									<li>
+										At high QR versions the finders stay roughly the same pixel size but get farther
+										apart, so wrong cross-pairs get a smaller normalized offset and start passing
+										too.
+									</li>
+								</ul>
+								<p>
+									Concrete failure from <code>docs/find-all-associations-debug.md</code>, version
+									12, seed 0:
+								</p>
+								<pre
+									class="overflow-x-auto rounded border border-stone-800 bg-stone-950 p-3 text-xs text-stone-300"
+								><code>Pair FP 0 &lt;-&gt; FP 1: REJECT: expected exactly 2 colinear pairs, got 4
+colinear_pairs: [(0, 0), (0, 2), (2, 0), (2, 2)]</code></pre>
+								<p>
+									The two true pairs had offsets around 0.020 and 0.021. The two false cross-pairs
+									had offsets around 0.110 and 0.139, both below the 0.15 threshold. At version 4
+									the same false pairs had offsets around 0.25–0.30 and were rejected. Result:
+									production found fewer than the two needed associations from version 8 onward, and
+									zero associations for versions 9–12.
+								</p>
+
+								<p>
+									<strong class="text-stone-200"
+										>Repair — local normalization and best-two pairing
+										(<code>e335de8</code>).</strong
+									>
+									The fix was to normalize the offset by the mean length of the two segments, raise
+									<code>offset_tol</code> to 0.30, try both opposite-side axes, try both one-to-one
+									pairings, and select the best valid pair of pairs. Segment indices are not
+									consistent across finders, so the correct pairing can be
+									<code>(0, 1), (2, 3)</code> rather than <code>(0, 0), (2, 2)</code>. This
+									recovered two associations for every version from 1 through 12 in the synthetic
+									sweep, and also worked across high-version seeds. It was still relying on exact
+									outer-corner geometry.
+								</p>
+
+								<p>
+									<strong class="text-stone-200"
+										>Why that approach died — independent per-finder homographies (Plan 013/015,
+										<code>b1547a3</code>).</strong
+									>
+									The per-finder fit was upgraded to an independent 8-DOF homography per finder.
+									Each finder’s corners were refined in its own local warp. That improved the
+									single-finder corner fit, but it destroyed the invariant the association step
+									depended on: edges that should be globally collinear no longer were. The full
+									benchmark failed with <code>No finder-pattern triplet found</code>; the detector
+									test suite was 16 failed, 2 passed. Loosening <code>offset_tol</code> all the way
+									to 1.20 in <code>detector.py</code> did not recover it. The conclusion in
+									<code>docs/plan-015-baseline/final_report.md</code> is blunt: three independent
+									8-DOF projective warps break cross-finder association.
+								</p>
+
+								<p>
+									<strong class="text-stone-200"
+										>Attempt 2 — centre geometry (<code>d7ec775</code>, simplified
+										<code>2e53f22</code>).</strong
+									>
+									The current algorithm does not compare edges at all. It asks whether three finder
+									centres form the QR code’s right triangle at compatible scales.
+								</p>
+								<ul class="list-disc space-y-1 pl-5">
+									<li>
+										<strong class="text-stone-200">Pair connectivity:</strong> module pitches must
+										satisfy <code>|m_i - m_j| / max(m_i, m_j) &lt; 0.3</code>; centre distance must
+										be between <code>2 * m_avg</code> and <code>200 * m_avg</code>; and the
+										inter-centre vector must be aligned with one corner-edge direction (<code
+											>max(|dot|) &gt; 0.9</code
+										>) and nearly perpendicular to the other (<code
+											>min(|dot|) &lt; 0.25 * max(|dot|)</code
+										>).
+									</li>
+									<li>
+										<strong class="text-stone-200">Triplet discovery:</strong> a finder with at
+										least two neighbours forms a candidate when its two neighbours are not directly
+										connected, the angle at that finder is within 15° of a right angle, and all
+										three module sizes agree within 30%.
+									</li>
+									<li>
+										<strong class="text-stone-200">Orientation:</strong> the corner finder is the
+										top-left; the cross product of the two inter-centre vectors assigns top-right
+										and bottom-left. The cross product is computed in
+										<code>(x, y) = (col, row)</code> coordinates. Commit <code>7f91833</code> fixed
+										a sign-convention bug that had swapped top-right and bottom-left.
+									</li>
+									<li>
+										<strong class="text-stone-200">Geometry source:</strong> the original version
+										used the per-finder <code>FinderFit</code> fields <code>center</code>,
+										<code>e1</code>, <code>e2</code>, <code>m</code>. After the ray fit replaced
+										<code>fit_finder_full</code>, the current version derives them from the four
+										outer corners: module pitch is the mean outer side length divided by 7, and the
+										two axes are adjacent corner edges.
+									</li>
+								</ul>
+
+								<p>
+									<strong class="text-stone-200">Tradeoffs and current limits.</strong> The 15°
+									right-angle gate assumes moderate perspective; a strongly skewed code can violate
+									it. The code does not require the two legs of the L to be equal length, only
+									compatible module sizes. And <code>detector.py</code> takes
+									<code>raw_triplets[0]</code> — the first valid triplet, not the best-scoring one.
+									With one QR code in frame that has been enough, but it is not the most robust
+									possible choice.
+								</p>
+								<p>
+									The captured benchmark makes this stage visible: 64 of 100 photos produce at least
+									three finder patterns, but only 49 produce a valid triplet. Across the 51
+									detection failures, 35 are recorded as
+									<code>No finder-pattern triplet found</code>. So this is still the main gate in
+									the pipeline.
+								</p>
+							</div>
+						</details>
 					</div>
 
 					<section class="mt-6">
@@ -329,6 +488,45 @@
 							<li>
 								Do you want to mention the optional joint refinement, or keep the production path as
 								“four independent TLS lines”?
+							</li>
+							<li>
+								Which part of this story is worth putting in the post, and which part is only useful
+								for us to remember?
+							</li>
+						</ul>
+					</section>
+
+					<section class="mt-6">
+						<h3 class="text-base font-semibold text-stone-100">Triplet-finding rant prompts</h3>
+						<p class="mt-2 text-stone-400">
+							Things I would like to hear you rant about before I draft this section. Answer
+							whichever ones trigger something; ignore the rest.
+						</p>
+						<ul class="mt-2 list-disc space-y-1 pl-5 text-sm text-stone-400">
+							<li>
+								Did the pairwise-colinearity idea feel obviously right at the time, or was it always
+								a bit fragile?
+							</li>
+							<li>
+								Do you remember the high-version failure itself — the moment the association count
+								dropped to zero — or did the debug document do the remembering for you?
+							</li>
+							<li>
+								Was the per-finder homography detour a surprise, or did you suspect that independent
+								local warps would break the global association?
+							</li>
+							<li>
+								Why centre geometry in the end: because centres are more stable, because the
+								right-angle relation is global, because it matches ZXing, or because it simply
+								stopped needing exact corners?
+							</li>
+							<li>
+								What still goes wrong at this stage? False triplets, missed triplets, wrong role
+								assignment, or duplicate finders surviving deduplication?
+							</li>
+							<li>
+								Do you want to mention the right-angle tolerance and the “first valid triplet”
+								shortcut, or keep the post on the happy path?
 							</li>
 							<li>
 								Which part of this story is worth putting in the post, and which part is only useful
@@ -415,13 +613,14 @@
 								<tr>
 									<td class="px-4 py-3 font-medium text-stone-100">4. Choosing a triplet</td>
 									<td class="px-4 py-3 text-stone-400">
-										Why three plausible finder patterns are not enough, L-shaped geometry,
-										colinearity and rejection rules, role assignment. Empty.
+										Two approaches researched: pairwise outer-edge colinearity (including the
+										high-version offset-normalization failure and the per-finder homography detour),
+										then the current centre-geometry/right-triangle method. Prose not drafted.
 									</td>
 									<td class="px-4 py-3">
 										<span
-											class="inline-flex rounded-full bg-slate-900 px-2.5 py-0.5 text-xs font-medium text-slate-300 ring-1 ring-inset ring-slate-700"
-											>not started</span
+											class="inline-flex rounded-full bg-blue-950 px-2.5 py-0.5 text-xs font-medium text-blue-300 ring-1 ring-inset ring-blue-900"
+											>in progress</span
 										>
 									</td>
 								</tr>
@@ -467,6 +666,18 @@
 						<li>
 							Finder ratio test: 1:1:3:1:1, each run within 30% of ideal; clustering uses 22%
 							segment-width agreement and 1.2× height distance.
+						</li>
+						<li>
+							Old pairwise association at v12/seed 0: true segment offsets ≈ 0.020 and 0.021; false
+							cross-pairs ≈ 0.110 and 0.139; threshold was 0.15. At v4 the false cross-pairs were ≈
+							0.25–0.30. Source: <code>docs/find-all-associations-debug.md</code>.
+						</li>
+						<li>
+							Current triplet gates: module-size agreement within 30%, centre distance between 2×
+							and 200× mean module pitch, inter-centre axis alignment
+							<code>max(|dot|) &gt; 0.9</code>
+							with the perpendicular component below 25% of that, and the angle at the corner finder
+							within 15° of 90°.
 						</li>
 						<li>
 							Captured benchmark funnel: 65 → 64 → 49 → 49 → 40 → 40 out of 100 images (candidates,
@@ -586,6 +797,12 @@
 						<li>
 							<strong class="text-stone-100">2026-11-09</strong> — Added the Hough success/failure
 							panels and the ray-profile signal/clustering figures.
+						</li>
+						<li>
+							<strong class="text-stone-100">2026-11-09</strong> — Researched the triplet stage from
+							code and git history: pairwise edge colinearity, the high-version offset failure and
+							local-normalization repair, the per-finder homography detour, and the current
+							centre-geometry algorithm. Added triplet rant prompts and numbers to the plan.
 						</li>
 					</ul>
 				</section>
