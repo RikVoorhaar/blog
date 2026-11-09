@@ -14,6 +14,7 @@ import rayProfileSignal from '../assets/blog/qr-reader/ray-profile-signal.png?ur
 import rayProfileClustering from '../assets/blog/qr-reader/ray-profile-clustering.png?url';
 import houghSuccess from '../assets/blog/qr-reader/hough-success.png?url';
 import houghFailure from '../assets/blog/qr-reader/hough-failure.png?url';
+import affineSampling from '../assets/blog/qr-reader/affine-sampling.gif?url';
 
 QR codes are everywhere, and they have been around since the 90s. Detecting and decoding them should be a simple, straightforward computer vision task, right? At least that's what I thought. I set out to write my own QR code detector and try to come up with an algorithm on my own. It turns out it's not as simple as I thought.
 
@@ -88,7 +89,12 @@ This clustering step reduces the number of candidate finder patterns substantial
 
 Now we have hopefully correctly identified the locations of all the finder patterns, with maybe some false postiives. How do we go from there to a decoded QR code? We could just take all triplets of candidate finder patterns, and see if they rougly form a right-angled triangle, and just try to decode the QR code. But that doesn't work, because to decode you need to know pretty precisely where you are inside the QR code.
 
-{/* Qr code, but just take the rough center of each finder pattern, and then try to use that to align the qr code into a grid, and show that slightly wrong angles will result in decoding errors. */}
+The animation below shows what that looks like on a v1 code. The three finder centers are enough to get a rough affine alignment, but not enough to correct the perspective. The sampled matrix is close, and then the bits in the bottom-right start to go wrong.
+
+<img
+	src={affineSampling}
+	alt="A v1 QR code rectified from its three finder centres, with the module grid being sampled into a bit matrix on the right. The wrong bits are highlighted in red at the end."
+/>
 
 ### The first attempt: flood filling the finder pattern
 
