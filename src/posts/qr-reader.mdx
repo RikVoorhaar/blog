@@ -103,7 +103,9 @@ The two animations below show what that looks like on the same photo. In the fir
 	/>
 </div>
 
-I spent quite a bit of time trying to make this work, but it never reached the recall or precision I wanted. It was also slow. Flood filling every candidate cluster, tracing the boundary, and then picking corners added up quickly, and I wanted something faster. So I dropped it and started over with an approach from the more classical pattern-finding literature.
+I spent quite a bit of time trying to make this work, but it never reached the recall or precision I wanted. It was also slow, though only the flood fill itself was really to blame. Tracing the boundary, splitting it into components, and picking the corners with non-maximum suppression took around a millisecond or less. The fill was the expensive part.
+
+My first version was hand-written: a NumPy wave front that swept the whole crop over and over. On a single finder crop that took tens of milliseconds -- around 48 ms on the larger crop and 25 ms on the smaller one. Replacing it with `scipy.ndimage.label`, which does the connected-component labeling in C and then just takes the component containing the seed, brought that down to about half a millisecond. So the fill itself was no longer the bottleneck. But it was still an extra image operation per candidate, and I wanted to get rid of the whole segmentation step. So I dropped it and started over with an approach from the more classical pattern-finding literature.
 
 ## Choosing a triplet
 

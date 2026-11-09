@@ -117,13 +117,16 @@
 									<li>Those four points are the finder corners.</li>
 								</ol>
 								<p>
-									The appeal: it is cheap, works on the binary image, and needs no gradients or line
+									The appeal: it works directly on the binary image and needs no gradients or line
 									fitting. The obvious weak points: it assumes a clean, contiguous dark ring; blur,
 									noise, low contrast or a bad seed can fragment the region or merge it with
 									something else; a connected boundary can have multiple components; and “the four
 									farthest boundary points from the centroid” is only a good corner definition when
 									the ring is clean and fairly square in the image. Under perspective the farthest
-									points are not necessarily the corners.
+									points are not necessarily the corners. The hand-written NumPy wave front was also
+									slow: about 48 ms on the 432×432 success crop and 25 ms on the 333×333 failure
+									crop. A <code>scipy.ndimage.label</code>-based fill was about 85–100× faster
+									(0.3–0.5 ms), though it still adds a segmentation step per candidate.
 								</p>
 								<p class="rounded border border-amber-900 bg-amber-950/40 px-3 py-2 text-amber-200">
 									The repository does not contain a written post-mortem for dropping this approach.
@@ -464,6 +467,12 @@
 						<li>
 							Finder ratio test: 1:1:3:1:1, each run within 30% of ideal; clustering uses 22%
 							segment-width agreement and 1.2× height distance.
+						</li>
+						<li>
+							Flood-fill timing on the figure cutouts (median, CPU-pinned): hand-written wave front
+							48.4 ms / 25.5 ms; <code>scipy.ndimage.label</code> fill 0.47 ms / 0.30 ms; boundary
+							trace 0.13 ms / 0.08 ms; boundary components 1.16 ms / 0.83 ms; angular NMS 0.08 ms.
+							Reproduce with <code>blog_figures/flood_fill/benchmark_fill.py</code>.
 						</li>
 						<li>
 							Captured benchmark funnel: 65 → 64 → 49 → 49 → 40 → 40 out of 100 images (candidates,
