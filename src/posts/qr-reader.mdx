@@ -8,6 +8,8 @@ excerpt: 'Building a QR code decoder from scratch in Python — the algorithms, 
 
 import floodFillSuccess from '../assets/blog/qr-reader/flood-fill-success.gif?url';
 import floodFillFailure from '../assets/blog/qr-reader/flood-fill-failure.gif?url';
+import rayProfileSignal from '../assets/blog/qr-reader/ray-profile-signal.png?url';
+import rayProfileClustering from '../assets/blog/qr-reader/ray-profile-clustering.png?url';
 
 QR codes are everywhere, and they have been around since the 90s. Detecting and decoding them should be a simple, straightforward computer vision task, right? At least that's what I thought. I set out to write my own QR code detector and try to come up with an algorithm on my own. It turns out it's not as simple as I thought.
 
@@ -129,13 +131,19 @@ If you start at the center of a finder pattern and cast a ray outward, the inten
 
 This is much more robust than thresholding and then trying to recover a clean boundary. If one pixel in the middle is the wrong color, or the threshold is slightly off, the fit doesn’t care. The whole profile votes on the scale, and the transitions come out as a smooth compromise instead of a hard edge.
 
-{/* Figure: ray-profile-signal.png */}
+<img
+	src={rayProfileSignal}
+	alt="A ray cast at 20 degrees from a finder-pattern centre, with the intensity profile along that ray and the fitted template overlaid."
+/>
 
 I did this for 36 half-rays, spaced 10 degrees apart, and sampled each profile at 120 points. For each ray I fitted the template and placed a boundary point at 3.5 module pitches from the center, on the outer edge of the finder. So after the ray stage I had 36 candidate boundary points, one per direction, each one probably sitting somewhere on the outer edge. The inner transitions were useful for fitting the scale, but I did not need them to find the corners.
 
 Then the problem became clustering those points into the four sides. This turned out to be the hardest part of the whole ray-fitting approach. The ray profiles themselves were fairly straightforward, and the rest was mostly parameter tuning, but getting the clustering right took a lot of iterations. I tried a whole range of clustering algorithms here. What worked best was to treat a cluster as defining a single line, fit that line with total least squares, and then decide whether a nearby point belongs to it by seeing how much the fit worsens. If the point makes the line much worse, it probably belongs to a different edge. Refit, repeat. TLS is a simple line fit, and the residual tells you how well the points actually lie on a line, which is exactly the signal I needed.
 
-{/* Figure: ray-profile-clustering.png */}
+<img
+	src={rayProfileClustering}
+	alt="Three panels showing all 36 half-rays, the fitted boundary points, and the points clustered into the four finder sides with a fitted line for each."
+/>
 
 Once I had four line clusters, I could intersect them and get the corners. I also added a gate: the four clusters have to contain most of the boundary points. In a real finder pattern, almost all of the ray points land on one of the four outer edges; there are a few outliers, but the majority are consistent. If the clusters only explain a small fraction of the points, the candidate is probably not a finder pattern, and I threw it away.
 
