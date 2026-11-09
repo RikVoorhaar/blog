@@ -10,6 +10,8 @@ import floodFillSuccess from '../assets/blog/qr-reader/flood-fill-success.gif?ur
 import floodFillFailure from '../assets/blog/qr-reader/flood-fill-failure.gif?url';
 import rayProfileSignal from '../assets/blog/qr-reader/ray-profile-signal.png?url';
 import rayProfileClustering from '../assets/blog/qr-reader/ray-profile-clustering.png?url';
+import houghSuccess from '../assets/blog/qr-reader/hough-success.png?url';
+import houghFailure from '../assets/blog/qr-reader/hough-failure.png?url';
 
 QR codes are everywhere, and they have been around since the 90s. Detecting and decoding them should be a simple, straightforward computer vision task, right? At least that's what I thought. I set out to write my own QR code detector and try to come up with an algorithm on my own. It turns out it's not as simple as I thought.
 
@@ -121,7 +123,18 @@ There were three problems. The first was gaps. Real edges are not perfectly smoo
 
 So we ended up in the same place as before. The basic approach looked good on synthetic images, but on real images it was finicky. Some parameter tuning helped, but no setting made it work all the time. Finding the corners was still hard, and making it robust was harder.
 
-{/* Figure: Hough success and failure, showing the original crop, filtered edges, Hough space, and the selected outer segments. */}
+The two figures below show a clean case and a failure case. In the clean one, each outer edge produces a single clear peak, and the four lines intersect at the corners. In the failure, the edges break into pieces and other QR edges compete for votes, so the selected lines are wrong.
+
+<div class="space-y-4">
+	<img
+		src={houghSuccess}
+		alt="Hough success: original crop, thin edge map, Hough accumulator with four clear peaks, and the four lines intersecting at the finder corners."
+	/>
+	<img
+		src={houghFailure}
+		alt="Hough failure: original crop, a broken edge map, a cluttered Hough accumulator, and selected lines that miss two of the corners."
+	/>
+</div>
 
 ### The third attempt: ray profiles
 
