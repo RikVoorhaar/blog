@@ -103,9 +103,23 @@ The two animations below show what that looks like on the same photo. In the fir
 	/>
 </div>
 
-I spent quite a bit of time trying to make this work, but it never reached the recall or precision I wanted. It was also slow, though only the flood fill itself was really to blame. Tracing the boundary, splitting it into components, and picking the corners with non-maximum suppression took around a millisecond or less. The fill was the expensive part.
+I spent quite a bit of time trying to make this work, but it never reached the recall or precision I wanted. So I dropped it and started over.
 
-My first version was hand-written: a NumPy wave front that swept the whole crop over and over. On a single finder crop that took tens of milliseconds -- around 48 ms on the larger crop and 26 ms on the smaller one. Replacing it with `scipy.ndimage.binary_propagation`, which grows a seed mask through the binary mask in C, brought that down to a couple of milliseconds -- about 1.8 ms and 1.1 ms. That was roughly 25x faster, but it was still an extra image operation per candidate, and still an order of magnitude slower than tracing the boundary. I wanted to get rid of the whole segmentation step. So I dropped it and started over with an approach from the more classical pattern-finding literature.
+### The second attempt: Hough lines
+
+The next thing I tried was a more classical computer-vision approach: Hough lines.
+
+The basic idea is almost annoyingly simple. Finding edges is not that hard, and once you have an edge, the image gradient also tells you its direction. If you know the direction and one point on the edge, you know the line. So you can let every strong edge pixel vote for the line it thinks it is on. Discretize the angle and the intercept into bins -- I used about half a degree and half a pixel -- and keep a table of votes. If many edge pixels agree that “the line with this angle and this intercept” exists, there probably is a line there. Then you take the largest peaks in the table, turn each peak into a line segment, and intersect the four outer segments to get the corners.
+
+To find the edges and angles I used something like Canny, but with fewer steps. First a little blurring, which matters: without it you get staircase edges and messy angles. Then a Sobel filter for the x and y derivatives, from which you get the gradient magnitude and angle. Then non-maximum suppression along the gradient direction, so you keep only the thin edge pixels you actually want. For the Hough table, you find the largest peak, suppress a small neighborhood around it, and repeat. Each peak gives you a line; to turn it into a segment you look at the support set -- the edge pixels close to that line -- and fit or trim the segment to those points. Intersect the four outer segments and you have the finder corners.
+
+This was a step up from flood filling. It worked better, and it was a lot faster. On synthetic images it looked like it was going to work. On real images it kind of, sort of worked, but never reliably enough.
+
+There were three problems. The first was gaps. Real edges are not perfectly smooth, so the non-maximum suppression leaves gaps that the algorithm cannot bridge, and a line that should be one segment comes out as several disconnected pieces. The second was that the cutout around the finder pattern still contains other edges: parts of the QR code, or just background clutter. We do not know exactly where the finder pattern is -- if we did, we would already know its corners -- so we cannot exclude those edges, and they mess up the voting. The third was weak edges. If the finder boundary is not strong enough, its votes get diluted, and the right line either does not win or does not show up at all.
+
+So we ended up in the same place as before. The basic approach looked good on synthetic images, but on real images it was finicky. Some parameter tuning helped, but no setting made it work all the time. Finding the corners was still hard, and making it robust was harder.
+
+{/* Figure: Hough success and failure, showing the original crop, filtered edges, Hough space, and the selected outer segments. */}
 
 ## Choosing a triplet
 

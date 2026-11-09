@@ -123,13 +123,10 @@
 									something else; a connected boundary can have multiple components; and “the four
 									farthest boundary points from the centroid” is only a good corner definition when
 									the ring is clean and fairly square in the image. Under perspective the farthest
-									points are not necessarily the corners. The hand-written NumPy wave front was also
-									slow: about 48 ms on the 432×432 success crop and 26 ms on the 333×333 failure
-									crop. <code>scipy.ndimage.binary_propagation</code> was about 23–27× faster
-									(1.1–1.8 ms), though still an order of magnitude slower than the boundary trace
-									and still a segmentation step per candidate. A single
-									<code>ndimage.label</code> pass would be faster still (0.3–0.5 ms), but that is
-									not the function the project used.
+									points are not necessarily the corners. The hand-written NumPy wave front was
+									later replaced by <code>scipy.ndimage.binary_propagation</code>. The speed
+									discussion was dropped from the post; the benchmark remains in
+									<code>blog_figures/flood_fill/benchmark_fill.py</code>.
 								</p>
 								<p class="rounded border border-amber-900 bg-amber-950/40 px-3 py-2 text-amber-200">
 									The repository does not contain a written post-mortem for dropping this approach.
@@ -404,9 +401,8 @@
 								<tr>
 									<td class="px-4 py-3 font-medium text-stone-100">3. Finding the corners</td>
 									<td class="px-4 py-3 text-stone-400">
-										Only the bridge paragraph exists: rough centers are not accurate enough. Needs
-										the ray-sampling and radial profile fitting story, plus the rejected flood-fill
-										and Hough paths.
+										Bridge, flood-fill attempt, and Hough attempt are drafted. Still needs the
+										ray-sampling and radial-profile fitting story that replaced them.
 									</td>
 									<td class="px-4 py-3">
 										<span
@@ -470,13 +466,6 @@
 						<li>
 							Finder ratio test: 1:1:3:1:1, each run within 30% of ideal; clustering uses 22%
 							segment-width agreement and 1.2× height distance.
-						</li>
-						<li>
-							Flood-fill timing on the figure cutouts (median, CPU-pinned): hand-written wave front
-							48.3 ms / 26.4 ms; <code>scipy.ndimage.binary_propagation</code> fill 1.78 ms / 1.15
-							ms; <code>ndimage.label</code> fill 0.46 ms / 0.30 ms; boundary trace 0.13 ms / 0.08
-							ms; boundary components 1.15 ms / 0.84 ms; angular NMS 0.08 ms. Reproduce with
-							<code>blog_figures/flood_fill/benchmark_fill.py</code>.
 						</li>
 						<li>
 							Captured benchmark funnel: 65 → 64 → 49 → 49 → 40 → 40 out of 100 images (candidates,
@@ -587,6 +576,11 @@
 							and corner-finding rant prompts. Reconstructed from current <code>ray_fit.py</code> /
 							<code>edge_fitting.py</code>, the old flood-fill pipeline, and the deleted Hough
 							reports in git history.
+						</li>
+						<li>
+							<strong class="text-stone-100">2026-11-09</strong> — Drafted the flood-fill and Hough
+							subsections, added the flood-fill success/failure figure, and dropped the flood-fill
+							speed discussion from the post.
 						</li>
 					</ul>
 				</section>
