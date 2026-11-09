@@ -86,7 +86,7 @@ The finder-pattern finder had already done most of the hard work for free. The 1
 
 All the pixels that belong to the pattern form a connected component. The simplest way to recover one is flood filling: start with a single pixel, look at its neighbors, and if they have the same color, add them to the mask. Then keep going. A few iterations later you have the entire pattern.
 
-Once I had that mask, I only needed the corners. I used a few heuristics: the point farthest from the center is probably one corner, the others should be roughly 45 degrees away and also be local maxima along the boundary. A bit of non-maximum suppression gave me four candidates.
+Once I had that mask, I only needed the corners. I used a few heuristics: the point farthest from the center is probably one corner, the others should be roughly 90 degrees away and also be local maxima along the boundary. A bit of non-maximum suppression gave me four candidates.
 
 In practice the flood fill itself was usually not the problem. The thresholding isn’t perfect, so a mask can have holes, and that does happen. But the failure I kept running into was one step later: turning the boundary into four corners. The farthest-point heuristic works fine when the finder is roughly square in the image. Under perspective it doesn’t. The finder becomes a general quadrilateral, the farthest points are not necessarily the corners, and the four points I picked could collapse onto the same acute corner. The mask was clean; the corners were wrong.
 
