@@ -6,38 +6,13 @@ teaser: 'qr-reader.jpg'
 excerpt: 'Building a QR code decoder from scratch in Python — the algorithms, the pitfalls, and what I learned along the way.'
 ---
 
-{/\*
-Drafting notes:
-
-This is a first-person engineering story about one workable QR detector, not a
-survey or a claim that this is the best approach. Keep the detector as the main
-subject. Use readable snippets, equations, and real project output where they
-help, and decide on figures while writing each section. The decoder can remain
-mostly a handoff, with a short candid note about its largely vibe-coded
-implementation and the role of agentic development in the project.
-\*/}
-
 QR codes are everywhere, and they have been around since the 90s. Detecting and decoding them should be a simple, straightforward computer vision task, right? At least that's what I thought. I set out to write my own QR code detector and try to come up with an algorithm on my own. It turns out it's not as simple as I thought.
 
 ## The problem: finding a QR code in an image
 
-{/\*
-Possible material:
-
-- Open with the concrete task: recover a QR payload from an ordinary image
-  without using an external QR reader.
-- Explain that decoding is downstream of a harder geometric question: where is
-  the code, which regions belong to it, and how has perspective distorted it?
-- Give a compact overview of the pipeline used in this post.
-- Introduce the three finder patterns and the L-shaped arrangement that gives
-  a QR code its orientation.
-- Briefly establish the boundary: the QR encoding and decoder internals are
-  not the main subject here.
-  \*/}
-
 The scope of the project is simple: detect a QR code, find its corners, and decode the payload. Before diving in, let's look at a QR code:
 
-// insert image of qr code
+{/* insert image of qr code */}
 
 You may notice the patterns in the top-left, top-right and bottom-left corners. These are the _finder patterns_ of a QR code. They are always present and contain no data themselves; they exist purely to help locate the code. If you draw a horizontal or vertical line through one of these patterns, you always see black, white, black, white, black in a ratio of 1:1:3:1:1. That signature makes the finder patterns relatively easy to spot, and later on we'll see how.
 
@@ -45,7 +20,7 @@ To detect a QR code, you only need to find three things that look like finder pa
 
 There's more to it, though. QR codes come in different sizes, known as _versions_. The smallest is version 1, which is 21×21 dots, up to version 40 at 177×177. In general, version $V$ has $17+4V$ dots on each side. To decode a code you need to know its version. Fortunately, each finder pattern measures $1+1+3+1+1=7$ dots on a side. So if, say, the finder patterns are 70 px on a side and the gap between them is 110 px, then one dot is 10 px and the total side length is $70+110+70 = 250$ px, i.e. 25 dots — which is version 2. This works well for small versions. For larger versions we may only be able to pin the version down to a range like 32–35. In that case we can simply try decoding under each candidate version and move on to the next when one fails. The version is also encoded separately in the QR code itself for version 7 and up, which helps.
 
-// Show a diagram with versions and how we can estimate them
+{/* Show a diagram with versions and how we can estimate them */}
 
 To decode the code, we do need to know the corners of the three finder patterns fairly precisely. That establishes a correspondence from pixels to the dot grid: if we want to know whether the dot at (4, 10) is black or white, we know which pixels to inspect in the original image. The more precisely we know the location and orientation of the finder patterns, the more reliable this correspondence will be, and the more likely decoding is to succeed.
 
@@ -66,23 +41,6 @@ I hope the basic idea and scope of the project are now clear, so let's dive into
 
 ## From pixels to candidates
 
-{/\*
-Possible material:
-
-- Explain why a black-and-white image is a useful first representation and how
-  Otsu thresholding supplies it without choosing a threshold by hand.
-- Show the 1:1:3:1:1 run-length clue and how horizontal scans produce initial
-  candidate locations.
-- Explain why a run-length match is only an initial guess rather than proof of
-  a finder pattern.
-- Describe candidate clustering and the need for confirmation in the other
-  image direction.
-- Use an actual intermediate output if one makes the candidate-to-cluster
-  progression obvious. Add or make a figure only if the prose needs it.
-- Mention the assumptions that break under blur, perspective, clutter, and
-  small QR modules.
-  \*/}
-
 The finder patterns follow a 1:1:3:1:1 dark-bright-dark-bright-dark pattern. How can you detect that? First you have to know what 'dark' and 'bright' even means in the first place. In a photo, the white part of a QR code is more like light gray plus some random noise. An easy way to do that is by converting the image to pure black and white using a threshold. We can convert the RGB value to grayscale, and then compare the value to a threshold $t$. If the mean RGB value is below $t$, then it's black, above it's white.
 
 But how do you determine $t$? You can't just set it to $t=128$, because some images are bright and some are dark depending on ambient light and camera settings. One way to automatically determine a reasonable threshold is using _Otsu's method_. This converts the pixel intensities of the whole image into a histogram, and then finds the threshold that best separates the image into a bright and dark class (minimizing the intra class variance). It is a relatively simple and very popular thersholding method, and it works well for many images. It does however have two major flaws: the lighting may not be uniform in an image, and therefore you may want a threshold that varies throughout the image. And secondly, can fail to create contiguous black/white regions if there is a lot of noise in the image.
@@ -93,7 +51,7 @@ The real world is messy, and we might instead have a perfectly valid finder patt
 
 You may think that 30% is a pretty loose threshold, and you'd be right. But there are good reasons for this. First of all, it's easy to throw away false positives later, so we are optimizing for high recall at this point. On the other hand, QR codes can be rotated, blurred, distorted by perspective, etc., so a loose threshold is really necessary in practice. Even then this method is not ideal. Just one rogue pixel can mess everything up. There are ways around that, but it works well enough in practice. It's rather effective for something so cheap and simple!
 
-// Insert figure of image annotated by RLE matching a QR code
+{/* Insert figure of image annotated by RLE matching a QR code */}
 
 Observe however that a finder pattern can have may matching RLE 5-tuples. We ideally only only output one candidate region per finder pattern, so we have to group the RLE 5-tuples that belong to the same finder pattern somehow. This fortunately really easy! Well, it took a few tries to get right, but you know, it's easy in hind sight.
 What I settled on after some painful trial and error is the following approach.
@@ -107,93 +65,21 @@ The full procedure is to take a cluster, check it against all other clusters, an
 
 At first I tried fancier clustering approaches like agglomerative clustering, and different overlap metrics. Some methods were too expensive, but most simply didn't work that well and would for example refuse to merge candidates, or end up with a cluster center that is not really represenative of the finder patterns center. My approach works and is fast and simple, but I have no good intuition why it works better than other approaches I tried. I think that the simple merge rule just ends up capturing the right geometry.
 
-// Insert picture with qr code with finder patterns identified and correctly clustered, but with some false positives.
+{/* Insert picture with qr code with finder patterns identified and correctly clustered, but with some false positives. */}
 
 This clustering step reduces the number of candidate finder patterns substantially, but we're not done yet! There is a cheap trick to substantially reduce false positives. A real finder pattern still looks like a finder pattern if you rotate it 90', because, well, it's a square (duh). So we can just take a look at the RLE in the vertical direction (column by column instead of row by row). If our candidate finder pattern also has a match on the RLE in the vertical direction (with a slightly firther relaxed threshold) then we keep it, else we throw it out.
 
 ## Finding the corners
 
-{/\*
-Possible material:
-
-- Explain why candidate centers and rough clusters are not enough: later
-  geometry needs the four corners of each finder pattern.
-- Describe sampling along rays from an estimated centerpoint to obtain radial
-  intensity profiles.
-- Show how template matching or profile fitting turns those samples into
-  boundary estimates and a quadrilateral.
-- Include a short, concrete failure story for flood filling and/or Hough-based
-  sampling, only where it explains why the ray-based approach was retained.
-- Use fitted profiles, candidate overlays, or corner comparisons from the
-  project as evidence rather than introducing a generic conceptual diagram.
-- Keep the distinction between an estimated centerpoint and a projective
-  center clear if both appear.
-  \*/}
-
 Now we have hopefully correctly identified the locations of all the finder patterns, with maybe some false postiives. How do we go from there to a decoded QR code? We could just take all triplets of candidate finder patterns, and see if they rougly form a right-angled triangle, and just try to decode the QR code. But that doesn't work, because to decode you need to know pretty precisely where you are inside the QR code.
 
-// Qr code, but just take the rough center of each finder pattern, and then try to use that to align the qr code into a grid, and show that slightly wrong angles will result in decoding errors.
+{/* Qr code, but just take the rough center of each finder pattern, and then try to use that to align the qr code into a grid, and show that slightly wrong angles will result in decoding errors. */}
 
 ## Choosing a triplet
 
-{/\*
-Possible material:
-
-- Explain that three plausible finder patterns can still be unrelated false
-  positives.
-- Describe associations between colinear patterns and the L-shaped triplet
-  geometry expected from a QR code.
-- Explain the geometric checks used to reject implausible combinations and to
-  assign the three patterns their roles.
-- Show one example where many candidates exist but only one triplet makes
-  geometric sense, if a project output supports it.
-- Connect this stage to version or spacing evidence without turning the section
-  into a QR-specification overview.
-- Let any interesting false-positive or threshold failure enter here naturally
-  instead of pre-planning a separate failure gallery.
-  \*/}
-
 ## Estimating the homography
 
-{/\*
-Possible material:
-
-- Explain what the finder-pattern corners give us: enough geometric structure
-  to estimate how the square QR grid appears in the image.
-- Introduce the homography as a compact mapping between grid coordinates and
-  image coordinates, with only the amount of mathematics needed to make that
-  idea concrete.
-- Describe the initialization and refinement strategy at a high level, and
-  show how projection accuracy affects module sampling.
-- Distinguish successfully finding a triplet, estimating a homography, and
-  successfully decoding the sampled module matrix.
-- Briefly hand the rectified matrix to the decoder. Mention format information,
-  masking, codewords, and error correction only as downstream names.
-- Add the most useful real projection or sampling output once it is clear what
-  the reader needs to see.
-  \*/}
-
 ## What worked, what did not
-
-{/\*
-Possible material:
-
-- Close the loop with the captured benchmark: 100 photos, 15 QR symbols, five
-  versions, three scales, and one shared payload.
-- Present the six-stage funnel: candidates, finder patterns, triplets, version
-  and homography, decodable output, and correct payload.
-- Explain the 65 -> 64 -> 49 -> 49 -> 40 -> 40 progression rather than giving
-  only the final 40% figure.
-- Include one successful image and a small number of representative failures,
-  chosen while writing the earlier sections.
-- State the limitations plainly. This is one detector built from experiments,
-  not a production-ready or necessarily optimal QR reader.
-- Add a brief reflection on starting with hand-written ideas, using AI and
-  agentic development as the project evolved, and treating the decoder as a
-  largely vibe-coded contrast to the detector.
-- End by returning to the original geometric problem and what it took to turn
-  image pixels into something the decoder could use.
-  \*/}
 
 Ideas how to improve:
 

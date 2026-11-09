@@ -1,0 +1,322 @@
+<!doctype html>
+<html lang="en">
+	<head>
+		<meta charset="utf-8" />
+		<meta name="viewport" content="width=device-width, initial-scale=1" />
+		<meta name="color-scheme" content="dark" />
+		<title>Post plan — Writing a QR code reader from scratch</title>
+		<script src="https://cdn.tailwindcss.com"></script>
+	</head>
+	<body class="bg-stone-950 text-stone-300 antialiased">
+		<main class="mx-auto max-w-5xl px-6 py-10">
+			<header class="border-b border-stone-800 pb-6">
+				<p class="text-xs font-semibold uppercase tracking-[0.18em] text-stone-400">
+					Blog post plan
+				</p>
+				<h1 class="mt-2 text-3xl font-semibold tracking-tight text-stone-100">
+					Writing a QR code reader from scratch
+				</h1>
+				<p class="mt-2 text-sm text-stone-400">
+					Working slug
+					<code class="rounded bg-stone-900 px-1.5 py-0.5 text-stone-200">qr-reader</code>
+					<span class="mx-2">·</span>
+					<span
+						class="inline-flex rounded-full bg-blue-950 px-2.5 py-0.5 text-xs font-medium text-blue-300 ring-1 ring-inset ring-blue-900"
+						>in progress</span
+					>
+				</p>
+				<p
+					class="mt-4 rounded-lg border border-amber-900 bg-amber-950/50 px-4 py-3 text-sm text-amber-200"
+				>
+					This is a living document, not a contract. When the post disagrees with the plan, the post
+					wins. Update the plan in the same commit as the change.
+				</p>
+			</header>
+
+			<div class="mt-8 space-y-8">
+				<section>
+					<h2 class="text-lg font-semibold text-stone-100">Goal</h2>
+					<p class="mt-2">
+						Tell the story of building one workable QR detector from scratch: the geometric problem,
+						the pipeline, the dead ends and the version that finally worked. The detector is the
+						main subject. The decoder is a short handoff, with an honest note about its largely
+						vibe-coded implementation and the role of agentic development. This is not a survey, a
+						QR specification tour, or a claim that this is the best possible approach.
+					</p>
+				</section>
+
+				<section>
+					<h2 class="text-lg font-semibold text-stone-100">Audience</h2>
+					<p class="mt-2">
+						Peer engineers and technically curious readers who are comfortable with Python, computer
+						vision basics and some linear algebra. They want the practical reasoning and the failure
+						modes, not a hand-held introduction to QR codes.
+					</p>
+				</section>
+
+				<section>
+					<h2 class="text-lg font-semibold text-stone-100">Context</h2>
+					<ul class="mt-2 list-disc space-y-1 pl-5">
+						<li>
+							Project: <code>RikVoorhaar/qr-reader</code>, branch <code>posts/qr-reader</code> in
+							the blog submodule.
+						</li>
+						<li>Voice notes: root <code>docs/blog-style-guide.md</code>.</li>
+						<li>
+							Figure audit: root <code>docs/diagnostic-figures-inventory.md</code> (2026-07-31).
+						</li>
+						<li>
+							Captured benchmark: 100 photos of 15 QR symbols, five versions, three scales, one
+							shared <code>rikvoorhaar.com</code> payload.
+						</li>
+						<li>
+							The post was rebased onto blog <code>origin/main</code> on 2026-11-09. The old inline
+							planning comments were moved here.
+						</li>
+					</ul>
+				</section>
+
+				<section>
+					<h2 class="text-lg font-semibold text-stone-100">Structure</h2>
+					<div class="mt-3 flex flex-wrap gap-2 text-xs">
+						<span
+							class="inline-flex rounded-full bg-slate-900 px-2.5 py-0.5 font-medium text-slate-300 ring-1 ring-inset ring-slate-700"
+							>not started</span
+						>
+						<span
+							class="inline-flex rounded-full bg-blue-950 px-2.5 py-0.5 font-medium text-blue-300 ring-1 ring-inset ring-blue-900"
+							>in progress</span
+						>
+						<span
+							class="inline-flex rounded-full bg-amber-950 px-2.5 py-0.5 font-medium text-amber-300 ring-1 ring-inset ring-amber-900"
+							>under review</span
+						>
+						<span
+							class="inline-flex rounded-full bg-emerald-950 px-2.5 py-0.5 font-medium text-emerald-300 ring-1 ring-inset ring-emerald-900"
+							>done</span
+						>
+						<span
+							class="inline-flex rounded-full bg-rose-950 px-2.5 py-0.5 font-medium text-rose-300 ring-1 ring-inset ring-rose-900"
+							>omitted</span
+						>
+					</div>
+					<div class="mt-3 overflow-hidden rounded-lg border border-stone-800">
+						<table class="w-full text-left text-sm">
+							<thead class="bg-stone-900 text-xs uppercase tracking-wide text-stone-400">
+								<tr>
+									<th class="px-4 py-2 font-medium">Beat</th>
+									<th class="px-4 py-2 font-medium">What it does</th>
+									<th class="px-4 py-2 font-medium">Status</th>
+								</tr>
+							</thead>
+							<tbody class="divide-y divide-stone-800 bg-stone-900/40">
+								<tr>
+									<td class="px-4 py-3 font-medium text-stone-100">1. Cold open and scope</td>
+									<td class="px-4 py-3 text-stone-400">
+										Hook, finder patterns, versions, the pipeline overview, alignment patterns
+										deliberately left out, perspective as the hard part. Drafted.
+									</td>
+									<td class="px-4 py-3">
+										<span
+											class="inline-flex rounded-full bg-blue-950 px-2.5 py-0.5 text-xs font-medium text-blue-300 ring-1 ring-inset ring-blue-900"
+											>in progress</span
+										>
+									</td>
+								</tr>
+								<tr>
+									<td class="px-4 py-3 font-medium text-stone-100">2. From pixels to candidates</td>
+									<td class="px-4 py-3 text-stone-400">
+										Otsu thresholding, horizontal 1:1:3:1:1 run-length matching, the 30% tolerance,
+										greedy candidate clustering, vertical cross-check. Drafted.
+									</td>
+									<td class="px-4 py-3">
+										<span
+											class="inline-flex rounded-full bg-blue-950 px-2.5 py-0.5 text-xs font-medium text-blue-300 ring-1 ring-inset ring-blue-900"
+											>in progress</span
+										>
+									</td>
+								</tr>
+								<tr>
+									<td class="px-4 py-3 font-medium text-stone-100">3. Finding the corners</td>
+									<td class="px-4 py-3 text-stone-400">
+										Only the bridge paragraph exists: rough centers are not accurate enough. Needs
+										the ray-sampling and radial profile fitting story, plus the rejected flood-fill
+										and Hough paths.
+									</td>
+									<td class="px-4 py-3">
+										<span
+											class="inline-flex rounded-full bg-blue-950 px-2.5 py-0.5 text-xs font-medium text-blue-300 ring-1 ring-inset ring-blue-900"
+											>in progress</span
+										>
+									</td>
+								</tr>
+								<tr>
+									<td class="px-4 py-3 font-medium text-stone-100">4. Choosing a triplet</td>
+									<td class="px-4 py-3 text-stone-400">
+										Why three plausible finder patterns are not enough, L-shaped geometry,
+										colinearity and rejection rules, role assignment. Empty.
+									</td>
+									<td class="px-4 py-3">
+										<span
+											class="inline-flex rounded-full bg-slate-900 px-2.5 py-0.5 text-xs font-medium text-slate-300 ring-1 ring-inset ring-slate-700"
+											>not started</span
+										>
+									</td>
+								</tr>
+								<tr>
+									<td class="px-4 py-3 font-medium text-stone-100">5. Estimating the homography</td>
+									<td class="px-4 py-3 text-stone-400">
+										Grid-to-image mapping, initialization and refinement, how projection error
+										affects module sampling, then hand the matrix to the decoder. Empty.
+									</td>
+									<td class="px-4 py-3">
+										<span
+											class="inline-flex rounded-full bg-slate-900 px-2.5 py-0.5 text-xs font-medium text-slate-300 ring-1 ring-inset ring-slate-700"
+											>not started</span
+										>
+									</td>
+								</tr>
+								<tr>
+									<td class="px-4 py-3 font-medium text-stone-100">6. What worked, what did not</td>
+									<td class="px-4 py-3 text-stone-400">
+										Captured benchmark funnel, representative success and failure images,
+										limitations, agentic-development reflection, forward-looking close. Empty apart
+										from a short improvement list.
+									</td>
+									<td class="px-4 py-3">
+										<span
+											class="inline-flex rounded-full bg-slate-900 px-2.5 py-0.5 text-xs font-medium text-slate-300 ring-1 ring-inset ring-slate-700"
+											>not started</span
+										>
+									</td>
+								</tr>
+							</tbody>
+						</table>
+					</div>
+				</section>
+
+				<section>
+					<h2 class="text-lg font-semibold text-stone-100">Facts &amp; numbers</h2>
+					<ul class="mt-2 list-disc space-y-1 pl-5">
+						<li>
+							Version <em>V</em> is <code>17 + 4V</code> modules per side; version 1 is 21×21,
+							version 40 is 177×177. Each finder pattern is 7 modules across.
+						</li>
+						<li>
+							Finder ratio test: 1:1:3:1:1, each run within 30% of ideal; clustering uses 22%
+							segment-width agreement and 1.2× height distance.
+						</li>
+						<li>
+							Captured benchmark funnel: 65 → 64 → 49 → 49 → 40 → 40 out of 100 images (candidates,
+							finders, triplets, homography/version, decodable, correct payload). Source:
+							<code>benchmark_captured.json</code>.
+						</li>
+						<li>
+							Synthetic benchmark: <code>benchmark_current.json</code> has 180 cases with 78
+							detection successes and 52 decodes; <code>benchmark_ray.json</code> has 180 cases with
+							62 detections and 60 decodes. Local ignored outputs; verify before quoting.
+						</li>
+						<li>
+							For larger versions the detector may only narrow the version to a range such as 32–35,
+							then tries each candidate during decoding. Check this claim against the current
+							detector before publication.
+						</li>
+					</ul>
+				</section>
+
+				<section>
+					<h2 class="text-lg font-semibold text-stone-100">Figures</h2>
+					<ul class="mt-2 list-disc space-y-1 pl-5">
+						<li>Plain QR code example with finder patterns visible. Placeholder in the post.</li>
+						<li>Version size and spacing diagram. Placeholder in the post.</li>
+						<li>Annotated image showing RLE matches. Placeholder in the post.</li>
+						<li>Finder patterns clustered, including false positives. Placeholder in the post.</li>
+						<li>
+							Rough centers projected onto a grid, showing why small angle errors break sampling.
+							Placeholder in the post.
+						</li>
+						<li>
+							Recommended from the inventory: Otsu image plus 2-D candidates plus cluster boxes;
+							finder ROI with radial profiles and fitted edges; chosen triplet, version evidence and
+							projected QR boundary; rectified sampled bit matrix at the decoder handoff.
+						</li>
+						<li>
+							Optional: rejected flood-fill/Hough comparison, and a clean finder-structure crop. The
+							user decides which figures are worth making.
+						</li>
+					</ul>
+				</section>
+
+				<section>
+					<h2 class="text-lg font-semibold text-stone-100">Open questions</h2>
+					<ul class="mt-2 list-disc space-y-1 pl-5">
+						<li>
+							The teaser <code>qr-reader.jpg</code> does not exist in
+							<code>src/assets/teasers/</code>. Which image should it be?
+						</li>
+						<li>
+							How much decoder detail belongs in the post? Current intent is a short handoff plus a
+							candid note, not a decoder walkthrough.
+						</li>
+						<li>Which rejected approach deserves prose: flood fill, Hough, or both?</li>
+						<li>
+							Should the branch be renamed from <code>posts/qr-reader</code> to the skill's
+							<code>post/qr-reader</code> convention?
+						</li>
+						<li>Publish date and final title/excerpt are not settled.</li>
+					</ul>
+				</section>
+
+				<section>
+					<h2 class="text-lg font-semibold text-stone-100">Decisions</h2>
+					<ul class="mt-2 list-disc space-y-1 pl-5">
+						<li>
+							<strong class="text-stone-100">2026-11-09</strong> — Rebased
+							<code>posts/qr-reader</code> onto blog <code>origin/main</code>. The new
+							blog-post-authoring skill came in with that rebase.
+						</li>
+						<li>
+							<strong class="text-stone-100">2026-11-09</strong> — Moved the inline drafting notes
+							out of the MDX file. Prettier escapes multi-line <code>{/* ... */}</code> blocks,
+							which breaks the MDX build. The plan is the right home for them.
+						</li>
+						<li>
+							<strong class="text-stone-100">2026-11-09</strong> — Keep the detector as the main
+							subject; the decoder stays a handoff with a short agentic-development note.
+						</li>
+					</ul>
+				</section>
+
+				<section>
+					<h2 class="text-lg font-semibold text-stone-100">Title and excerpt</h2>
+					<ul class="mt-2 list-disc space-y-1 pl-5">
+						<li>
+							<strong class="text-stone-100">Title:</strong> Writing a QR code reader from scratch
+							(working title; user decides).
+						</li>
+						<li>
+							<strong class="text-stone-100">Excerpt:</strong> Building a QR code decoder from
+							scratch in Python — the algorithms, the pitfalls, and what I learned along the way.
+							(Placeholder; rewrite without the em dash.)
+						</li>
+					</ul>
+				</section>
+
+				<section>
+					<h2 class="text-lg font-semibold text-stone-100">Change log</h2>
+					<ul class="mt-2 list-disc space-y-1 pl-5">
+						<li>
+							<strong class="text-stone-100">2026-11-09</strong> — Rebased onto
+							<code>origin/main</code>, created this plan from the old inline notes, and fixed the
+							post so it builds again.
+						</li>
+					</ul>
+				</section>
+			</div>
+
+			<footer class="mt-12 border-t border-stone-800 pt-4 text-xs text-stone-500">
+				Living document. Delete before merging; CI rejects tracked ai-docs.
+			</footer>
+		</main>
+	</body>
+</html>
