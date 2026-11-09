@@ -75,6 +75,20 @@ Now we have hopefully correctly identified the locations of all the finder patte
 
 {/* Qr code, but just take the rough center of each finder pattern, and then try to use that to align the qr code into a grid, and show that slightly wrong angles will result in decoding errors. */}
 
+### The first attempt: flood filling the finder pattern
+
+At this point I was still writing everything by hand. No AI, no autocomplete doing the thinking for me -- partly because I wanted to keep my hand in, and partly because I hadn’t given in yet.
+
+The finder-pattern finder had already done most of the hard work for free. The 1:1:3:1:1 scan gave me a seed pixel on the outer black ring, plus the white and black ring structure around it. So the obvious next move was to grow that seed into the whole finder pattern.
+
+All the pixels that belong to the pattern form a connected component. The simplest way to recover one is flood filling: start with a single pixel, look at its neighbors, and if they have the same color, add them to the mask. Then keep going. A few iterations later you have the entire pattern.
+
+Once I had that mask, I only needed the corners. I used a few heuristics: the point farthest from the center is probably one corner, the others should be roughly 45 degrees away and also be local maxima along the boundary. A bit of non-maximum suppression gave me four candidates.
+
+In practice this fell apart for two reasons. The thresholding isn’t perfect, so the mask isn’t always continuous -- there can be holes in the pattern, and then the boundary you are working with isn’t the boundary you wanted. And extracting corners from that boundary under perspective is finicky. I spent quite a bit of time trying to make it work, but it never reached the recall or precision I wanted. So I dropped it and moved to an approach from the more classical pattern-finding literature.
+
+{/* Figure: flood-fill-success.gif and flood-fill-failure.gif, side by side. */}
+
 ## Choosing a triplet
 
 ## Estimating the homography
