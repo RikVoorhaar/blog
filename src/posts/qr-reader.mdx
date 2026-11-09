@@ -121,6 +121,26 @@ So we ended up in the same place as before. The basic approach looked good on sy
 
 {/* Figure: Hough success and failure, showing the original crop, filtered edges, Hough space, and the selected outer segments. */}
 
+### The third attempt: ray profiles
+
+The next idea was to treat the finder pattern as a signal-processing problem.
+
+If you start at the center of a finder pattern and cast a ray outward, the intensity along that ray has a very specific shape. It starts dark, goes bright, dark again, bright again, and then eventually turns into whatever is around the finder pattern. The 1:1:3:1:1 structure is right there in the signal. So instead of trying to find edges and lines, I could fit a known template to that one-dimensional profile and read off the transition points. The fit has a scale parameter -- the module pitch -- and once I know that, I know where every transition should be along that ray.
+
+This is much more robust than thresholding and then trying to recover a clean boundary. If one pixel in the middle is the wrong color, or the threshold is slightly off, the fit doesn’t care. The whole profile votes on the scale, and the transitions come out as a smooth compromise instead of a hard edge.
+
+{/* Figure: ray-profile-signal.png */}
+
+I did this for 36 half-rays, spaced 10 degrees apart, and sampled each profile at 120 points. For each ray I fitted the template and placed a boundary point at 3.5 module pitches from the center, on the outer edge of the finder. So after the ray stage I had 36 candidate boundary points, one per direction, each one probably sitting somewhere on the outer edge. The inner transitions were useful for fitting the scale, but I did not need them to find the corners.
+
+Then the problem became clustering those points into the four sides. This turned out to be the hardest part of the whole ray-fitting approach. The ray profiles themselves were fairly straightforward, and the rest was mostly parameter tuning, but getting the clustering right took a lot of iterations. I tried a whole range of clustering algorithms here. What worked best was to treat a cluster as defining a single line, fit that line with total least squares, and then decide whether a nearby point belongs to it by seeing how much the fit worsens. If the point makes the line much worse, it probably belongs to a different edge. Refit, repeat. TLS is a simple line fit, and the residual tells you how well the points actually lie on a line, which is exactly the signal I needed.
+
+{/* Figure: ray-profile-clustering.png */}
+
+Once I had four line clusters, I could intersect them and get the corners. I also added a gate: the four clusters have to contain most of the boundary points. In a real finder pattern, almost all of the ray points land on one of the four outer edges; there are a few outliers, but the majority are consistent. If the clusters only explain a small fraction of the points, the candidate is probably not a finder pattern, and I threw it away.
+
+I only used the outer edges for the final geometry. The inner transitions were useful for fitting the scale, but I didn’t need them to compute the corners. You could use them too and get a slightly better fit, but that wasn’t the bottleneck anymore. The ray fitting worked well enough that the bottleneck moved: now the hard part was finding the candidate finder patterns in the first place. Which meant the corner finder was no longer the thing holding the detector back.
+
 ## Choosing a triplet
 
 ## Estimating the homography
