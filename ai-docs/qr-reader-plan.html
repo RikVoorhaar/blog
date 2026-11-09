@@ -297,12 +297,27 @@
 									corner-derived geometry in <code>2e53f22</code>.
 								</p>
 								<p>
+									<strong class="text-stone-200">Draft intro.</strong> Suppose we have found three
+									finder patterns and their corners. Which one is the top-left, which is the
+									top-right, and which is the bottom-left? We do not assume the QR code is upright —
+									it could be rotated by any angle, including 180°. And if we found more than three
+									candidates, which three belong to the same QR code? We need an algorithm for this,
+									and as with everything else in this project, it is trickier than it appears at
+									first glance.
+								</p>
+								<p>
 									<strong class="text-stone-200">Why a triplet at all.</strong> Three plausible
 									finder patterns are not enough. There can be false positives, and a single finder
 									is almost square with fourfold rotational symmetry, so it cannot tell you which
 									edge is “up” or “right.” The triplet supplies the global context: pick the corner
 									of the L, then use the two inter-centre vectors to assign top-left, top-right and
 									bottom-left.
+								</p>
+								<p
+									class="rounded border border-emerald-900 bg-emerald-950/40 px-3 py-2 text-emerald-200"
+								>
+									Figure decision: the intro figure shows the ambiguity — four or more candidate
+									finder patterns with corners, and no correct triplet marked.
 								</p>
 
 								<p>
@@ -366,18 +381,22 @@ colinear_pairs: [(0, 0), (0, 2), (2, 0), (2, 2)]</code></pre>
 
 								<p>
 									<strong class="text-stone-200"
-										>Why that approach died — independent per-finder homographies (Plan 013/015,
-										<code>b1547a3</code>).</strong
+										>Why it was abandoned — too many missed triplets.</strong
 									>
-									The per-finder fit was upgraded to an independent 8-DOF homography per finder.
-									Each finder’s corners were refined in its own local warp. That improved the
-									single-finder corner fit, but it destroyed the invariant the association step
-									depended on: edges that should be globally collinear no longer were. The full
-									benchmark failed with <code>No finder-pattern triplet found</code>; the detector
-									test suite was 16 failed, 2 passed. Loosening <code>offset_tol</code> all the way
-									to 1.20 in <code>detector.py</code> did not recover it. The conclusion in
-									<code>docs/plan-015-baseline/final_report.md</code> is blunt: three independent
-									8-DOF projective warps break cross-finder association.
+									The local-normalization fix solved the synthetic high-version case, but the method
+									was still too brittle on real images. It missed too many true triplets, and
+									loosening the thresholds only let more false associations through. After the
+									corner fitter changed, the detector tests were 16 failed, 2 passed, all with
+									<code>No finder-pattern triplet found</code>; raising <code>offset_tol</code> to
+									1.20 did not recover it. The problem was the invariant: it assumed the outer edges
+									were accurate enough to line up across the whole code. They were not. No amount of
+									threshold tweaking made that reliable.
+								</p>
+								<p class="rounded border border-amber-900 bg-amber-950/40 px-3 py-2 text-amber-200">
+									Do not use the per-finder homography as the reason this approach died. That was a
+									separate corner-fitting experiment: it improved local corner accuracy under
+									perspective, but it did not fix the triplet problem, and the association was
+									already failing before it. Keep it out of the triplet story.
 								</p>
 
 								<p>
@@ -613,9 +632,9 @@ colinear_pairs: [(0, 0), (0, 2), (2, 0), (2, 2)]</code></pre>
 								<tr>
 									<td class="px-4 py-3 font-medium text-stone-100">4. Choosing a triplet</td>
 									<td class="px-4 py-3 text-stone-400">
-										Two approaches researched: pairwise outer-edge colinearity (including the
-										high-version offset-normalization failure and the per-finder homography detour),
-										then the current centre-geometry/right-triangle method. Prose not drafted.
+										Intro and Attempt 1 drafted. Attempt 1 covers the edge-pairing method, the
+										high-version offset-normalization failure, and the brittleness on real images.
+										Attempt 2 (centre geometry) still needs prose.
 									</td>
 									<td class="px-4 py-3">
 										<span
@@ -810,6 +829,12 @@ colinear_pairs: [(0, 0), (0, 2), (2, 0), (2, 2)]</code></pre>
 							code and git history: pairwise edge colinearity, the high-version offset failure and
 							local-normalization repair, the per-finder homography detour, and the current
 							centre-geometry algorithm. Added triplet rant prompts and numbers to the plan.
+						</li>
+						<li>
+							<strong class="text-stone-100">2026-11-09</strong> — Drafted and inserted the triplet
+							intro and Attempt 1, with the ambiguity and colinearity figures. Dropped the
+							per-finder homography from the triplet story; it is a separate corner-fitting
+							experiment.
 						</li>
 						<li>
 							<strong class="text-stone-100">2026-11-09</strong> — Added the QR anatomy and

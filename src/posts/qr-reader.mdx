@@ -17,6 +17,8 @@ import rayProfileClustering from '../assets/blog/qr-reader/ray-profile-clusterin
 import houghSuccess from '../assets/blog/qr-reader/hough-success.png?url';
 import houghFailure from '../assets/blog/qr-reader/hough-failure.png?url';
 import affineSampling from '../assets/blog/qr-reader/affine-sampling.gif?url';
+import tripletAmbiguity from '../assets/blog/qr-reader/triplet-ambiguity.png?url';
+import tripletColinearity from '../assets/blog/qr-reader/triplet-colinearity.png?url';
 
 QR codes are everywhere, and they have been around since the 90s. Detecting and decoding them should be a simple, straightforward computer vision task, right? At least that's what I thought. I set out to write my own QR code detector and try to come up with an algorithm on my own. It turns out it's not as simple as I thought.
 
@@ -189,6 +191,34 @@ Once I had four line clusters, I could intersect them and get the corners. I als
 I only used the outer edges for the final geometry. The inner transitions were useful for fitting the scale, but I didn’t need them to compute the corners. You could use them too and get a slightly better fit, but that wasn’t the bottleneck anymore. The ray fitting worked well enough that the bottleneck moved: now the hard part was finding the candidate finder patterns in the first place. Which meant the corner finder was no longer the thing holding the detector back.
 
 ## Choosing a triplet
+
+Suppose we have found three finder patterns and their corners. Which one is the top-left, which is the top-right, and which is the bottom-left? We do not assume the QR code is upright — it could be rotated by any angle, including 180°. And if we found more than three candidates, which three belong to the same QR code? We need an algorithm for this, and as with everything else in this project, it is trickier than it appears at first glance.
+
+<img
+	src={tripletAmbiguity}
+	alt="Five candidate finder patterns outlined on an upside-down version-20 QR code, with no correct triplet marked."
+/>
+
+### The first attempt: colinear edges
+
+Each finder gives four outer edges. For two finders next to each other in the QR grid, two pairs of edges should lie on the same line. So:
+
+- compare all four edges of one finder with all four of the other;
+- keep pairs that are parallel and close enough;
+- associate the finders if exactly two pairs pass.
+
+Then find an L-shape in the association graph: a finder connected to two neighbours that are not connected to each other, with the two connections using different edges. That finder is the corner of the L; the cross product of the centre-to-centre vectors assigns top-right and bottom-left.
+
+The catch is that we do not know which edge is which. Corner order is arbitrary and the code can be rotated, so the algorithm tries all pairings. That works, but it also lets wrong parallels through.
+
+<img
+	src={tripletColinearity}
+	alt="Outer edges of all candidate finders extended as lines, with two true collinear pairs in green and a false cross-pair in red, plus a zoom showing the 7-module offset."
+/>
+
+The threshold was the problem. I normalized the offset by the distance between finders. As the version goes up, the finders stay 7 modules wide while the distance between them grows, so the score for a wrong pair — one finder’s top edge against the other’s bottom edge — keeps shrinking. Eventually it passes, the true pair produces four matches instead of two, and the “exactly two” rule throws it out. Short edges make it worse: fewer pixels, noisier angles, more accidental parallels.
+
+Normalizing by the local edge length fixed that particular failure, but it didn’t save the approach. On real images it still missed too many true triplets, and loosening the thresholds just let more false ones through. I tried a bunch of tweaks and none of them made it reliable. The underlying problem was that the whole thing assumed the outer edges would line up accurately across the code, and they just didn’t. So I stopped trying to match edges and started looking at the centres instead.
 
 ## Estimating the homography
 
