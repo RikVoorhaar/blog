@@ -103,7 +103,7 @@ The two animations below show what that looks like on the same photo. In the fir
 	/>
 </div>
 
-I spent quite a bit of time trying to make this work, but it never reached the recall or precision I wanted. So I dropped it and moved to an approach from the more classical pattern-finding literature.
+I spent quite a bit of time trying to make this work, but it never reached the recall or precision I wanted. It was also slow. Flood filling every candidate cluster, tracing the boundary, and then picking corners added up quickly, and I wanted something faster. So I dropped it and started over with an approach from the more classical pattern-finding literature.
 
 ## Choosing a triplet
 
