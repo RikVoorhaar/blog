@@ -6,6 +6,9 @@ teaser: 'qr-reader.jpg'
 excerpt: 'Building a QR code decoder from scratch in Python — the algorithms, the pitfalls, and what I learned along the way.'
 ---
 
+import floodFillSuccess from '../assets/blog/qr-reader/flood-fill-success.gif?url';
+import floodFillFailure from '../assets/blog/qr-reader/flood-fill-failure.gif?url';
+
 QR codes are everywhere, and they have been around since the 90s. Detecting and decoding them should be a simple, straightforward computer vision task, right? At least that's what I thought. I set out to write my own QR code detector and try to come up with an algorithm on my own. It turns out it's not as simple as I thought.
 
 ## The problem: finding a QR code in an image
@@ -85,9 +88,22 @@ All the pixels that belong to the pattern form a connected component. The simple
 
 Once I had that mask, I only needed the corners. I used a few heuristics: the point farthest from the center is probably one corner, the others should be roughly 45 degrees away and also be local maxima along the boundary. A bit of non-maximum suppression gave me four candidates.
 
-In practice this fell apart for two reasons. The thresholding isn’t perfect, so the mask isn’t always continuous -- there can be holes in the pattern, and then the boundary you are working with isn’t the boundary you wanted. And extracting corners from that boundary under perspective is finicky. I spent quite a bit of time trying to make it work, but it never reached the recall or precision I wanted. So I dropped it and moved to an approach from the more classical pattern-finding literature.
+In practice the flood fill itself was usually not the problem. The thresholding isn’t perfect, so a mask can have holes, and that does happen. But the failure I kept running into was one step later: turning the boundary into four corners. The farthest-point heuristic works fine when the finder is roughly square in the image. Under perspective it doesn’t. The finder becomes a general quadrilateral, the farthest points are not necessarily the corners, and the four points I picked could collapse onto the same acute corner. The mask was clean; the corners were wrong.
 
-{/* Figure: flood-fill-success.gif and flood-fill-failure.gif, side by side. */}
+The two animations below show what that looks like on the same photo. In the first, the fill and the corner picks work. In the second, the mask is still clean, but the corners collapse onto the acute side.
+
+<div class="grid grid-cols-1 gap-3 sm:grid-cols-2">
+	<img
+		src={floodFillSuccess}
+		alt="Flood filling a QR finder pattern succeeds and the four corner picks land on the ring."
+	/>
+	<img
+		src={floodFillFailure}
+		alt="Flood filling a perspective-distorted QR finder pattern succeeds, but the four corner picks collapse onto the acute corners."
+	/>
+</div>
+
+I spent quite a bit of time trying to make this work, but it never reached the recall or precision I wanted. So I dropped it and moved to an approach from the more classical pattern-finding literature.
 
 ## Choosing a triplet
 
