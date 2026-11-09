@@ -77,6 +77,265 @@
 				</section>
 
 				<section>
+					<h2 class="text-lg font-semibold text-stone-100">Algorithm orientation (refresher)</h2>
+					<p class="mt-2 text-stone-400">
+						Short version: the corner finder went through three ideas. The first two are in the
+						history, the third is the current production path. The descriptions below are
+						reconstructed from the current code and the old commits, not from memory.
+					</p>
+
+					<div class="mt-4 space-y-4">
+						<details open class="rounded-lg border border-stone-800 bg-stone-900/40">
+							<summary class="cursor-pointer px-4 py-3 font-medium text-stone-100">
+								1. Flood fill → boundary trace → angular NMS (first attempt, now unused)
+							</summary>
+							<div class="space-y-3 border-t border-stone-800 px-4 py-4 text-sm text-stone-400">
+								<p>
+									This is the binary-image approach. The code still exists in
+									<code>detector/region.py</code> and <code>detector/corner.py</code>, and the old
+									<code>scripts/full-pipeline.py</code> used it per candidate cluster.
+								</p>
+								<ol class="list-decimal space-y-1 pl-5">
+									<li>
+										Start from a candidate cluster. Use its centre and the first dark run of the
+										1:1:3:1:1 scan to seed the outer black ring of the finder.
+									</li>
+									<li>
+										Flood fill the connected dark region with an 8-neighbour wave front
+										(<code>region_fill_wave_front</code>).
+									</li>
+									<li>
+										Take the boundary pixels of that region (<code>region_boundary_8</code>) and
+										split them into connected components with <code>scipy.ndimage.label</code>.
+									</li>
+									<li>
+										For each boundary component: compute its centroid, then radial distance and
+										angle of every boundary pixel. Pick the 4 points with the largest radial
+										distance, suppressing points within 10° of an already picked one
+										(<code>angular_nms_top_radial_indices</code>).
+									</li>
+									<li>Those four points are the finder corners.</li>
+								</ol>
+								<p>
+									The appeal: it is cheap, works on the binary image, and needs no gradients or line
+									fitting. The obvious weak points: it assumes a clean, contiguous dark ring; blur,
+									noise, low contrast or a bad seed can fragment the region or merge it with
+									something else; a connected boundary can have multiple components; and “the four
+									farthest boundary points from the centroid” is only a good corner definition when
+									the ring is clean and fairly square in the image. Under perspective the farthest
+									points are not necessarily the corners.
+								</p>
+								<p class="rounded border border-amber-900 bg-amber-950/40 px-3 py-2 text-amber-200">
+									The repository does not contain a written post-mortem for dropping this approach.
+									The mechanics above are documented; the actual “what broke first” story is yours
+									to rant about.
+								</p>
+							</div>
+						</details>
+
+						<details class="rounded-lg border border-stone-800 bg-stone-900/40">
+							<summary class="cursor-pointer px-4 py-3 font-medium text-stone-100">
+								2. Gradient-guided Hough lines (second attempt, code removed)
+							</summary>
+							<div class="space-y-3 border-t border-stone-800 px-4 py-4 text-sm text-stone-400">
+								<p>
+									This is the one that took the most work and was eventually deleted in commit
+									<code>f5451e8</code>. The old reports are
+									<code>docs/report-hough-bottleneck.md</code> and
+									<code>docs/hough-failure-analysis.md</code>.
+								</p>
+								<ol class="list-decimal space-y-1 pl-5">
+									<li>
+										On a grayscale ROI: Gaussian blur (σ = 1.0) → Sobel <code>Gx, Gy</code> →
+										gradient magnitude → non-maximum suppression along the gradient direction. This
+										is not Canny: there is no hysteresis, only thinned Sobel edges plus a
+										gradient-normal angle per edge pixel.
+									</li>
+									<li>
+										Each edge pixel votes in a <code>(θ, ρ)</code> Hough accumulator, using its
+										gradient angle as the line normal. θ is folded modulo π. Final sweeps used about
+										0.5° × 0.5 px bins and weighted votes by edge strength.
+									</li>
+									<li>
+										Peaks are picked iteratively: take the global maximum, accept it if it is at
+										least 0.15 × the global maximum, suppress a neighbourhood (±5 bins), repeat up
+										to 20 times.
+									</li>
+									<li>
+										Refine each peak into a segment: collect edge pixels within 1.5 px of the line,
+										optionally gate by gradient angle, fit a weighted total-least-squares line,
+										project the support onto it, and keep the longest contiguous run with a small
+										gap tolerance (2–3 px).
+									</li>
+									<li>
+										Intersect the four outer side lines to get the finder corners. The old target
+										was actually all 36 finder edges (12 per finder), with the outer quadrilateral
+										as the practical product.
+									</li>
+								</ol>
+								<p>
+									Why it was abandoned, in the repo's own words: it hit a hard recall ceiling around
+									0.928 because edge-pixel position jitter scatters votes across adjacent ρ bins,
+									leaving the true bin empty. More parameter tuning could not fix that. The failure
+									catalogue names four modes:
+								</p>
+								<ul class="list-disc space-y-1 pl-5">
+									<li>
+										<strong class="text-stone-200">A — span too short:</strong> gap tolerance cannot
+										bridge 3–7 px NMS gaps, so a true edge becomes a fragment.
+									</li>
+									<li>
+										<strong class="text-stone-200">B — phantom in blank:</strong> sparse
+										coincidentally aligned pixels produce a line where no continuous edge exists.
+									</li>
+									<li>
+										<strong class="text-stone-200">C — span too long:</strong> TLS direction drift
+										and the distance threshold capture a parallel module edge 3–5 px away.
+									</li>
+									<li>
+										<strong class="text-stone-200">D — edge missing:</strong> vote dilution and the
+										relative threshold lose weak or fragmented true edges, especially the
+										inward-facing finder edges.
+									</li>
+								</ul>
+								<p>
+									On the v12 default fixture the reported tally was A=2, B=5, C=4, D=2, with 4 of 6
+									ground-truth edges in the ROIs matched within 5° and 5 px.
+								</p>
+							</div>
+						</details>
+
+						<details class="rounded-lg border border-stone-800 bg-stone-900/40">
+							<summary class="cursor-pointer px-4 py-3 font-medium text-stone-100">
+								3. Ray-profile fitting (current production path)
+							</summary>
+							<div class="space-y-3 border-t border-stone-800 px-4 py-4 text-sm text-stone-400">
+								<p>
+									Current entry point: <code>fit_finder_ray</code> in
+									<code>detector/ray_fit.py</code>. Called per candidate cluster from
+									<code>detector/detector.py</code>, with the grayscale ROI, the cluster centre and
+									<code>m_est = cluster_width / 7</code>.
+								</p>
+								<ol class="list-decimal space-y-1 pl-5">
+									<li>
+										<strong class="text-stone-200">Normalize the ROI.</strong> The intensities are
+										mapped to [0, 1] using centre-weighted p10/p90, so the dark/bright split
+										reflects the finder's own contrast rather than the background.
+									</li>
+									<li>
+										<strong class="text-stone-200">Sample 36 half-rays.</strong> From the estimated
+										centre, sample 120 bilinear points along each equally spaced direction, out to
+										half the ROI diagonal.
+									</li>
+									<li>
+										<strong class="text-stone-200">Fit one module pitch per ray.</strong> The finder
+										cross-section is modelled as dark 3-module centre → white 1-module ring → dark
+										1-module ring → white quiet zone, with <code>erfc</code> softened transitions (σ
+										= 1 px). For each ray, grid-search <code>m</code> in
+										<code>[m_est/2, 2·m_est]</code> (50 values) against a masked MSE, then refine
+										the winner with a bounded scalar search. Rays that fail are marked invalid.
+									</li>
+									<li>
+										<strong class="text-stone-200">Turn the fits into boundary points.</strong> Each
+										valid ray contributes one point at <code>3.5·m</code> modules from the centre,
+										i.e. on the finder's outer boundary. This gives 36 points in cyclic order, with
+										NaNs for failed rays.
+									</li>
+									<li>
+										<strong class="text-stone-200">Cluster the points into four sides.</strong>
+										Phase 0 starts with every adjacent point pair as a cluster. Nearby pairs are
+										compared by the TLS degeneracy ratio <code>σ₂/σ₁</code> on their union: points
+										on the same straight edge are near-colinear (low ratio); points on different
+										edges are not. Phase 1 uses single-linkage agglomerative clustering on that
+										distance matrix. Phase 2 keeps the four largest clusters and fits a TLS line to
+										each.
+									</li>
+									<li>
+										<strong class="text-stone-200">Reject non-finders.</strong> The top four
+										clusters must contain at least 50% of all valid boundary points; otherwise the
+										candidate is not a finder and <code>valid=False</code>.
+									</li>
+									<li>
+										<strong class="text-stone-200">Intersect the four lines.</strong> The corners
+										are the pairwise intersections of the left, right, top and bottom lines. The
+										score is the fraction of rays that fitted successfully times
+										<code>1 − mean(σ₂/σ₁)</code>.
+									</li>
+								</ol>
+								<p>
+									There is also an optional projective joint refinement
+									(<code>refine_finder_edges_joint</code>) that models all four sides and the known
+									transition positions together with a Levenberg–Marquardt fit. It exists in the
+									code but is <em>not</em> enabled by the production call:
+									<code>fit_finder_ray</code> defaults to <code>refine_joint=False</code>.
+								</p>
+								<p>
+									Why this is a different bet: it never asks edge pixels to vote into a global
+									<code>(θ, ρ)</code> grid. It uses the known radial structure of the finder, lets
+									each ray estimate its own local module pitch, and then only has to group 36 points
+									into four lines. That handles local scale changes and perspective much better than
+									a single global line-voting step.
+								</p>
+							</div>
+						</details>
+					</div>
+
+					<section class="mt-6">
+						<h3 class="text-base font-semibold text-stone-100">Corner-finding rant prompts</h3>
+						<p class="mt-2 text-stone-400">
+							Things I would like to hear you rant about before I draft this section. Answer
+							whichever ones trigger something; ignore the rest.
+						</p>
+						<ul class="mt-2 list-disc space-y-1 pl-5 text-sm text-stone-400">
+							<li>
+								What did flood fill get wrong first: bad seed, ring leaking into the rest of the
+								code, fragmented boundary, wrong connected component, or corners that were simply
+								not the corners?
+							</li>
+							<li>
+								Was there a specific image or QR version where flood fill looked obviously wrong,
+								and what did it look like?
+							</li>
+							<li>
+								What made you try Hough? Did you expect it to fix the flood-fill failure, or was it
+								a separate idea?
+							</li>
+							<li>
+								Which Hough failure annoyed you most: short segments, phantoms, long segments, or
+								missing inward-facing edges? Is there a concrete example you remember?
+							</li>
+							<li>
+								Did Hough ever produce a beautiful-looking line overlay that still gave bad corners?
+								What was wrong?
+							</li>
+							<li>
+								What did the intermediate 1D orientation/profile approach fix, and why was it still
+								not enough?
+							</li>
+							<li>
+								Why ray profiles in the end? Was it the radial symmetry, the per-ray pitch, the soft
+								template, or just that it finally stopped needing global voting?
+							</li>
+							<li>
+								What does the current ray fit still get wrong? When does it reject a good finder, or
+								accept a bad one?
+							</li>
+							<li>
+								How much does it depend on the cluster centre and <code>m_est</code> being close?
+							</li>
+							<li>
+								Do you want to mention the optional joint refinement, or keep the production path as
+								“four independent TLS lines”?
+							</li>
+							<li>
+								Which part of this story is worth putting in the post, and which part is only useful
+								for us to remember?
+							</li>
+						</ul>
+					</section>
+				</section>
+
+				<section>
 					<h2 class="text-lg font-semibold text-stone-100">Structure</h2>
 					<div class="mt-3 flex flex-wrap gap-2 text-xs">
 						<span
@@ -309,6 +568,12 @@
 							<strong class="text-stone-100">2026-11-09</strong> — Rebased onto
 							<code>origin/main</code>, created this plan from the old inline notes, and fixed the
 							post so it builds again.
+						</li>
+						<li>
+							<strong class="text-stone-100">2026-11-09</strong> — Added the algorithm orientation
+							and corner-finding rant prompts. Reconstructed from current <code>ray_fit.py</code> /
+							<code>edge_fitting.py</code>, the old flood-fill pipeline, and the deleted Hough
+							reports in git history.
 						</li>
 					</ul>
 				</section>
