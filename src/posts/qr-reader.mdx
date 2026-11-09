@@ -6,6 +6,8 @@ teaser: 'qr-reader.jpg'
 excerpt: 'Building a QR code decoder from scratch in Python — the algorithms, the pitfalls, and what I learned along the way.'
 ---
 
+import qrAnatomy from '../assets/blog/qr-reader/qr-anatomy.png?url';
+import qrVersions from '../assets/blog/qr-reader/qr-versions.png?url';
 import floodFillSuccess from '../assets/blog/qr-reader/flood-fill-success.gif?url';
 import floodFillFailure from '../assets/blog/qr-reader/flood-fill-failure.gif?url';
 import rayProfileSignal from '../assets/blog/qr-reader/ray-profile-signal.png?url';
@@ -19,7 +21,10 @@ QR codes are everywhere, and they have been around since the 90s. Detecting and 
 
 The scope of the project is simple: detect a QR code, find its corners, and decode the payload. Before diving in, let's look at a QR code:
 
-{/* insert image of qr code */}
+<img
+	src={qrAnatomy}
+	alt="A QR code with its three finder patterns boxed, plus a zoomed finder showing the 1:1:3:1:1 bands and the 7-module width."
+/>
 
 You may notice the patterns in the top-left, top-right and bottom-left corners. These are the _finder patterns_ of a QR code. They are always present and contain no data themselves; they exist purely to help locate the code. If you draw a horizontal or vertical line through one of these patterns, you always see black, white, black, white, black in a ratio of 1:1:3:1:1. That signature makes the finder patterns relatively easy to spot, and later on we'll see how.
 
@@ -27,7 +32,10 @@ To detect a QR code, you only need to find three things that look like finder pa
 
 There's more to it, though. QR codes come in different sizes, known as _versions_. The smallest is version 1, which is 21×21 dots, up to version 40 at 177×177. In general, version $V$ has $17+4V$ dots on each side. To decode a code you need to know its version. Fortunately, each finder pattern measures $1+1+3+1+1=7$ dots on a side. So if, say, the finder patterns are 70 px on a side and the gap between them is 110 px, then one dot is 10 px and the total side length is $70+110+70 = 250$ px, i.e. 25 dots — which is version 2. This works well for small versions. For larger versions we may only be able to pin the version down to a range like 32–35. In that case we can simply try decoding under each candidate version and move on to the next when one fails. The version is also encoded separately in the QR code itself for version 7 and up, which helps.
 
-{/* Show a diagram with versions and how we can estimate them */}
+<img
+	src={qrVersions}
+	alt="QR versions 1, 2, 5, and 10 with module counts, plus a spacing diagram showing 70 px + 110 px + 70 px = 250 px = 25 modules, which is version 2."
+/>
 
 To decode the code, we do need to know the corners of the three finder patterns fairly precisely. That establishes a correspondence from pixels to the dot grid: if we want to know whether the dot at (4, 10) is black or white, we know which pixels to inspect in the original image. The more precisely we know the location and orientation of the finder patterns, the more reliable this correspondence will be, and the more likely decoding is to succeed.
 
