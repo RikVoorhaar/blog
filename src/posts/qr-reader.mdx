@@ -9,6 +9,7 @@ excerpt: 'Building a QR code decoder from scratch in Python — the algorithms, 
 import qrAnatomy from '../assets/blog/qr-reader/qr-anatomy.png?url';
 import qrVersions from '../assets/blog/qr-reader/qr-versions.png?url';
 import rleScan from '../assets/blog/qr-reader/rle-scan.gif?url';
+import rleNormalization from '../assets/blog/qr-reader/rle-normalization.png?url';
 import candidateClustering from '../assets/blog/qr-reader/candidate-clustering.gif?url';
 import floodFillSuccess from '../assets/blog/qr-reader/flood-fill-success.gif?url';
 import floodFillFailure from '../assets/blog/qr-reader/flood-fill-failure.gif?url';
@@ -68,6 +69,13 @@ But how do you determine $t$? You can't just set it to $t=128$, because some ima
 Now the image is divided in 'dark' (0) and 'light' (1) pixels. One row of the image could look like this 111*001100000001100*1111001, where the bold numbers are a 1:1:3:1:1 pattern. How we detect this pattern? We can use _run length encoding_. We convert the string of 0's and 1's above into a lengths of consecutive 1's or 0's. The string starts with 3x1, then 2x0, etc. so we can write: 3,_2,2,6,2,2_,4,2,1. Now observe that 2:2:6:2:2 is precisely the same set of ratios as 1:1:3:1:1!
 
 The real world is messy, and we might instead have a perfectly valid finder pattern that has RLE 4,5,13,4,5. How do we compare that to 1:1:3:1:1? There are many ways to do this, but a simple way is to just divide by the sum and compare to the ideal, keeping each element within 30% of the ideal. In this case the sum is 31, and the reference 1:1:3:1:1 sums to 7, so can use that to normalize. This transform 4,5,13,4,5 to 0.9,1.1,2.9,0.9,1.2; all withing 30% of 1,1,3,1,1 so we accept this sequence as a potential finder pattern.
+
+The figure below shows a real row through two finder patterns. The left finder is centred on the scanline, so its five runs normalize cleanly. The right finder is off-centre at this row, so its cut is distorted.
+
+<img
+	src={rleNormalization}
+	alt="A real QR photo with a scanline through two finder patterns, the run lengths along that row, and the normalization of the left finder's five runs against 1:1:3:1:1."
+/>
 
 You may think that 30% is a pretty loose threshold, and you'd be right. But there are good reasons for this. First of all, it's easy to throw away false positives later, so we are optimizing for high recall at this point. On the other hand, QR codes can be rotated, blurred, distorted by perspective, etc., so a loose threshold is really necessary in practice. Even then this method is not ideal. Just one rogue pixel can mess everything up. There are ways around that, but it works well enough in practice. It's rather effective for something so cheap and simple!
 
