@@ -473,6 +473,38 @@ colinear_pairs: [(0, 0), (0, 2), (2, 0), (2, 2)]</code></pre>
 									<code>(x, y)</code> in module units to image pixel coordinates
 									<code>(x, y)</code>.
 								</p>
+								<p class="rounded border border-amber-900 bg-amber-950/40 px-3 py-2 text-amber-200">
+									<strong class="text-amber-100">Provenance.</strong> This is not the
+									version-estimation path that came out of the triplet work. The geometric estimate
+									used the three finder module pitches and the three inter-finder distances to
+									compute <code>N_est</code>, then searched only <code>N_legal ± 4</code>. That code
+									is visible at <code>7ecc449</code> and earlier. Commit
+									<code>809aa8d</code> removed it and replaced it with the full
+									<code>21..177</code> search plus the timing score. The timing score first appears
+									in <code>7ecc449</code>, whose message cites quirc's grid-fitness approach. An
+									earlier diagnostic plan
+									(<code>docs/plan-015-baseline/diagnostic_plan.md:117</code>) explicitly said
+									timing-pattern scoring was out of scope because “existing version estimation
+									already works.” So the current design is an agent-introduced change, not something
+									specified in the triplet plan.
+								</p>
+								<p>
+									The tracked benchmark before <code>809aa8d</code> shows why the old estimate may
+									have been abandoned: with the old <code>fit_finder_full</code> module pitch, exact
+									version accuracy among detections was 2/20 for v1, 15/15 for v3, 8/10 for v5, 6/6
+									for v8, 4/9 for v12 and 3/18 for v20. The v1 cases were usually off by one (v2),
+									and v20 was often off by more than one. That benchmark predates the ray fit, so it
+									does not tell us how the current corner-derived module pitch would perform.
+								</p>
+								<p>
+									I checked the old shortcut against the current pipeline. On the captured photos,
+									the three-candidate window around <code>N_est</code> agrees with the full search
+									on 46 of 47 detections. The one disagreement is <code>qr_code_ - 15.jpeg</code>,
+									which does not decode anyway. On the synthetic set, full and narrow differ in 1 of
+									186 detections (a v20 case where <code>N_est</code> is off by six modules). This
+									does not prove the shortcut is universally safe, but it does show the full
+									forty-version search is not necessary for most of the current data.
+								</p>
 								<p>
 									<strong class="text-stone-200">Draft intro.</strong> At this point we have three
 									finder patterns and their four outer corners. That is twelve point
