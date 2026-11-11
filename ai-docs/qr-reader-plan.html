@@ -480,8 +480,8 @@ colinear_pairs: [(0, 0), (0, 2), (2, 0), (2, 2)]</code></pre>
 									sits in the QR grid. A homography is exactly the object that turns one into the
 									other. The only catch is that we do not yet know the QR version, so we do not know
 									how far apart the finder patterns are in grid coordinates. We solve both problems
-									at once: try every legal version, fit a homography for each, and keep the one that
-									best explains the timing pattern.
+									at once: try every legal version, fit a homography for each, and keep the one
+									whose finder geometry and timing pattern agree best.
 								</p>
 								<p>
 									<strong class="text-stone-200">Why a homography.</strong> The QR code is a planar
@@ -546,10 +546,13 @@ BL finder: (0, N-7), (0, N), (7, N), (7, N-7)</code></pre>
 										The loop tries all forty legal sizes
 										<code>N = 21, 25, …, 177</code>. For each it computes the mean reprojection
 										error <code>err</code> and the timing score <code>timing</code>, then minimizes
-										<code>err - timing</code>. In practice the timing score does most of the work
-										because <code>err</code> is usually well below one pixel; the reprojection error
-										is mainly a tie-breaker. This is a heuristic objective, not a calibrated
-										likelihood.
+										<code>err - timing</code>. The units do not match: <code>err</code> is in pixels
+										and <code>timing</code> is in <code>[0, 1]</code>. In practice the reprojection
+										error does most of the work. The 12-point fit includes the three 7-module finder
+										widths, so a wrong <code>N</code> forces the same image corners to be both 7
+										modules wide and the wrong distance apart, which produces a large error. The
+										timing score is a secondary check and is noisy enough to prefer a neighbouring
+										version on its own. This is a heuristic objective, not a calibrated likelihood.
 									</li>
 								</ol>
 								<p>
@@ -561,8 +564,16 @@ BL finder: (0, N-7), (0, N), (7, N), (7, N-7)</code></pre>
 									version information first. The finder corners alone tell us the local scale near
 									the three corners; the timing pattern tells us whether the global scale implied by
 									a particular <code>N</code> is consistent across the code. For a wrong
-									<code>N</code>, the projected row and column land on the wrong modules and the
-									alternation collapses.
+									<code>N</code>, the projected row and column are supposed to land on the wrong
+									modules and collapse the alternation.
+								</p>
+								<p>
+									In practice the timing score is noisy. On a v1 photo it preferred v2, and on a v10
+									photo it preferred v9, while the 12-point reprojection error picked the correct
+									version in both cases. The finder-size consistency is what actually pins the
+									version down; the timing pattern is a sanity check, not the primary estimator.
+									That is worth saying honestly in the post, because the timing-pattern idea sounds
+									cleverer than it turned out to be.
 								</p>
 								<p>
 									<strong class="text-stone-200">Why not RANSAC?</strong>
@@ -627,10 +638,12 @@ BL finder: (0, N-7), (0, N), (7, N), (7, N-7)</code></pre>
 									Figure decision: the obvious figure is the twelve-point correspondence — three
 									finder patterns with their corners marked, the grid coordinates they map to, and
 									the projected QR grid overlaid on the image. A second candidate is the version
-									search: combined score versus candidate version, with the chosen version marked
-									and the timing-pattern row/column shown. A third, more honest figure is the
-									bottom-right drift on a strong-perspective or high-version photo. Decide which of
-									these earn space; the correspondence figure is the one that explains the method.
+									search: reprojection error and timing score versus candidate version, with the
+									chosen version marked. That plot is interesting because it shows the error picking
+									the right version while the timing score prefers a neighbour. A third, more honest
+									figure is the bottom-right drift on a strong-perspective or high-version photo.
+									Decide which of these earn space; the correspondence figure is the one that
+									explains the method.
 								</p>
 							</div>
 						</details>
@@ -746,8 +759,9 @@ BL finder: (0, N-7), (0, N), (7, N), (7, N-7)</code></pre>
 								timing pattern was the useful ruler?
 							</li>
 							<li>
-								Did you expect the timing-pattern score to be enough? Were you surprised that a
-								one-dimensional alternation check could pin down the version across forty sizes?
+								Did you expect the timing-pattern score to be the main signal? Were you surprised
+								that the reprojection error did most of the work instead, and that the timing score
+								often preferred a neighbouring version?
 							</li>
 							<li>
 								The combined score <code>err - timing</code> mixes pixels with a dimensionless
@@ -932,8 +946,22 @@ BL finder: (0, N-7), (0, N), (7, N), (7, N-7)</code></pre>
 							<code>V = 1..40</code>
 							are tried. The timing-pattern score samples row 6 and column 6 from module 8 to
 							<code>N-9</code>, thresholds at the mean and counts bit flips; the final score is
-							<code>mean_reprojection_error - timing_score</code>. The timing term is in
-							<code>[0, 1]</code>, so it usually dominates the pixel error.
+							<code>mean_reprojection_error - timing_score</code>. The units do not match: the error
+							is in pixels and the timing term is in <code>[0, 1]</code>. In practice the
+							reprojection error dominates because a wrong <code>N</code> creates a large scale
+							mismatch at the 7-module finders. The timing score is a noisy secondary check; on a v1
+							photo it preferred v2, and on a v10 photo it preferred v9, while the reprojection
+							error picked the correct version in both cases.
+						</li>
+						<li>
+							Version-score examples from the current code: on <code>qr_code_ - 99.jpeg</code> (v1),
+							the correct <code>N=21</code> has <code>err=1.60 px</code> and
+							<code>timing=0.50</code>; <code>N=25</code> has <code>err=36.3 px</code> and
+							<code>timing=0.625</code>. On <code>qr_code_ - 16.jpeg</code> (v10),
+							<code>N=57</code> has <code>err=0.82 px</code> and <code>timing=0.46</code>;
+							<code>N=53</code> has <code>err=7.53 px</code> and <code>timing=0.92</code>. The
+							reprojection error picks the right version; the timing score does not. Source:
+							temporary score-curve diagnostic, not a committed script.
 						</li>
 						<li>
 							Captured benchmark funnel: 65 → 64 → 49 → 49 → 40 → 40 out of 100 images (candidates,
@@ -950,9 +978,9 @@ BL finder: (0, N-7), (0, N), (7, N), (7, N-7)</code></pre>
 						<li>
 							The current detector does not narrow the version to a range and then try candidates
 							during decoding. It fits a homography for every legal <code>N</code> and picks the
-							best timing-pattern score. The decoder only cross-checks the version information for
-							versions 7 and up, after sampling. The earlier “try a range during decoding” idea is
-							not what the code does now.
+							lowest combined reprojection/timing score. The decoder only cross-checks the version
+							information for versions 7 and up, after sampling. The earlier “try a range during
+							decoding” idea is not what the code does now.
 						</li>
 					</ul>
 				</section>
@@ -1112,8 +1140,9 @@ BL finder: (0, N-7), (0, N), (7, N), (7, N-7)</code></pre>
 						<li>
 							<strong class="text-stone-100">2026-11-11</strong> — Added the homography algorithm
 							reference: twelve finder corners, Hartley-normalized DLT, LM refinement, the full
-							forty-version search scored by the timing pattern, the sampling handoff, and the
-							bottom-right extrapolation limit. Added homography rant prompts and figure options.
+							forty-version search combining reprojection error with a timing-pattern check, the
+							sampling handoff, and the bottom-right extrapolation limit. Added homography rant
+							prompts and figure options.
 						</li>
 					</ul>
 				</section>
