@@ -298,9 +298,8 @@
 									corner-derived geometry in <code>2e53f22</code>.
 								</p>
 								<p class="rounded border border-rose-900 bg-rose-950/40 px-3 py-2 text-rose-200">
-									Post scope: Attempt 1 only. Attempt 2 (centre geometry) is the production path but
-									is omitted from the post for brevity; at most one sentence can note that the final
-									code uses centre geometry.
+									Post scope: Attempt 1 only, in its repaired form. Attempt 2 (centre geometry) is
+									omitted entirely; the post does not claim the final detector uses the edge rule.
 								</p>
 								<p>
 									<strong class="text-stone-200">Draft intro.</strong> Suppose we have found three
@@ -386,17 +385,24 @@ colinear_pairs: [(0, 0), (0, 2), (2, 0), (2, 2)]</code></pre>
 								</p>
 
 								<p>
-									<strong class="text-stone-200"
-										>Why it was abandoned — too many missed triplets.</strong
-									>
-									The local-normalization fix solved the synthetic high-version case, but the method
-									was still too brittle on real images. It missed too many true triplets, and
-									loosening the thresholds only let more false associations through. After the
-									corner fitter changed, the detector tests were 16 failed, 2 passed, all with
-									<code>No finder-pattern triplet found</code>; raising <code>offset_tol</code> to
-									1.20 did not recover it. The problem was the invariant: it assumed the outer edges
-									were accurate enough to line up across the whole code. They were not. No amount of
-									threshold tweaking made that reliable.
+									<strong class="text-stone-200">What the repaired rule actually does.</strong>
+									The local-normalization fix plus best-pairing selection is not a failed method. On
+									the verified captured subset it finds 35/38 correct triplets at
+									<code>offset_tol = 0.30</code>; the three misses are all v20. At <code>0.60</code>
+									it finds 38/38. In the 24-case disagreement analysis, all nine edge-rule misses at
+									0.30 are threshold-only; at 0.62 every one is recovered as the sole triplet with
+									no extra associations. The edge rule also finds and decodes three
+									strong-perspective/rotation triplets (27, 64, 79) that the centre-geometry rule
+									rejects on its axis gate. The remaining failures are mostly upstream: of 12 cases
+									where neither method found a triplet, 10 had bad or incomplete finder candidates;
+									only 2 (41, 74) had a real triplet in the candidate set.
+								</p>
+								<p>
+									Post narrative: the section describes the repaired edge rule as the method, not as
+									an abandoned attempt. It uses the v3_img1 capture for both figures: the ambiguity
+									figure (four candidates, no correct triplet marked) and the edge figure (all
+									finder edges extended, positive collinear pairs highlighted, no labels or
+									caption). The production centre-geometry path is not mentioned.
 								</p>
 								<p class="rounded border border-amber-900 bg-amber-950/40 px-3 py-2 text-amber-200">
 									Do not use the per-finder homography as the reason this approach died. That was a
@@ -1062,6 +1068,16 @@ colinear_pairs: [(0, 0), (0, 2), (2, 0), (2, 2)]</code></pre>
 						<li>
 							Otsu thresholding explainer figure: grayscale histogram with the chosen threshold,
 							plus a before/after binary crop. Not assigned to a beat.
+						</li>
+						<li>
+							Update the QR-reader post's image tags. The ten PNG figures are imported with
+							<code>?url</code> and rendered with plain <code>&lt;img&gt;</code>, which bypasses
+							Astro's image pipeline, so they ship as full-size PNGs instead of WebP. Switch those
+							ten to the optimizing path (Markdown <code>![...]</code> or
+							<code>&lt;Image&gt;</code>) and leave the six GIFs as plain <code>&lt;img&gt;</code>.
+							Why: every other raster figure on the blog already goes through
+							<code>img.astro</code> and is served as WebP; this post is the remaining raw-PNG
+							exception. Do this as a separate follow-up, not in the figure pass.
 						</li>
 					</ul>
 				</section>

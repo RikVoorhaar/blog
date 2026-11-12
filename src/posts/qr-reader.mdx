@@ -20,6 +20,8 @@ import houghFailure from '../assets/blog/qr-reader/hough-failure.png?url';
 import affineSampling from '../assets/blog/qr-reader/affine-sampling.gif?url';
 import tripletAmbiguity from '../assets/blog/qr-reader/triplet-ambiguity.png?url';
 import tripletColinearity from '../assets/blog/qr-reader/triplet-colinearity.png?url';
+import otsuColorGray from '../assets/blog/qr-reader/otsu-color-gray.png?url';
+import otsuThreshold from '../assets/blog/qr-reader/otsu-threshold.gif?url';
 
 QR codes are everywhere, and they have been around since the 90s. Detecting and decoding them should be a simple, straightforward computer vision task, right? At least that's what I thought. I set out to write my own QR code detector and try to come up with an algorithm on my own. It turns out it's not as simple as I thought.
 
@@ -62,9 +64,15 @@ I hope the basic idea and scope of the project are now clear, so let's dive into
 
 ## From pixels to candidates
 
-The finder patterns follow a 1:1:3:1:1 dark-bright-dark-bright-dark pattern. How can you detect that? First you have to know what 'dark' and 'bright' even means in the first place. In a photo, the white part of a QR code is more like light gray plus some random noise. An easy way to do that is by converting the image to pure black and white using a threshold. We can convert the RGB value to grayscale, and then compare the value to a threshold $t$. If the mean RGB value is below $t$, then it's black, above it's white.
+The finder patterns follow a 1:1:3:1:1 dark-bright-dark-bright-dark pattern. How can you detect that? First you have to know what 'dark' and 'bright' even means in the first place. In a photo, the white part of a QR code is more like light gray plus some random noise. An easy way to do that is by converting the image to pure black and white using a threshold. We can convert the RGB value to grayscale, and then compare the value to a threshold $t$. If the mean RGB value is below $t$, then it's black, above it's white. The figure below shows the same crop in color and in grayscale.
 
-But how do you determine $t$? You can't just set it to $t=128$, because some images are bright and some are dark depending on ambient light and camera settings. One way to automatically determine a reasonable threshold is using _Otsu's method_. This converts the pixel intensities of the whole image into a histogram, and then finds the threshold that best separates the image into a bright and dark class (minimizing the intra class variance). It is a relatively simple and very popular thersholding method, and it works well for many images. It does however have two major flaws: the lighting may not be uniform in an image, and therefore you may want a threshold that varies throughout the image. And secondly, can fail to create contiguous black/white regions if there is a lot of noise in the image.
+<img src={otsuColorGray} />
+
+But how do you determine $t$? You can't just set it to $t=128$, because some images are bright and some are dark depending on ambient light and camera settings. One way to automatically determine a reasonable threshold is using _Otsu's method_. This converts the pixel intensities of the whole image into a histogram, and then finds the threshold that best separates the image into a bright and dark class (minimizing the intra class variance). It is a relatively simple and very popular thersholding method, and it works well for many images. The animation below shows the same image at different thresholds.
+
+<img src={otsuThreshold} />
+
+It does however have two major flaws: the lighting may not be uniform in an image, and therefore you may want a threshold that varies throughout the image. And secondly, can fail to create contiguous black/white regions if there is a lot of noise in the image.
 
 Now the image is divided in 'dark' (0) and 'light' (1) pixels. One row of the image could look like this 111*001100000001100*1111001, where the bold numbers are a 1:1:3:1:1 pattern. How we detect this pattern? We can use _run length encoding_. We convert the string of 0's and 1's above into a lengths of consecutive 1's or 0's. The string starts with 3x1, then 2x0, etc. so we can write: 3,_2,2,6,2,2_,4,2,1. Now observe that 2:2:6:2:2 is precisely the same set of ratios as 1:1:3:1:1!
 
@@ -202,31 +210,29 @@ I only used the outer edges for the final geometry. The inner transitions were u
 
 Suppose we have found three finder patterns and their corners. Which one is the top-left, which is the top-right, and which is the bottom-left? We do not assume the QR code is upright — it could be rotated by any angle, including 180°. And if we found more than three candidates, which three belong to the same QR code? We need an algorithm for this, and as with everything else in this project, it is trickier than it appears at first glance.
 
-<img
-	src={tripletAmbiguity}
-	alt="Four candidate finder patterns outlined on an upside-down version-5 QR code, with no correct triplet marked."
-/>
+<div class="mx-auto max-w-xl">
+	<img
+		src={tripletAmbiguity}
+		alt="Four candidate finder patterns outlined on a version-3 QR code, with no correct triplet marked."
+	/>
+</div>
 
-### The first attempt: colinear edges
+### Matching the outer edges
 
-Each finder gives four outer edges. For two finders next to each other in the QR grid, two pairs of edges should lie on the same line. So:
+Each finder has four outer edges. If two finders sit next to each other in the QR grid, two of their edges should lie on the same line. So for every pair of finders, we compare their four edges. We don’t know which edge is which, so we try both one-to-one pairings of the opposite edges and keep the best match. If two pairs line up, the finders are associated.
 
-- compare all four edges of one finder with all four of the other;
-- keep pairs that are parallel and close enough;
-- associate the finders if exactly two pairs pass.
+<div class="mx-auto max-w-2xl">
+	<img
+		src={tripletColinearity}
+		alt="Three finder patterns with all outer edges extended as thin lines and the pairs of collinear edges along the two legs of the L highlighted."
+	/>
+</div>
 
-Then find an L-shape in the association graph: a finder connected to two neighbours that are not connected to each other, with the two connections using different edges. That finder is the corner of the L; the cross product of the centre-to-centre vectors assigns top-right and bottom-left.
+The three finders of a QR form an L. One finder is connected to the other two, and those two are not connected to each other. The finder at the corner of the L is the top-left finder.
 
-The catch is that we do not know which edge is which. Corner order is arbitrary and the code can be rotated, so the algorithm tries all pairings. That works, but it also lets wrong parallels through.
+That leaves the top-right and bottom-left. Call the two remaining finders A and B. Take the vectors from the top-left finder to A and B. If the cross product `(A − TL) × (B − TL)` is positive, A is the top-right and B is the bottom-left; if it is negative, swap them. That’s the orientation.
 
-<img
-	src={tripletColinearity}
-	alt="Outer edges of two adjacent finders extended as lines, with two true collinear pairs in green and a false cross-pair in red, plus a zoom showing the 7-module offset."
-/>
-
-The threshold was the problem. I normalized the offset by the distance between finders. As the version goes up, the finders stay 7 modules wide while the distance between them grows, so the score for a wrong pair — one finder’s top edge against the other’s bottom edge — keeps shrinking. Eventually it passes, the true pair produces four matches instead of two, and the “exactly two” rule throws it out. Short edges make it worse: fewer pixels, noisier angles, more accidental parallels.
-
-Normalizing by the local edge length fixed that particular failure, but it didn’t save the approach. On real images it still missed too many true triplets, and loosening the thresholds just let more false ones through. I tried a bunch of tweaks and none of them made it reliable. The underlying problem was that the whole thing assumed the outer edges would line up accurately across the code, and they just didn’t. So I stopped trying to match edges and started looking at the centres instead.
+And that’s the triplet.
 
 ## Estimating the homography
 
