@@ -80,10 +80,11 @@
 					<h2 class="text-lg font-semibold text-stone-100">Algorithm orientation (refresher)</h2>
 					<p class="mt-2 text-stone-400">
 						Short version: the corner finder went through three ideas. The first two are in the
-						history, the third is the current production path. Choosing the triplet is a separate
-						story with two genuinely different algorithms: pairwise edge colinearity, then centre
-						geometry. The descriptions below are reconstructed from the current code and the old
-						commits, not from memory.
+						history, the third is the current production path. Choosing the triplet is one story;
+						the post covers attempt 1 only and omits attempt 2 for brevity. After the triplet, the
+						post covers cross-ratio version ranking, homography, sampling, a short decoder handoff,
+						and the outro. The descriptions below are reconstructed from the current code and the
+						old commits, not from memory.
 					</p>
 
 					<div class="mt-4 space-y-4">
@@ -286,7 +287,7 @@
 
 						<details open class="rounded-lg border border-stone-800 bg-stone-900/40">
 							<summary class="cursor-pointer px-4 py-3 font-medium text-stone-100">
-								4. Choosing the triplet: edge colinearity → centre geometry
+								4. Choosing a triplet: edge colinearity (post: attempt 1 only)
 							</summary>
 							<div class="space-y-3 border-t border-stone-800 px-4 py-4 text-sm text-stone-400">
 								<p>
@@ -295,6 +296,11 @@
 									<code>detector/detector.py</code> after ray fitting and deduplication. It replaced
 									the pairwise-association route in <code>d7ec775</code> and was simplified to
 									corner-derived geometry in <code>2e53f22</code>.
+								</p>
+								<p class="rounded border border-rose-900 bg-rose-950/40 px-3 py-2 text-rose-200">
+									Post scope: Attempt 1 only. Attempt 2 (centre geometry) is the production path but
+									is omitted from the post for brevity; at most one sentence can note that the final
+									code uses centre geometry.
 								</p>
 								<p>
 									<strong class="text-stone-200">Draft intro.</strong> Suppose we have found three
@@ -460,222 +466,151 @@ colinear_pairs: [(0, 0), (0, 2), (2, 0), (2, 2)]</code></pre>
 							</div>
 						</details>
 
-						<details class="rounded-lg border border-stone-800 bg-stone-900/40">
+						<details open class="rounded-lg border border-stone-800 bg-stone-900/40">
 							<summary class="cursor-pointer px-4 py-3 font-medium text-stone-100">
-								5. Estimating the homography (current production path)
+								5. Cross-ratio version ranking
 							</summary>
 							<div class="space-y-3 border-t border-stone-800 px-4 py-4 text-sm text-stone-400">
 								<p>
-									Current entry point: <code>_run_detection</code> in
-									<code>detector/detector.py</code>, with the geometry in
-									<code>detector/homography.py</code> and the sampler in
-									<code>detector/sample.py</code>. The homography maps QR-grid coordinates
-									<code>(x, y)</code> in module units to image pixel coordinates
-									<code>(x, y)</code>.
+									Current entry point: <code>_rank_triplets</code> in
+									<code>detector/detector.py</code>, using <code>detector/landmarks.py</code> and
+									<code>detector/version.py</code>. The post should explain why version comes before
+									homography: the twelve grid coordinates depend on it.
+								</p>
+								<p>
+									<strong class="text-stone-200">Landmarks.</strong> The three finder patterns give
+									six named corner sets: A/B for the top-left outer/inner square, C/D for the
+									top-right, E/F for the bottom-left. The current ray fit only produces outer
+									corners, so the production path uses A, C and E; B, D and F are optional.
+								</p>
+								<p>
+									<strong class="text-stone-200">Colinear quadruples.</strong> Four points on the
+									same QR edge stay colinear under perspective. The useful sets are the left and top
+									edges of the finder triangle: A0-A1-E0-E1, A3-A2-E3-E2, A0-A3-C0-C3 and
+									A1-A2-C1-C2, plus the inner equivalents when B/D/F exist.
+								</p>
+								<p>
+									<strong class="text-stone-200">Cross-ratio.</strong> For four ordered points on a
+									line, the cross-ratio is <code>r = (u2-u0)(u3-u1) / ((u3-u0)(u2-u1))</code>. It is
+									projective-invariant, so the measured value does not care about the camera pose.
+									For a candidate <code>N</code>, the outer expected positions are
+									<code>0, 7, N-7, N</code>; the inner expected positions are
+									<code>1, 6, N-6, N-1</code>.
+								</p>
+								<p>
+									<strong class="text-stone-200">Scoring.</strong> Each filtered constraint
+									contributes <code>|log(r_measured / r_expected)|</code>. The version score is the
+									median error over constraints; lower is better.
+									<code>estimate_version</code> scores every V from 1 to 40, and
+									<code>_rank_triplets</code> sorts the triplets by their best score.
+								</p>
+								<p>
+									<strong class="text-stone-200">Version evidence.</strong> On
+									<code>qr_code_ - 99.jpeg</code> (v1) the best score is 0.0045 and the runner-up is
+									0.1192 (v2). On <code>qr_code_ - 16.jpeg</code> (v10) it is 0.0003 versus 0.0025
+									(v11). On <code>qr_code_ - 35.jpeg</code>
+									(v20) it is 0.0002 versus 0.0004 (v21).
 								</p>
 								<p class="rounded border border-amber-900 bg-amber-950/40 px-3 py-2 text-amber-200">
-									<strong class="text-amber-100">Provenance.</strong> This is not the
-									version-estimation path that came out of the triplet work. The geometric estimate
-									used the three finder module pitches and the three inter-finder distances to
-									compute <code>N_est</code>, then searched only <code>N_legal ± 4</code>. That code
-									is visible at <code>7ecc449</code> and earlier. Commit
-									<code>809aa8d</code> removed it and replaced it with the full
-									<code>21..177</code> search plus the timing score. The timing score first appears
-									in <code>7ecc449</code>, whose message cites quirc's grid-fitness approach. An
-									earlier diagnostic plan
-									(<code>docs/plan-015-baseline/diagnostic_plan.md:117</code>) explicitly said
-									timing-pattern scoring was out of scope because “existing version estimation
-									already works.” So the current design is an agent-introduced change, not something
-									specified in the triplet plan.
+									No fallback. Empty constraints, all-filtered constraints or all non-finite scores
+									raise <code>ValueError</code>. Those are landmark bugs, not runtime conditions to
+									hide.
 								</p>
 								<p>
-									The tracked benchmark before <code>809aa8d</code> shows why the old estimate may
-									have been abandoned: with the old <code>fit_finder_full</code> module pitch, exact
-									version accuracy among detections was 2/20 for v1, 15/15 for v3, 8/10 for v5, 6/6
-									for v8, 4/9 for v12 and 3/18 for v20. The v1 cases were usually off by one (v2),
-									and v20 was often off by more than one. That benchmark predates the ray fit, so it
-									does not tell us how the current corner-derived module pitch would perform.
+									<strong class="text-stone-200">Limitation.</strong> A false triplet can still
+									produce a plausible cross-ratio score. The version ranking is a cheap prior, not
+									proof; decode success is the final filter.
+								</p>
+							</div>
+						</details>
+
+						<details open class="rounded-lg border border-stone-800 bg-stone-900/40">
+							<summary class="cursor-pointer px-4 py-3 font-medium text-stone-100">
+								6. Estimating the homography
+							</summary>
+							<div class="space-y-3 border-t border-stone-800 px-4 py-4 text-sm text-stone-400">
+								<p>
+									Current entry point: <code>_fit_candidate_homography</code> in
+									<code>detector/detector.py</code>. It fits one homography for one
+									<code>(triplet, version)</code> candidate.
 								</p>
 								<p>
-									I checked the old shortcut against the current pipeline. On the captured photos,
-									the three-candidate window around <code>N_est</code> agrees with the full search
-									on 46 of 47 detections. The one disagreement is <code>qr_code_ - 15.jpeg</code>,
-									which does not decode anyway. On the synthetic set, full and narrow differ in 1 of
-									186 detections (a v20 case where <code>N_est</code> is off by six modules). This
-									does not prove the shortcut is universally safe, but it does show the full
-									forty-version search is not necessary for most of the current data.
+									<strong class="text-stone-200">Twelve correspondences.</strong> Each finder
+									contributes four outer corners. For a candidate module count <code>N</code>, the
+									TL finder maps to <code>(0,0)…(7,7)</code>, the TR finder to
+									<code>(N-7,0)…(N,7)</code>, and the BL finder to <code>(0,N-7)…(7,N)</code>.
 								</p>
 								<p>
-									<strong class="text-stone-200">Draft intro.</strong> At this point we have three
-									finder patterns and their four outer corners. That is twelve point
-									correspondences: we know where each corner sits in the image, and we know where it
-									sits in the QR grid. A homography is exactly the object that turns one into the
-									other. The only catch is that we do not yet know the QR version, so we do not know
-									how far apart the finder patterns are in grid coordinates. We solve both problems
-									at once: try every legal version, fit a homography for each, and keep the one
-									whose finder geometry and timing pattern agree best.
+									<strong class="text-stone-200">Canonical corner order.</strong> The ray fit
+									returns corners in arbitrary order. <code>_canonicalize_corners</code>
+									projects each finder's corners onto the triplet's right/down axes and assigns TL,
+									TR, BR, BL. Without this the correspondences are scrambled.
 								</p>
 								<p>
-									<strong class="text-stone-200">Why a homography.</strong> The QR code is a planar
-									grid viewed by a camera, so the mapping from grid to image is a projective
-									transformation. A homography has eight degrees of freedom (the 3×3 matrix is
-									defined up to scale), so four point correspondences are enough in principle. We
-									have twelve, which gives redundancy and lets us average out corner noise.
+									<strong class="text-stone-200">DLT + LM.</strong> Normalise both point sets
+									(centroid at the origin, mean distance √2), build the <code>2n×9</code> system,
+									take the null vector by SVD, undo the normalisation and scale so
+									<code>H[2,2]=1</code>. Then refine the eight free parameters with
+									Levenberg–Marquardt on the reprojection error.
 								</p>
 								<p>
-									<strong class="text-stone-200">The twelve correspondences.</strong>
-									For a candidate module count <code>N = 17 + 4V</code>, the three finder patterns
-									occupy known blocks of the grid:
-								</p>
-								<pre
-									class="overflow-x-auto rounded border border-stone-800 bg-stone-950 p-3 text-xs text-stone-300"
-								><code>TL finder: (0, 0), (7, 0), (7, 7), (0, 7)
-TR finder: (N-7, 0), (N, 0), (N, 7), (N-7, 7)
-BL finder: (0, N-7), (0, N), (7, N), (7, N-7)</code></pre>
-								<p>
-									The corner order from the ray fit is arbitrary, so
-									<code>_canonicalize_corners</code> first sorts each finder's four corners into TL,
-									TR, BR, BL using the global axes defined by the triplet centres (top-left →
-									top-right, top-left → bottom-left). Without that step the correspondences would be
-									scrambled.
-								</p>
-								<ol class="list-decimal space-y-1 pl-5">
-									<li>
-										<strong class="text-stone-200">Normalize the points.</strong>
-										DLT is numerically unhappy when the two coordinate systems have very different
-										scales (module units versus thousands of pixels). Both point sets are translated
-										so their centroid is at the origin and scaled so their mean distance from the
-										origin is
-										<code>√2</code> (Hartley normalization).
-									</li>
-									<li>
-										<strong class="text-stone-200">Solve the linear system.</strong>
-										Each correspondence gives two rows of a <code>2n × 9</code> matrix
-										<code>A</code>. The homography is the null vector of <code>A</code>, found as
-										the last row of <code>Vᵀ</code> in an SVD. Undo the two normalization transforms
-										and scale so <code>H[2, 2] = 1</code>.
-									</li>
-									<li>
-										<strong class="text-stone-200">Refine with Levenberg–Marquardt.</strong>
-										The DLT solution minimizes an algebraic error, not the reprojection error we
-										actually care about.
-										<code>refine_homography_lm</code> optimizes the eight free parameters directly
-										against the mean squared distance between the projected grid corners and the
-										measured image corners, using <code>scipy.optimize.least_squares</code> with
-										<code>method="lm"</code>, an analytical Jacobian and a linear loss.
-									</li>
-									<li>
-										<strong class="text-stone-200">Score the timing pattern.</strong>
-										For each candidate <code>N</code>, project grid row 6 and grid column 6 (the
-										timing patterns, modules 8 through <code>N-9</code>) into the image, sample the
-										grayscale, threshold at the mean, and count how often the sampled bits
-										alternate. A correct scale gives a clean alternation; a wrong scale smears the
-										pattern. The score is the fraction of possible alternations, in
-										<code>[0, 1]</code>.
-									</li>
-									<li>
-										<strong class="text-stone-200">Pick the version.</strong>
-										The loop tries all forty legal sizes
-										<code>N = 21, 25, …, 177</code>. For each it computes the mean reprojection
-										error <code>err</code> and the timing score <code>timing</code>, then minimizes
-										<code>err - timing</code>. The units do not match: <code>err</code> is in pixels
-										and <code>timing</code> is in <code>[0, 1]</code>. In practice the reprojection
-										error does most of the work. The 12-point fit includes the three 7-module finder
-										widths, so a wrong <code>N</code> forces the same image corners to be both 7
-										modules wide and the wrong distance apart, which produces a large error. The
-										timing score is a secondary check and is noisy enough to prefer a neighbouring
-										version on its own. This is a heuristic objective, not a calibrated likelihood.
-									</li>
-								</ol>
-								<p>
-									<strong class="text-stone-200"
-										>Why the timing pattern is the version check.</strong
-									>
-									The timing pattern is a ruler that runs between the finder patterns and alternates
-									every module. It is present in every QR version and does not require reading the
-									version information first. The finder corners alone tell us the local scale near
-									the three corners; the timing pattern tells us whether the global scale implied by
-									a particular <code>N</code> is consistent across the code. For a wrong
-									<code>N</code>, the projected row and column are supposed to land on the wrong
-									modules and collapse the alternation.
+									<strong class="text-stone-200">Bounded candidates.</strong> The pipeline fits a
+									homography only for the cross-ratio-ranked versions it is going to try, not for
+									all forty versions.
 								</p>
 								<p>
-									In practice the timing score is noisy. On a v1 photo it preferred v2, and on a v10
-									photo it preferred v9, while the 12-point reprojection error picked the correct
-									version in both cases. The finder-size consistency is what actually pins the
-									version down; the timing pattern is a sanity check, not the primary estimator.
-									That is worth saying honestly in the post, because the timing-pattern idea sounds
-									cleverer than it turned out to be.
+									<strong class="text-stone-200">Limitation.</strong> The homography is exact at the
+									three finders and extrapolated at the bottom-right. Alignment patterns would
+									constrain that corner, but they are left out.
+								</p>
+							</div>
+						</details>
+
+						<details open class="rounded-lg border border-stone-800 bg-stone-900/40">
+							<summary class="cursor-pointer px-4 py-3 font-medium text-stone-100">
+								7. Sampling the grid
+							</summary>
+							<div class="space-y-3 border-t border-stone-800 px-4 py-4 text-sm text-stone-400">
+								<p>
+									Current entry point: <code>sample_qr_bits</code> in
+									<code>detector/sample.py</code>.
 								</p>
 								<p>
-									<strong class="text-stone-200">Why not RANSAC?</strong>
-									<code>ransac_homography</code> exists in the module, but the production path does
-									not use it. The twelve corners have already been filtered by the finder fitter and
-									the triplet gate; there are no gross outliers left to reject. Plain DLT plus LM is
-									enough, and it is simpler to reason about. RANSAC was useful while the corner
-									fitter was noisier, but it is not part of the current pipeline.
+									<strong class="text-stone-200">Threshold.</strong> The sampler knows which
+									finder-pattern modules must be dark or light. It samples their centres, takes the
+									median dark and median light values, and uses the midpoint as the black/white
+									threshold. This adapts to the local exposure instead of reusing the global Otsu
+									threshold.
 								</p>
 								<p>
-									<strong class="text-stone-200">Handoff to sampling.</strong>
-									Once we have <code>H</code> and <code>N</code>,
-									<code>sample_qr_bits</code> projects every module centre through <code>H</code>,
-									samples a 3×3 neighbourhood per module, and takes a weighted majority vote (centre
-									weight 2, surrounding weight 1). The black/white threshold is calibrated from the
-									known finder-pattern cells: the midpoint between the median dark and median light
-									values. So the homography does not have to be perfect everywhere; the sampler only
-									needs the projected module centre to land inside the right module.
+									<strong class="text-stone-200">Per-module vote.</strong> For each module, project
+									nine sub-cell positions (offsets 0.25, 0.5, 0.75 in each direction), sample them
+									bilinearly, and take a weighted majority: centre weight 2, surrounding weight 1,
+									threshold 5 of 10 white votes. The result is transposed so the decoder can index
+									<code>bits[col, row]</code> with <code>True</code> = dark.
 								</p>
 								<p>
-									<strong class="text-stone-200">Tradeoffs and current limits.</strong>
-									The twelve points all sit in three corners of the code. The bottom-right corner is
-									never observed directly; it is extrapolated by the homography. Under strong
-									perspective or at high versions, the extrapolated grid can drift, and sampling
-									errors concentrate in the bottom-right. This is exactly the job the alignment
-									patterns would do, and we skipped them. The timing score only checks two lines
-									(row 6 and column 6), not the bottom-right corner, so a slightly wrong
-									<code>N</code> can still score well on a small code. The version information in
-									the QR symbol (versions 7 and up) is read by the decoder as a cross-check, not by
-									the detector to choose <code>N</code>; if <code>N</code> is wrong, the sampled
-									matrix is already the wrong size.
+									<strong class="text-stone-200">Cost.</strong> Sampling is the expensive step,
+									especially at high versions. The pipeline therefore bounds the number of
+									<code>(triplet, version)</code> attempts before sampling.
+								</p>
+							</div>
+						</details>
+
+						<details open class="rounded-lg border border-stone-800 bg-stone-900/40">
+							<summary class="cursor-pointer px-4 py-3 font-medium text-stone-100">
+								8. Decoding the payload (short)
+							</summary>
+							<div class="space-y-3 border-t border-stone-800 px-4 py-4 text-sm text-stone-400">
+								<p>
+									The decoder is 100% agentically coded and is out of scope for a detailed blog
+									explanation. Keep this section to one or two paragraphs.
 								</p>
 								<p>
-									One implementation quirk worth remembering: the timing score samples integer grid
-									coordinates (module boundaries) rather than module centres. It still produces a
-									usable relative score because the pattern alternates, but it is not a calibrated
-									measurement. If this stage is ever revisited, sampling at
-									<code>(x + 0.5, 6.5)</code>
-									would be the natural fix.
-								</p>
-								<p>
-									<strong class="text-stone-200">Benchmark evidence.</strong>
-									On the 100 captured photos, 49 images reach a valid triplet and all 49 also
-									produce a homography and a version. The funnel then drops to 40 decodable and 40
-									correct payloads. So homography estimation is not the stage that loses most images
-									in the current benchmark; the bottleneck is earlier (triplet finding) and the
-									remaining losses are sampling/decoder failures. Two of the nine decode failures
-									are version mismatches, which can mean a wrong <code>N</code> or a corrupted
-									version-info region; that is a useful reminder that the version search is a
-									heuristic, not a guarantee.
-								</p>
-								<p class="rounded border border-amber-900 bg-amber-950/40 px-3 py-2 text-amber-200">
-									Do not blame the homography for the triplet stage's failures. The pipeline takes
-									<code>raw_triplets[0]</code>, the first valid triplet, not the best-scoring one.
-									If that triplet is wrong, the homography is fit to the wrong three finders and can
-									still report success with a plausible version. That is a triplet-selection
-									problem, not a DLT problem.
-								</p>
-								<p
-									class="rounded border border-emerald-900 bg-emerald-950/40 px-3 py-2 text-emerald-200"
-								>
-									Figure decision: the obvious figure is the twelve-point correspondence — three
-									finder patterns with their corners marked, the grid coordinates they map to, and
-									the projected QR grid overlaid on the image. A second candidate is the version
-									search: reprojection error and timing score versus candidate version, with the
-									chosen version marked. That plot is interesting because it shows the error picking
-									the right version while the timing score prefers a neighbour. A third, more honest
-									figure is the bottom-right drift on a strong-perspective or high-version photo.
-									Decide which of these earn space; the correspondence figure is the one that
-									explains the method.
+									The handoff is: read the format information (ECL + mask), cross-check the version
+									information for v≥7, unmask and zigzag-extract the codewords, de-interleave into
+									data/EC blocks, run Reed–Solomon correction, then decode the bitstream to text.
+									Decode success is the final filter for the candidate attempts.
 								</p>
 							</div>
 						</details>
@@ -775,7 +710,9 @@ BL finder: (0, N-7), (0, N), (7, N), (7, N-7)</code></pre>
 					</section>
 
 					<section class="mt-6">
-						<h3 class="text-base font-semibold text-stone-100">Homography rant prompts</h3>
+						<h3 class="text-base font-semibold text-stone-100">
+							Version-ranking, homography and sampling rant prompts
+						</h3>
 						<p class="mt-2 text-stone-400">
 							Things I would like to hear you rant about before I draft this section. Answer
 							whichever ones trigger something; ignore the rest.
@@ -786,19 +723,20 @@ BL finder: (0, N-7), (0, N), (7, N), (7, N-7)</code></pre>
 								that just because the earlier stages had already done the hard work?
 							</li>
 							<li>
-								Do you remember how you first estimated the version? Was the timing pattern the
-								first idea, or did you start with something else and only later discover that the
-								timing pattern was the useful ruler?
+								Do you remember the cross-ratio idea? Why did it appeal — the projective invariance,
+								the fact that it needs only colinear points, or something else?
 							</li>
 							<li>
-								Did you expect the timing-pattern score to be the main signal? Were you surprised
-								that the reprojection error did most of the work instead, and that the timing score
-								often preferred a neighbouring version?
+								Were you surprised that the cross-ratio ranking separated the correct version so
+								cleanly, or did you expect that from the start?
 							</li>
 							<li>
-								The combined score <code>err - timing</code> mixes pixels with a dimensionless
-								fraction. Was that a quick hack that happened to work, or did you think about it
-								more carefully?
+								Was the multi-triplet loop something you wanted earlier, or did the first-triplet
+								shortcut feel acceptable at the time?
+							</li>
+							<li>
+								Was sampling ever the bottleneck? Did the 3×3 vote and the finder-calibrated
+								threshold matter, or was it mostly plumbing?
 							</li>
 							<li>
 								Did the bottom-right drift show up in practice? Do you remember a specific photo
@@ -897,11 +835,14 @@ BL finder: (0, N-7), (0, N), (7, N), (7, N-7)</code></pre>
 									</td>
 								</tr>
 								<tr>
-									<td class="px-4 py-3 font-medium text-stone-100">4. Choosing a triplet</td>
+									<td class="px-4 py-3 font-medium text-stone-100">
+										4. Choosing a triplet (attempt 1 only)
+									</td>
 									<td class="px-4 py-3 text-stone-400">
 										Intro and Attempt 1 drafted. Attempt 1 covers the edge-pairing method, the
 										high-version offset-normalization failure, and the brittleness on real images.
-										Attempt 2 (centre geometry) still needs prose.
+										Attempt 2 is omitted from the post for brevity; one sentence can note that the
+										final code uses centre geometry.
 									</td>
 									<td class="px-4 py-3">
 										<span
@@ -911,11 +852,14 @@ BL finder: (0, N-7), (0, N), (7, N), (7, N-7)</code></pre>
 									</td>
 								</tr>
 								<tr>
-									<td class="px-4 py-3 font-medium text-stone-100">5. Estimating the homography</td>
+									<td class="px-4 py-3 font-medium text-stone-100">
+										5. Cross-ratio version ranking
+									</td>
 									<td class="px-4 py-3 text-stone-400">
-										Algorithm reference added: twelve finder corners, normalized DLT, LM refinement,
-										full N search with timing-pattern scoring, and the bottom-right extrapolation
-										limit. Prose, figures and user rants still to do.
+										Why version comes first, landmarks A–F, colinear quadruples, the cross-ratio
+										formula, expected ratios per <code>N</code>, median log-error scoring, and
+										triplet ranking. No fallback: empty constraints raise. Algorithm reference
+										added; prose and figure not drafted.
 									</td>
 									<td class="px-4 py-3">
 										<span
@@ -925,7 +869,53 @@ BL finder: (0, N-7), (0, N), (7, N), (7, N-7)</code></pre>
 									</td>
 								</tr>
 								<tr>
-									<td class="px-4 py-3 font-medium text-stone-100">6. What worked, what did not</td>
+									<td class="px-4 py-3 font-medium text-stone-100">6. Estimating the homography</td>
+									<td class="px-4 py-3 text-stone-400">
+										Twelve finder corners, canonical corner order, Hartley-normalised DLT, LM
+										refinement, bounded candidate versions, bottom-right extrapolation. Algorithm
+										reference added; prose and figure not drafted.
+									</td>
+									<td class="px-4 py-3">
+										<span
+											class="inline-flex rounded-full bg-blue-950 px-2.5 py-0.5 text-xs font-medium text-blue-300 ring-1 ring-inset ring-blue-900"
+											>in progress</span
+										>
+									</td>
+								</tr>
+								<tr>
+									<td class="px-4 py-3 font-medium text-stone-100">7. Sampling the grid</td>
+									<td class="px-4 py-3 text-stone-400">
+										Adaptive threshold from known finder cells, 3×3 sub-cell sampling, weighted
+										majority vote, transpose for the decoder. Algorithm reference added; prose and
+										figure not drafted.
+									</td>
+									<td class="px-4 py-3">
+										<span
+											class="inline-flex rounded-full bg-blue-950 px-2.5 py-0.5 text-xs font-medium text-blue-300 ring-1 ring-inset ring-blue-900"
+											>in progress</span
+										>
+									</td>
+								</tr>
+								<tr>
+									<td class="px-4 py-3 font-medium text-stone-100">
+										8. Decoding the payload (short)
+									</td>
+									<td class="px-4 py-3 text-stone-400">
+										Agentically coded and out of scope. One or two paragraphs: format info, version
+										info cross-check, codewords, de-interleaving, Reed–Solomon, bitstream. Decode
+										success is the final candidate filter.
+									</td>
+									<td class="px-4 py-3">
+										<span
+											class="inline-flex rounded-full bg-slate-900 px-2.5 py-0.5 text-xs font-medium text-slate-300 ring-1 ring-inset ring-slate-700"
+											>not started</span
+										>
+									</td>
+								</tr>
+								<tr>
+									<td class="px-4 py-3 font-medium text-stone-100">
+										9. What worked, what did not / outro
+									</td>
 									<td class="px-4 py-3 text-stone-400">
 										Captured benchmark funnel, representative success and failure images,
 										limitations, agentic-development reflection, forward-looking close. Empty apart
@@ -974,33 +964,31 @@ BL finder: (0, N-7), (0, N), (7, N), (7, N-7)</code></pre>
 							by SVD after Hartley normalization, then refined by LM on reprojection error.
 						</li>
 						<li>
-							Version search: all forty legal sizes <code>N = 17 + 4V</code> for
-							<code>V = 1..40</code>
-							are tried. The timing-pattern score samples row 6 and column 6 from module 8 to
-							<code>N-9</code>, thresholds at the mean and counts bit flips; the final score is
-							<code>mean_reprojection_error - timing_score</code>. The units do not match: the error
-							is in pixels and the timing term is in <code>[0, 1]</code>. In practice the
-							reprojection error dominates because a wrong <code>N</code> creates a large scale
-							mismatch at the 7-module finders. The timing score is a noisy secondary check; on a v1
-							photo it preferred v2, and on a v10 photo it preferred v9, while the reprojection
-							error picked the correct version in both cases.
+							Cross-ratio version ranking: <code>build_named_landmarks</code> builds A–F from the
+							triplet; <code>get_colinear_quadruples</code> gives four outer quadruples;
+							<code>estimate_version</code> scores every V by median
+							<code>|log(r_measured / r_expected)|</code>. Outer expected positions are
+							<code>0, 7, N-7, N</code>; inner positions are <code>1, 6, N-6, N-1</code>. The
+							current ray fit has outer corners only, so four constraints are available.
 						</li>
 						<li>
-							Version-score examples from the current code: on <code>qr_code_ - 99.jpeg</code> (v1),
-							the correct <code>N=21</code> has <code>err=1.60 px</code> and
-							<code>timing=0.50</code>; <code>N=25</code> has <code>err=36.3 px</code> and
-							<code>timing=0.625</code>. On <code>qr_code_ - 16.jpeg</code> (v10),
-							<code>N=57</code> has <code>err=0.82 px</code> and <code>timing=0.46</code>;
-							<code>N=53</code> has <code>err=7.53 px</code> and <code>timing=0.92</code>. The
-							reprojection error picks the right version; the timing score does not. Source:
-							temporary score-curve diagnostic, not a committed script.
+							Cross-ratio examples: on <code>qr_code_ - 99.jpeg</code> (v1) the best score is 0.0045
+							and the runner-up is 0.1192 (v2); on <code>qr_code_ - 16.jpeg</code> (v10) it is
+							0.0003 versus 0.0025 (v11); on <code>qr_code_ - 35.jpeg</code> (v20) it is 0.0002
+							versus 0.0004 (v21).
 						</li>
 						<li>
-							Captured benchmark funnel: 65 → 64 → 49 → 49 → 40 → 40 out of 100 images (candidates,
-							finders, triplets, homography/version, decodable, correct payload). Source:
-							<code>benchmark_captured.json</code>. The homography stage itself loses none of the 49
-							triplets; the remaining nine failures are sampling/decoder failures, including two
-							version-mismatch errors.
+							Current pipeline: <code>_rank_triplets</code> computes the cross-ratio ranking for
+							every triplet and sorts triplets by best score.
+							<code>pipeline.decode_image</code> tries up to 5 triplets × 2 versions within a 15 s
+							budget. Empty constraints, all-filtered constraints or all non-finite scores raise
+							<code>ValueError</code>; there is no fallback.
+						</li>
+						<li>
+							Captured benchmark baseline before multi-triplet decode: 65 → 64 → 49 → 49 → 40 → 40
+							out of 100 images (candidates, finders, triplets, homography/version, decodable,
+							correct payload). Source: <code>benchmark_captured.json</code>. Rerun after the
+							pipeline change before quoting.
 						</li>
 						<li>
 							Synthetic benchmark: <code>benchmark_current.json</code> has 180 cases with 78
@@ -1008,11 +996,9 @@ BL finder: (0, N-7), (0, N), (7, N), (7, N-7)</code></pre>
 							62 detections and 60 decodes. Local ignored outputs; verify before quoting.
 						</li>
 						<li>
-							The current detector does not narrow the version to a range and then try candidates
-							during decoding. It fits a homography for every legal <code>N</code> and picks the
-							lowest combined reprojection/timing score. The decoder only cross-checks the version
-							information for versions 7 and up, after sampling. The earlier “try a range during
-							decoding” idea is not what the code does now.
+							The detector chooses the version from the cross-ratio ranking, not from the QR
+							version-information bits. The decoder cross-checks version information for v≥7 only
+							after sampling. The old full forty-version timing-pattern search is gone.
 						</li>
 					</ul>
 				</section>
@@ -1046,10 +1032,17 @@ BL finder: (0, N-7), (0, N), (7, N), (7, N-7)</code></pre>
 							the figure that explains the method.
 						</li>
 						<li>
-							<strong class="text-stone-200">Optional homography figures:</strong> the version
-							search (combined score versus candidate version, with the chosen version and the
-							timing-pattern row/column shown), and the bottom-right drift on a strong-perspective
-							or high-version photo. Pick at most one of these alongside the correspondence figure.
+							<strong class="text-stone-200">Optional version-ranking figure:</strong> cross-ratio
+							score versus candidate version for a real photo, with the chosen version marked.
+						</li>
+						<li>
+							<strong class="text-stone-200">Optional homography figure:</strong> the bottom-right
+							drift on a strong-perspective or high-version photo. The twelve-point correspondence
+							figure remains the main homography figure.
+						</li>
+						<li>
+							<strong class="text-stone-200">Optional sampling figure:</strong> one module with the
+							3×3 sub-cell samples and the weighted majority vote.
 						</li>
 						<li>
 							Recommended from the inventory: Otsu image plus 2-D candidates plus cluster boxes;
@@ -1059,6 +1052,16 @@ BL finder: (0, N-7), (0, N), (7, N), (7, N-7)</code></pre>
 						<li>
 							Optional: rejected flood-fill/Hough comparison, and a clean finder-structure crop. The
 							user decides which figures are worth making.
+						</li>
+					</ul>
+				</section>
+
+				<section>
+					<h2 class="text-lg font-semibold text-stone-100">Chores</h2>
+					<ul class="mt-2 list-disc space-y-1 pl-5">
+						<li>
+							Otsu thresholding explainer figure: grayscale histogram with the chosen threshold,
+							plus a before/after binary crop. Not assigned to a beat.
 						</li>
 					</ul>
 				</section>
@@ -1086,6 +1089,11 @@ BL finder: (0, N-7), (0, N), (7, N), (7, N-7)</code></pre>
 				<section>
 					<h2 class="text-lg font-semibold text-stone-100">Decisions</h2>
 					<ul class="mt-2 list-disc space-y-1 pl-5">
+						<li>
+							<strong class="text-stone-100">2026-11-12</strong> — Post order: triplet attempt 1
+							only; cross-ratio version ranking; homography; sampling; short decoder handoff; outro.
+							Attempt 2 of triplet finding is omitted for brevity.
+						</li>
 						<li>
 							<strong class="text-stone-100">2026-11-09</strong> — Rebased
 							<code>posts/qr-reader</code> onto blog <code>origin/main</code>. The new
@@ -1170,11 +1178,15 @@ BL finder: (0, N-7), (0, N), (7, N), (7, N-7)</code></pre>
 							figure with measured run lengths and normalized ratios.
 						</li>
 						<li>
-							<strong class="text-stone-100">2026-11-11</strong> — Added the homography algorithm
-							reference: twelve finder corners, Hartley-normalized DLT, LM refinement, the full
-							forty-version search combining reprojection error with a timing-pattern check, the
-							sampling handoff, and the bottom-right extrapolation limit. Added homography rant
-							prompts and figure options.
+							<strong class="text-stone-100">2026-11-11</strong> — Added the initial homography
+							algorithm reference (later superseded by cross-ratio version ranking and the
+							multi-triplet decode path).
+						</li>
+						<li>
+							<strong class="text-stone-100">2026-11-12</strong> — Reordered the post plan to:
+							triplet attempt 1 only, cross-ratio version ranking, homography, sampling, a short
+							decoder handoff, and the outro. Added algorithm references for each. Added the
+							unassigned Otsu thresholding figure chore.
 						</li>
 					</ul>
 				</section>
