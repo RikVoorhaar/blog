@@ -862,15 +862,15 @@ colinear_pairs: [(0, 0), (0, 2), (2, 0), (2, 2)]</code></pre>
 										5. Cross-ratio version ranking
 									</td>
 									<td class="px-4 py-3 text-stone-400">
-										Why version comes first, landmarks A–F, colinear quadruples, the cross-ratio
-										formula, expected ratios per <code>N</code>, median log-error scoring, and
-										triplet ranking. No fallback: empty constraints raise. Algorithm reference
-										added; prose and figure not drafted.
+										Why version comes first, the four outer corners per finder, the four sides of
+										the top-left finder as the cross-ratio lines, the cross-ratio formula, expected
+										ratios per <code>N</code>, median log-error scoring, and the runner-up. Prose
+										drafted from the rant; figure pending.
 									</td>
 									<td class="px-4 py-3">
 										<span
-											class="inline-flex rounded-full bg-blue-950 px-2.5 py-0.5 text-xs font-medium text-blue-300 ring-1 ring-inset ring-blue-900"
-											>in progress</span
+											class="inline-flex rounded-full bg-amber-950 px-2.5 py-0.5 text-xs font-medium text-amber-300 ring-1 ring-inset ring-amber-900"
+											>under review</span
 										>
 									</td>
 								</tr>
@@ -1038,8 +1038,11 @@ colinear_pairs: [(0, 0), (0, 2), (2, 0), (2, 2)]</code></pre>
 							the figure that explains the method.
 						</li>
 						<li>
-							<strong class="text-stone-200">Optional version-ranking figure:</strong> cross-ratio
-							score versus candidate version for a real photo, with the chosen version marked.
+							<strong class="text-stone-200">Cross-ratio figure:</strong> the same version-10 photo
+							as the triplet figure. Highlight the four sides of the top-left finder, extended to
+							the other two finders, and annotate the four measured cross-ratios next to the lines.
+							Show the expected value for version 10 separately. Four lines, no table below. In
+							progress.
 						</li>
 						<li>
 							<strong class="text-stone-200">Optional homography figure:</strong> the bottom-right
@@ -1203,6 +1206,13 @@ colinear_pairs: [(0, 0), (0, 2), (2, 0), (2, 2)]</code></pre>
 							triplet attempt 1 only, cross-ratio version ranking, homography, sampling, a short
 							decoder handoff, and the outro. Added algorithm references for each. Added the
 							unassigned Otsu thresholding figure chore.
+						</li>
+						<li>
+							<strong class="text-stone-100">2026-11-13</strong> — Drafted the cross-ratio
+							version-ranking section from the rant. Simplified the score to a median of log
+							differences, cut the numeric examples, and narrowed the runner-up explanation. Figure
+							now annotates the four measured values next to the lines and shows the expected value
+							separately.
 						</li>
 					</ul>
 				</section>

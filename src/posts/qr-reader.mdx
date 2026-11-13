@@ -244,6 +244,40 @@ That leaves the top-right and bottom-left. Call the two remaining finders A and 
 
 And that’s the triplet.
 
+## Finding the version
+
+At this point we have a triplet, so we know where the QR code is and roughly how it is oriented. But we are not ready to decode anything yet. To sample the code we need to map it onto a standardized grid, and before we can do that we need to know how many modules that grid has. That's the version. Version 1 is 21×21 modules, and each version after that adds four modules per side, so version $V$ is $(17 + 4V) \times (17 + 4V)$. If we get the version wrong, the grid is wrong, and every sample after that is wrong too.
+
+The naive way is to try all forty versions and see which one decodes. That works, but it means forty homographies, forty samplings, and forty decode attempts, and almost all of them are obviously wrong. We can rule out most versions before we do any of that, just by looking at the points we already have.
+
+Each finder pattern gives us four outer corners. Those are landmarks: we know where they sit on an ideal QR code. The top-left finder is a 7×7 square, the top-right finder is the same square shifted $N-7$ modules to the right, and the bottom-left finder is the same square shifted $N-7$ modules down. The only unknown is $N$.
+
+The trick is to measure something that does not change under perspective. Take four ordered points on a line, with coordinates $u_0, u_1, u_2, u_3$ along that line. Their _cross-ratio_ is
+
+$$
+r = \frac{(u_2 - u_0)(u_3 - u_1)}{(u_3 - u_0)(u_2 - u_1)}.
+$$
+
+This number is invariant under any projective transformation. If you photograph the same line from a different angle, the individual distances change, but the cross-ratio stays the same. That is exactly what we need, because the QR code in the photo has been through an unknown projective transform.
+
+Now look at the left edge of the QR code. It passes through four corners: the top-left and bottom-left corners of the top-left finder, and the top-left and bottom-left corners of the bottom-left finder. On an ideal version-$V$ code those points sit at positions $0$, $7$, $N-7$ and $N$ along the edge. So we can compute the cross-ratio of the four points we detected, compute the cross-ratio those four points would have for a candidate $N$, and compare the two. If the candidate is right, the numbers should match. If it is wrong, they won't.
+
+We can do the same thing on the other three sides of the top-left finder: the right side of the top-left and bottom-left finders, the top side of the top-left and top-right finders, and the bottom side of the top-left and top-right finders. That gives us four separate measurements. We could add more if we had the inner corners of the finder patterns or the alignment patterns, but the ray fit only gives us the outer corners, and four is plenty.
+
+In other words, the four lines are just the four sides of the top-left finder, extended until they hit the other two finders. All four lines use the same four positions, so they all share the same expected cross-ratio for a given $N$.
+
+For each candidate version we compute the error
+
+$$
+e_V = \operatorname{median}_i \left| \log r_i^{\text{measured}} - \log r_i^{\text{expected}}(V) \right|,
+$$
+
+where the median runs over the four constraints. The median keeps one bad line from dominating. We then pick the version with the smallest error. We still loop over all forty versions, but each iteration is just a few arithmetic operations on four numbers, so the whole ranking costs almost nothing compared with sampling and decoding.
+
+In practice this works well. We keep the runner-up around just to avoid small errors, but usually we don't need it.
+
+The figure below shows the four lines on a real photo, with the measured cross-ratios next to the lines and the expected value for version 10.
+
 ## Estimating the homography
 
 ## What worked, what did not
