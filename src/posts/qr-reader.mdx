@@ -20,6 +20,7 @@ import houghFailure from '../assets/blog/qr-reader/hough-failure.png?url';
 import affineSampling from '../assets/blog/qr-reader/affine-sampling.gif?url';
 import tripletAmbiguity from '../assets/blog/qr-reader/triplet-ambiguity.png?url';
 import tripletColinearity from '../assets/blog/qr-reader/triplet-colinearity.png?url';
+import crossRatio from '../assets/blog/qr-reader/cross-ratio.png?url';
 import otsuColorGray from '../assets/blog/qr-reader/otsu-color-gray.png?url';
 import otsuThreshold from '../assets/blog/qr-reader/otsu-threshold.gif?url';
 import illuminationCorrection from '../assets/blog/qr-reader/illumination-correction.png?url';
@@ -277,6 +278,13 @@ where the median runs over the four constraints. The median keeps one bad line f
 In practice this works well. We keep the runner-up around just to avoid small errors, but usually we don't need it.
 
 The figure below shows the four lines on a real photo, with the measured cross-ratios next to the lines and the expected value for version 10.
+
+<div class="mx-auto max-w-3xl">
+	<img
+		src={crossRatio}
+		alt="The four sides of the top-left finder extended to the other two finders, with the measured cross-ratios beside each line and the expected value for version 10."
+	/>
+</div>
 
 ## Estimating the homography
 
