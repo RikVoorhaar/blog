@@ -1,0 +1,1234 @@
+<!doctype html>
+<html lang="en">
+	<head>
+		<meta charset="utf-8" />
+		<meta name="viewport" content="width=device-width, initial-scale=1" />
+		<meta name="color-scheme" content="dark" />
+		<title>Post plan — Writing a QR code reader from scratch</title>
+		<script src="https://cdn.tailwindcss.com"></script>
+	</head>
+	<body class="bg-stone-950 text-stone-300 antialiased">
+		<main class="mx-auto max-w-5xl px-6 py-10">
+			<header class="border-b border-stone-800 pb-6">
+				<p class="text-xs font-semibold uppercase tracking-[0.18em] text-stone-400">
+					Blog post plan
+				</p>
+				<h1 class="mt-2 text-3xl font-semibold tracking-tight text-stone-100">
+					Writing a QR code reader from scratch
+				</h1>
+				<p class="mt-2 text-sm text-stone-400">
+					Working slug
+					<code class="rounded bg-stone-900 px-1.5 py-0.5 text-stone-200">qr-reader</code>
+					<span class="mx-2">·</span>
+					<span
+						class="inline-flex rounded-full bg-blue-950 px-2.5 py-0.5 text-xs font-medium text-blue-300 ring-1 ring-inset ring-blue-900"
+						>in progress</span
+					>
+				</p>
+				<p
+					class="mt-4 rounded-lg border border-amber-900 bg-amber-950/50 px-4 py-3 text-sm text-amber-200"
+				>
+					This is a living document, not a contract. When the post disagrees with the plan, the post
+					wins. Update the plan in the same commit as the change.
+				</p>
+			</header>
+
+			<div class="mt-8 space-y-8">
+				<section>
+					<h2 class="text-lg font-semibold text-stone-100">Goal</h2>
+					<p class="mt-2">
+						Tell the story of building one workable QR detector from scratch: the geometric problem,
+						the pipeline, the dead ends and the version that finally worked. The detector is the
+						main subject. The decoder is a short handoff, with an honest note about its largely
+						vibe-coded implementation and the role of agentic development. This is not a survey, a
+						QR specification tour, or a claim that this is the best possible approach.
+					</p>
+				</section>
+
+				<section>
+					<h2 class="text-lg font-semibold text-stone-100">Audience</h2>
+					<p class="mt-2">
+						Peer engineers and technically curious readers who are comfortable with Python, computer
+						vision basics and some linear algebra. They want the practical reasoning and the failure
+						modes, not a hand-held introduction to QR codes.
+					</p>
+				</section>
+
+				<section>
+					<h2 class="text-lg font-semibold text-stone-100">Context</h2>
+					<ul class="mt-2 list-disc space-y-1 pl-5">
+						<li>
+							Project: <code>RikVoorhaar/qr-reader</code>, branch <code>posts/qr-reader</code> in
+							the blog submodule.
+						</li>
+						<li>Voice notes: root <code>docs/blog-style-guide.md</code>.</li>
+						<li>
+							Figure audit: root <code>docs/diagnostic-figures-inventory.md</code> (2026-07-31).
+						</li>
+						<li>
+							Captured benchmark: 100 photos of 15 QR symbols, five versions, three scales, one
+							shared <code>rikvoorhaar.com</code> payload.
+						</li>
+						<li>
+							The post was rebased onto blog <code>origin/main</code> on 2026-11-09. The old inline
+							planning comments were moved here.
+						</li>
+					</ul>
+				</section>
+
+				<section>
+					<h2 class="text-lg font-semibold text-stone-100">Algorithm orientation (refresher)</h2>
+					<p class="mt-2 text-stone-400">
+						Short version: the corner finder went through three ideas. The first two are in the
+						history, the third is the current production path. Choosing the triplet is one story;
+						the post covers attempt 1 only and omits attempt 2 for brevity. After the triplet, the
+						post covers cross-ratio version ranking, homography, sampling, a short decoder handoff,
+						and the outro. The descriptions below are reconstructed from the current code and the
+						old commits, not from memory.
+					</p>
+
+					<div class="mt-4 space-y-4">
+						<details open class="rounded-lg border border-stone-800 bg-stone-900/40">
+							<summary class="cursor-pointer px-4 py-3 font-medium text-stone-100">
+								1. Flood fill → boundary trace → angular NMS (first attempt, now unused)
+							</summary>
+							<div class="space-y-3 border-t border-stone-800 px-4 py-4 text-sm text-stone-400">
+								<p>
+									This is the binary-image approach. The code still exists in
+									<code>detector/region.py</code> and <code>detector/corner.py</code>, and the old
+									<code>scripts/full-pipeline.py</code> used it per candidate cluster.
+								</p>
+								<ol class="list-decimal space-y-1 pl-5">
+									<li>
+										Start from a candidate cluster. Use its centre and the first dark run of the
+										1:1:3:1:1 scan to seed the outer black ring of the finder.
+									</li>
+									<li>
+										Flood fill the connected dark region with an 8-neighbour wave front
+										(<code>region_fill_wave_front</code>).
+									</li>
+									<li>
+										Take the boundary pixels of that region (<code>region_boundary_8</code>) and
+										split them into connected components with <code>scipy.ndimage.label</code>.
+									</li>
+									<li>
+										For each boundary component: compute its centroid, then radial distance and
+										angle of every boundary pixel. Pick the 4 points with the largest radial
+										distance, suppressing points within 10° of an already picked one
+										(<code>angular_nms_top_radial_indices</code>).
+									</li>
+									<li>Those four points are the finder corners.</li>
+								</ol>
+								<p>
+									The appeal: it works directly on the binary image and needs no gradients or line
+									fitting. The obvious weak points: it assumes a clean, contiguous dark ring; blur,
+									noise, low contrast or a bad seed can fragment the region or merge it with
+									something else; a connected boundary can have multiple components; and “the four
+									farthest boundary points from the centroid” is only a good corner definition when
+									the ring is clean and fairly square in the image. Under perspective the farthest
+									points are not necessarily the corners. The hand-written NumPy wave front was
+									later replaced by <code>scipy.ndimage.binary_propagation</code>. The speed
+									discussion was dropped from the post; the benchmark remains in
+									<code>blog_figures/flood_fill/benchmark_fill.py</code>.
+								</p>
+								<p class="rounded border border-amber-900 bg-amber-950/40 px-3 py-2 text-amber-200">
+									The repository does not contain a written post-mortem for dropping this approach.
+									The mechanics above are documented; the actual “what broke first” story is yours
+									to rant about.
+								</p>
+							</div>
+						</details>
+
+						<details class="rounded-lg border border-stone-800 bg-stone-900/40">
+							<summary class="cursor-pointer px-4 py-3 font-medium text-stone-100">
+								2. Gradient-guided Hough lines (second attempt, code removed)
+							</summary>
+							<div class="space-y-3 border-t border-stone-800 px-4 py-4 text-sm text-stone-400">
+								<p>
+									This is the one that took the most work and was eventually deleted in commit
+									<code>f5451e8</code>. The old reports are
+									<code>docs/report-hough-bottleneck.md</code> and
+									<code>docs/hough-failure-analysis.md</code>.
+								</p>
+								<ol class="list-decimal space-y-1 pl-5">
+									<li>
+										On a grayscale ROI: Gaussian blur (σ = 1.0) → Sobel <code>Gx, Gy</code> →
+										gradient magnitude → non-maximum suppression along the gradient direction. This
+										is not Canny: there is no hysteresis, only thinned Sobel edges plus a
+										gradient-normal angle per edge pixel.
+									</li>
+									<li>
+										Each edge pixel votes in a <code>(θ, ρ)</code> Hough accumulator, using its
+										gradient angle as the line normal. θ is folded modulo π. Final sweeps used about
+										0.5° × 0.5 px bins and weighted votes by edge strength.
+									</li>
+									<li>
+										Peaks are picked iteratively: take the global maximum, accept it if it is at
+										least 0.15 × the global maximum, suppress a neighbourhood (±5 bins), repeat up
+										to 20 times.
+									</li>
+									<li>
+										Refine each peak into a segment: collect edge pixels within 1.5 px of the line,
+										optionally gate by gradient angle, fit a weighted total-least-squares line,
+										project the support onto it, and keep the longest contiguous run with a small
+										gap tolerance (2–3 px).
+									</li>
+									<li>
+										Intersect the four outer side lines to get the finder corners. The old target
+										was actually all 36 finder edges (12 per finder), with the outer quadrilateral
+										as the practical product.
+									</li>
+								</ol>
+								<p>
+									Why it was abandoned, in the repo's own words: it hit a hard recall ceiling around
+									0.928 because edge-pixel position jitter scatters votes across adjacent ρ bins,
+									leaving the true bin empty. More parameter tuning could not fix that. The failure
+									catalogue names four modes:
+								</p>
+								<ul class="list-disc space-y-1 pl-5">
+									<li>
+										<strong class="text-stone-200">A — span too short:</strong> gap tolerance cannot
+										bridge 3–7 px NMS gaps, so a true edge becomes a fragment.
+									</li>
+									<li>
+										<strong class="text-stone-200">B — phantom in blank:</strong> sparse
+										coincidentally aligned pixels produce a line where no continuous edge exists.
+									</li>
+									<li>
+										<strong class="text-stone-200">C — span too long:</strong> TLS direction drift
+										and the distance threshold capture a parallel module edge 3–5 px away.
+									</li>
+									<li>
+										<strong class="text-stone-200">D — edge missing:</strong> vote dilution and the
+										relative threshold lose weak or fragmented true edges, especially the
+										inward-facing finder edges.
+									</li>
+								</ul>
+								<p>
+									On the v12 default fixture the reported tally was A=2, B=5, C=4, D=2, with 4 of 6
+									ground-truth edges in the ROIs matched within 5° and 5 px.
+								</p>
+							</div>
+						</details>
+
+						<details class="rounded-lg border border-stone-800 bg-stone-900/40">
+							<summary class="cursor-pointer px-4 py-3 font-medium text-stone-100">
+								3. Ray-profile fitting (current production path)
+							</summary>
+							<div class="space-y-3 border-t border-stone-800 px-4 py-4 text-sm text-stone-400">
+								<p>
+									Current entry point: <code>fit_finder_ray</code> in
+									<code>detector/ray_fit.py</code>. Called per candidate cluster from
+									<code>detector/detector.py</code>, with the grayscale ROI, the cluster centre and
+									<code>m_est = cluster_width / 7</code>.
+								</p>
+								<ol class="list-decimal space-y-1 pl-5">
+									<li>
+										<strong class="text-stone-200">Normalize the ROI.</strong> The intensities are
+										mapped to [0, 1] using centre-weighted p10/p90, so the dark/bright split
+										reflects the finder's own contrast rather than the background.
+									</li>
+									<li>
+										<strong class="text-stone-200">Sample 36 half-rays.</strong> From the estimated
+										centre, sample 120 bilinear points along each equally spaced direction, out to
+										half the ROI diagonal.
+									</li>
+									<li>
+										<strong class="text-stone-200">Fit one module pitch per ray.</strong> The finder
+										cross-section is modelled as dark 3-module centre → white 1-module ring → dark
+										1-module ring → white quiet zone, with <code>erfc</code> softened transitions (σ
+										= 1 px). For each ray, grid-search <code>m</code> in
+										<code>[m_est/2, 2·m_est]</code> (50 values) against a masked MSE, then refine
+										the winner with a bounded scalar search. Rays that fail are marked invalid.
+									</li>
+									<li>
+										<strong class="text-stone-200">Turn the fits into boundary points.</strong> Each
+										valid ray contributes one point at <code>3.5·m</code> modules from the centre,
+										i.e. on the finder's outer boundary. This gives 36 points in cyclic order, with
+										NaNs for failed rays.
+									</li>
+									<li>
+										<strong class="text-stone-200">Cluster the points into four sides.</strong>
+										Phase 0 starts with every adjacent point pair as a cluster. Nearby pairs are
+										compared by the TLS degeneracy ratio <code>σ₂/σ₁</code> on their union: points
+										on the same straight edge are near-colinear (low ratio); points on different
+										edges are not. Phase 1 uses single-linkage agglomerative clustering on that
+										distance matrix. Phase 2 keeps the four largest clusters and fits a TLS line to
+										each.
+									</li>
+									<li>
+										<strong class="text-stone-200">Reject non-finders.</strong> The top four
+										clusters must contain at least 50% of all valid boundary points; otherwise the
+										candidate is not a finder and <code>valid=False</code>.
+									</li>
+									<li>
+										<strong class="text-stone-200">Intersect the four lines.</strong> The corners
+										are the pairwise intersections of the left, right, top and bottom lines. The
+										score is the fraction of rays that fitted successfully times
+										<code>1 − mean(σ₂/σ₁)</code>.
+									</li>
+								</ol>
+								<p>
+									There is also an optional projective joint refinement
+									(<code>refine_finder_edges_joint</code>) that models all four sides and the known
+									transition positions together with a Levenberg–Marquardt fit. It exists in the
+									code but is <em>not</em> enabled by the production call:
+									<code>fit_finder_ray</code> defaults to <code>refine_joint=False</code>.
+								</p>
+								<p>
+									Why this is a different bet: it never asks edge pixels to vote into a global
+									<code>(θ, ρ)</code> grid. It uses the known radial structure of the finder, lets
+									each ray estimate its own local module pitch, and then only has to group 36 points
+									into four lines. That handles local scale changes and perspective much better than
+									a single global line-voting step.
+								</p>
+							</div>
+						</details>
+
+						<details open class="rounded-lg border border-stone-800 bg-stone-900/40">
+							<summary class="cursor-pointer px-4 py-3 font-medium text-stone-100">
+								4. Choosing a triplet: edge colinearity (post: attempt 1 only)
+							</summary>
+							<div class="space-y-3 border-t border-stone-800 px-4 py-4 text-sm text-stone-400">
+								<p>
+									Current entry point: <code>find_valid_triplets</code> in
+									<code>detector/finder_pattern.py</code>, called from
+									<code>detector/detector.py</code> after ray fitting and deduplication. It replaced
+									the pairwise-association route in <code>d7ec775</code> and was simplified to
+									corner-derived geometry in <code>2e53f22</code>.
+								</p>
+								<p class="rounded border border-rose-900 bg-rose-950/40 px-3 py-2 text-rose-200">
+									Post scope: Attempt 1 only, in its repaired form. Attempt 2 (centre geometry) is
+									omitted entirely; the post does not claim the final detector uses the edge rule.
+								</p>
+								<p>
+									<strong class="text-stone-200">Draft intro.</strong> Suppose we have found three
+									finder patterns and their corners. Which one is the top-left, which is the
+									top-right, and which is the bottom-left? We do not assume the QR code is upright —
+									it could be rotated by any angle, including 180°. And if we found more than three
+									candidates, which three belong to the same QR code? We need an algorithm for this,
+									and as with everything else in this project, it is trickier than it appears at
+									first glance.
+								</p>
+								<p>
+									<strong class="text-stone-200">Why a triplet at all.</strong> Three plausible
+									finder patterns are not enough. There can be false positives, and a single finder
+									is almost square with fourfold rotational symmetry, so it cannot tell you which
+									edge is “up” or “right.” The triplet supplies the global context: pick the corner
+									of the L, then use the two inter-centre vectors to assign top-left, top-right and
+									bottom-left.
+								</p>
+								<p
+									class="rounded border border-emerald-900 bg-emerald-950/40 px-3 py-2 text-emerald-200"
+								>
+									Figure decision: the intro figure shows the ambiguity — four or more candidate
+									finder patterns with corners, and no correct triplet marked.
+								</p>
+
+								<p>
+									<strong class="text-stone-200"
+										>Attempt 1 — pairwise outer-edge colinearity (<code>f3f1a1d</code>).</strong
+									>
+									For every pair of finder patterns, compare their four outer edges. If two pairs of
+									edges are nearly parallel and nearly collinear, the finder patterns are
+									“associated.” Build an association graph, then look for an L-shape: finder
+									<code>B</code> is connected to <code>A</code> and <code>C</code>, but
+									<code>A</code> and <code>C</code> are not connected, and the associations use
+									different edges of <code>B</code>. Then <code>B</code> is the top-left finder.
+								</p>
+								<ul class="list-disc space-y-1 pl-5">
+									<li>
+										<code>check_association</code> used <code>angle_tol = 0.1</code> rad and
+										<code>offset_tol = 0.15</code>, and required <em>exactly two</em> passing
+										colinear segment pairs.
+									</li>
+									<li>
+										<code>max_offset</code> normalized the endpoint-to-line distance by the distance
+										between the two segment midpoints. That makes the score depend on the distance
+										between finder patterns, not just on their local geometry.
+									</li>
+									<li>
+										At high QR versions the finders stay roughly the same pixel size but get farther
+										apart, so wrong cross-pairs get a smaller normalized offset and start passing
+										too.
+									</li>
+								</ul>
+								<p>
+									Concrete failure from <code>docs/find-all-associations-debug.md</code>, version
+									12, seed 0:
+								</p>
+								<pre
+									class="overflow-x-auto rounded border border-stone-800 bg-stone-950 p-3 text-xs text-stone-300"
+								><code>Pair FP 0 &lt;-&gt; FP 1: REJECT: expected exactly 2 colinear pairs, got 4
+colinear_pairs: [(0, 0), (0, 2), (2, 0), (2, 2)]</code></pre>
+								<p>
+									The two true pairs had offsets around 0.020 and 0.021. The two false cross-pairs
+									had offsets around 0.110 and 0.139, both below the 0.15 threshold. At version 4
+									the same false pairs had offsets around 0.25–0.30 and were rejected. Result:
+									production found fewer than the two needed associations from version 8 onward, and
+									zero associations for versions 9–12.
+								</p>
+
+								<p>
+									<strong class="text-stone-200"
+										>Repair — local normalization and best-two pairing
+										(<code>e335de8</code>).</strong
+									>
+									The fix was to normalize the offset by the mean length of the two segments, raise
+									<code>offset_tol</code> to 0.30, try both opposite-side axes, try both one-to-one
+									pairings, and select the best valid pair of pairs. Segment indices are not
+									consistent across finders, so the correct pairing can be
+									<code>(0, 1), (2, 3)</code> rather than <code>(0, 0), (2, 2)</code>. This
+									recovered two associations for every version from 1 through 12 in the synthetic
+									sweep, and also worked across high-version seeds. It was still relying on exact
+									outer-corner geometry.
+								</p>
+
+								<p>
+									<strong class="text-stone-200">What the repaired rule actually does.</strong>
+									The local-normalization fix plus best-pairing selection is not a failed method. On
+									the verified captured subset it finds 35/38 correct triplets at
+									<code>offset_tol = 0.30</code>; the three misses are all v20. At <code>0.60</code>
+									it finds 38/38. In the 24-case disagreement analysis, all nine edge-rule misses at
+									0.30 are threshold-only; at 0.62 every one is recovered as the sole triplet with
+									no extra associations. The edge rule also finds and decodes three
+									strong-perspective/rotation triplets (27, 64, 79) that the centre-geometry rule
+									rejects on its axis gate. The remaining failures are mostly upstream: of 12 cases
+									where neither method found a triplet, 10 had bad or incomplete finder candidates;
+									only 2 (41, 74) had a real triplet in the candidate set.
+								</p>
+								<p>
+									Post narrative: the section describes the repaired edge rule as the method, not as
+									an abandoned attempt. It uses the v3_img1 capture for both figures: the ambiguity
+									figure (four candidates, no correct triplet marked) and the edge figure (all
+									finder edges extended, positive collinear pairs highlighted, no labels or
+									caption). The production centre-geometry path is not mentioned.
+								</p>
+								<p class="rounded border border-amber-900 bg-amber-950/40 px-3 py-2 text-amber-200">
+									Do not use the per-finder homography as the reason this approach died. That was a
+									separate corner-fitting experiment: it improved local corner accuracy under
+									perspective, but it did not fix the triplet problem, and the association was
+									already failing before it. Keep it out of the triplet story.
+								</p>
+
+								<p>
+									<strong class="text-stone-200"
+										>Attempt 2 — centre geometry (<code>d7ec775</code>, simplified
+										<code>2e53f22</code>).</strong
+									>
+									The current algorithm does not compare edges at all. It asks whether three finder
+									centres form the QR code’s right triangle at compatible scales.
+								</p>
+								<ul class="list-disc space-y-1 pl-5">
+									<li>
+										<strong class="text-stone-200">Pair connectivity:</strong> module pitches must
+										satisfy <code>|m_i - m_j| / max(m_i, m_j) &lt; 0.3</code>; centre distance must
+										be between <code>2 * m_avg</code> and <code>200 * m_avg</code>; and the
+										inter-centre vector must be aligned with one corner-edge direction (<code
+											>max(|dot|) &gt; 0.9</code
+										>) and nearly perpendicular to the other (<code
+											>min(|dot|) &lt; 0.25 * max(|dot|)</code
+										>).
+									</li>
+									<li>
+										<strong class="text-stone-200">Triplet discovery:</strong> a finder with at
+										least two neighbours forms a candidate when its two neighbours are not directly
+										connected, the angle at that finder is within 15° of a right angle, and all
+										three module sizes agree within 30%.
+									</li>
+									<li>
+										<strong class="text-stone-200">Orientation:</strong> the corner finder is the
+										top-left; the cross product of the two inter-centre vectors assigns top-right
+										and bottom-left. The cross product is computed in
+										<code>(x, y) = (col, row)</code> coordinates. Commit <code>7f91833</code> fixed
+										a sign-convention bug that had swapped top-right and bottom-left.
+									</li>
+									<li>
+										<strong class="text-stone-200">Geometry source:</strong> the original version
+										used the per-finder <code>FinderFit</code> fields <code>center</code>,
+										<code>e1</code>, <code>e2</code>, <code>m</code>. After the ray fit replaced
+										<code>fit_finder_full</code>, the current version derives them from the four
+										outer corners: module pitch is the mean outer side length divided by 7, and the
+										two axes are adjacent corner edges.
+									</li>
+								</ul>
+
+								<p>
+									<strong class="text-stone-200">Tradeoffs and current limits.</strong> The 15°
+									right-angle gate assumes moderate perspective; a strongly skewed code can violate
+									it. The code does not require the two legs of the L to be equal length, only
+									compatible module sizes. And <code>detector.py</code> takes
+									<code>raw_triplets[0]</code> — the first valid triplet, not the best-scoring one.
+									With one QR code in frame that has been enough, but it is not the most robust
+									possible choice.
+								</p>
+								<p>
+									The captured benchmark makes this stage visible: 64 of 100 photos produce at least
+									three finder patterns, but only 49 produce a valid triplet. Across the 51
+									detection failures, 35 are recorded as
+									<code>No finder-pattern triplet found</code>. So this is still the main gate in
+									the pipeline.
+								</p>
+							</div>
+						</details>
+
+						<details open class="rounded-lg border border-stone-800 bg-stone-900/40">
+							<summary class="cursor-pointer px-4 py-3 font-medium text-stone-100">
+								5. Cross-ratio version ranking
+							</summary>
+							<div class="space-y-3 border-t border-stone-800 px-4 py-4 text-sm text-stone-400">
+								<p>
+									Current entry point: <code>_rank_triplets</code> in
+									<code>detector/detector.py</code>, using <code>detector/landmarks.py</code> and
+									<code>detector/version.py</code>. The post should explain why version comes before
+									homography: the twelve grid coordinates depend on it.
+								</p>
+								<p>
+									<strong class="text-stone-200">Landmarks.</strong> The three finder patterns give
+									six named corner sets: A/B for the top-left outer/inner square, C/D for the
+									top-right, E/F for the bottom-left. The current ray fit only produces outer
+									corners, so the production path uses A, C and E; B, D and F are optional.
+								</p>
+								<p>
+									<strong class="text-stone-200">Colinear quadruples.</strong> Four points on the
+									same QR edge stay colinear under perspective. The useful sets are the left and top
+									edges of the finder triangle: A0-A1-E0-E1, A3-A2-E3-E2, A0-A3-C0-C3 and
+									A1-A2-C1-C2, plus the inner equivalents when B/D/F exist.
+								</p>
+								<p>
+									<strong class="text-stone-200">Cross-ratio.</strong> For four ordered points on a
+									line, the cross-ratio is <code>r = (u2-u0)(u3-u1) / ((u3-u0)(u2-u1))</code>. It is
+									projective-invariant, so the measured value does not care about the camera pose.
+									For a candidate <code>N</code>, the outer expected positions are
+									<code>0, 7, N-7, N</code>; the inner expected positions are
+									<code>1, 6, N-6, N-1</code>.
+								</p>
+								<p>
+									<strong class="text-stone-200">Scoring.</strong> Each filtered constraint
+									contributes <code>|log(r_measured / r_expected)|</code>. The version score is the
+									median error over constraints; lower is better.
+									<code>estimate_version</code> scores every V from 1 to 40, and
+									<code>_rank_triplets</code> sorts the triplets by their best score.
+								</p>
+								<p>
+									<strong class="text-stone-200">Version evidence.</strong> On
+									<code>qr_code_ - 99.jpeg</code> (v1) the best score is 0.0045 and the runner-up is
+									0.1192 (v2). On <code>qr_code_ - 16.jpeg</code> (v10) it is 0.0003 versus 0.0025
+									(v11). On <code>qr_code_ - 35.jpeg</code>
+									(v20) it is 0.0002 versus 0.0004 (v21).
+								</p>
+								<p class="rounded border border-amber-900 bg-amber-950/40 px-3 py-2 text-amber-200">
+									No fallback. Empty constraints, all-filtered constraints or all non-finite scores
+									raise <code>ValueError</code>. Those are landmark bugs, not runtime conditions to
+									hide.
+								</p>
+								<p>
+									<strong class="text-stone-200">Limitation.</strong> A false triplet can still
+									produce a plausible cross-ratio score. The version ranking is a cheap prior, not
+									proof; decode success is the final filter.
+								</p>
+							</div>
+						</details>
+
+						<details open class="rounded-lg border border-stone-800 bg-stone-900/40">
+							<summary class="cursor-pointer px-4 py-3 font-medium text-stone-100">
+								6. Estimating the homography
+							</summary>
+							<div class="space-y-3 border-t border-stone-800 px-4 py-4 text-sm text-stone-400">
+								<p>
+									Current entry point: <code>_fit_candidate_homography</code> in
+									<code>detector/detector.py</code>. It fits one homography for one
+									<code>(triplet, version)</code> candidate.
+								</p>
+								<p>
+									<strong class="text-stone-200">Twelve correspondences.</strong> Each finder
+									contributes four outer corners. For a candidate module count <code>N</code>, the
+									TL finder maps to <code>(0,0)…(7,7)</code>, the TR finder to
+									<code>(N-7,0)…(N,7)</code>, and the BL finder to <code>(0,N-7)…(7,N)</code>.
+								</p>
+								<p>
+									<strong class="text-stone-200">Canonical corner order.</strong> The ray fit
+									returns corners in arbitrary order. <code>_canonicalize_corners</code>
+									projects each finder's corners onto the triplet's right/down axes and assigns TL,
+									TR, BR, BL. Without this the correspondences are scrambled.
+								</p>
+								<p>
+									<strong class="text-stone-200">DLT + LM.</strong> Normalise both point sets
+									(centroid at the origin, mean distance √2), build the <code>2n×9</code> system,
+									take the null vector by SVD, undo the normalisation and scale so
+									<code>H[2,2]=1</code>. Then refine the eight free parameters with
+									Levenberg–Marquardt on the reprojection error.
+								</p>
+								<p>
+									<strong class="text-stone-200">Bounded candidates.</strong> The pipeline fits a
+									homography only for the cross-ratio-ranked versions it is going to try, not for
+									all forty versions.
+								</p>
+								<p>
+									<strong class="text-stone-200">Limitation.</strong> The homography is exact at the
+									three finders and extrapolated at the bottom-right. Alignment patterns would
+									constrain that corner, but they are left out.
+								</p>
+							</div>
+						</details>
+
+						<details open class="rounded-lg border border-stone-800 bg-stone-900/40">
+							<summary class="cursor-pointer px-4 py-3 font-medium text-stone-100">
+								7. Sampling the grid
+							</summary>
+							<div class="space-y-3 border-t border-stone-800 px-4 py-4 text-sm text-stone-400">
+								<p>
+									Current entry point: <code>sample_qr_bits</code> in
+									<code>detector/sample.py</code>.
+								</p>
+								<p>
+									<strong class="text-stone-200">Threshold.</strong> The sampler knows which
+									finder-pattern modules must be dark or light. It samples their centres, takes the
+									median dark and median light values, and uses the midpoint as the black/white
+									threshold. This adapts to the local exposure instead of reusing the global Otsu
+									threshold.
+								</p>
+								<p>
+									<strong class="text-stone-200">Per-module vote.</strong> For each module, project
+									nine sub-cell positions (offsets 0.25, 0.5, 0.75 in each direction), sample them
+									bilinearly, and take a weighted majority: centre weight 2, surrounding weight 1,
+									threshold 5 of 10 white votes. The result is transposed so the decoder can index
+									<code>bits[col, row]</code> with <code>True</code> = dark.
+								</p>
+								<p>
+									<strong class="text-stone-200">Cost.</strong> Sampling is the expensive step,
+									especially at high versions. The pipeline therefore bounds the number of
+									<code>(triplet, version)</code> attempts before sampling.
+								</p>
+							</div>
+						</details>
+
+						<details open class="rounded-lg border border-stone-800 bg-stone-900/40">
+							<summary class="cursor-pointer px-4 py-3 font-medium text-stone-100">
+								8. Decoding the payload (short)
+							</summary>
+							<div class="space-y-3 border-t border-stone-800 px-4 py-4 text-sm text-stone-400">
+								<p>
+									The decoder is 100% agentically coded and is out of scope for a detailed blog
+									explanation. Keep this section to one or two paragraphs.
+								</p>
+								<p>
+									The handoff is: read the format information (ECL + mask), cross-check the version
+									information for v≥7, unmask and zigzag-extract the codewords, de-interleave into
+									data/EC blocks, run Reed–Solomon correction, then decode the bitstream to text.
+									Decode success is the final filter for the candidate attempts.
+								</p>
+							</div>
+						</details>
+					</div>
+
+					<section class="mt-6">
+						<h3 class="text-base font-semibold text-stone-100">Corner-finding rant prompts</h3>
+						<p class="mt-2 text-stone-400">
+							Things I would like to hear you rant about before I draft this section. Answer
+							whichever ones trigger something; ignore the rest.
+						</p>
+						<ul class="mt-2 list-disc space-y-1 pl-5 text-sm text-stone-400">
+							<li>
+								What did flood fill get wrong first: bad seed, ring leaking into the rest of the
+								code, fragmented boundary, wrong connected component, or corners that were simply
+								not the corners?
+							</li>
+							<li>
+								Was there a specific image or QR version where flood fill looked obviously wrong,
+								and what did it look like?
+							</li>
+							<li>
+								What made you try Hough? Did you expect it to fix the flood-fill failure, or was it
+								a separate idea?
+							</li>
+							<li>
+								Which Hough failure annoyed you most: short segments, phantoms, long segments, or
+								missing inward-facing edges? Is there a concrete example you remember?
+							</li>
+							<li>
+								Did Hough ever produce a beautiful-looking line overlay that still gave bad corners?
+								What was wrong?
+							</li>
+							<li>
+								What did the intermediate 1D orientation/profile approach fix, and why was it still
+								not enough?
+							</li>
+							<li>
+								Why ray profiles in the end? Was it the radial symmetry, the per-ray pitch, the soft
+								template, or just that it finally stopped needing global voting?
+							</li>
+							<li>
+								What does the current ray fit still get wrong? When does it reject a good finder, or
+								accept a bad one?
+							</li>
+							<li>
+								How much does it depend on the cluster centre and <code>m_est</code> being close?
+							</li>
+							<li>
+								Do you want to mention the optional joint refinement, or keep the production path as
+								“four independent TLS lines”?
+							</li>
+							<li>
+								Which part of this story is worth putting in the post, and which part is only useful
+								for us to remember?
+							</li>
+						</ul>
+					</section>
+
+					<section class="mt-6">
+						<h3 class="text-base font-semibold text-stone-100">Triplet-finding rant prompts</h3>
+						<p class="mt-2 text-stone-400">
+							Things I would like to hear you rant about before I draft this section. Answer
+							whichever ones trigger something; ignore the rest.
+						</p>
+						<ul class="mt-2 list-disc space-y-1 pl-5 text-sm text-stone-400">
+							<li>
+								Did the pairwise-colinearity idea feel obviously right at the time, or was it always
+								a bit fragile?
+							</li>
+							<li>
+								Do you remember the high-version failure itself — the moment the association count
+								dropped to zero — or did the debug document do the remembering for you?
+							</li>
+							<li>
+								Was the per-finder homography detour a surprise, or did you suspect that independent
+								local warps would break the global association?
+							</li>
+							<li>
+								Why centre geometry in the end: because centres are more stable, because the
+								right-angle relation is global, because it matches ZXing, or because it simply
+								stopped needing exact corners?
+							</li>
+							<li>
+								What still goes wrong at this stage? False triplets, missed triplets, wrong role
+								assignment, or duplicate finders surviving deduplication?
+							</li>
+							<li>
+								Do you want to mention the right-angle tolerance and the “first valid triplet”
+								shortcut, or keep the post on the happy path?
+							</li>
+							<li>
+								Which part of this story is worth putting in the post, and which part is only useful
+								for us to remember?
+							</li>
+						</ul>
+					</section>
+
+					<section class="mt-6">
+						<h3 class="text-base font-semibold text-stone-100">
+							Version-ranking, homography and sampling rant prompts
+						</h3>
+						<p class="mt-2 text-stone-400">
+							Things I would like to hear you rant about before I draft this section. Answer
+							whichever ones trigger something; ignore the rest.
+						</p>
+						<ul class="mt-2 list-disc space-y-1 pl-5 text-sm text-stone-400">
+							<li>
+								Did this stage feel easy compared with corner finding and triplet selection, or was
+								that just because the earlier stages had already done the hard work?
+							</li>
+							<li>
+								Do you remember the cross-ratio idea? Why did it appeal — the projective invariance,
+								the fact that it needs only colinear points, or something else?
+							</li>
+							<li>
+								Were you surprised that the cross-ratio ranking separated the correct version so
+								cleanly, or did you expect that from the start?
+							</li>
+							<li>
+								Was the multi-triplet loop something you wanted earlier, or did the first-triplet
+								shortcut feel acceptable at the time?
+							</li>
+							<li>
+								Was sampling ever the bottleneck? Did the 3×3 vote and the finder-calibrated
+								threshold matter, or was it mostly plumbing?
+							</li>
+							<li>
+								Did the bottom-right drift show up in practice? Do you remember a specific photo
+								where the grid looked fine at the three finders but the bottom-right modules were
+								wrong?
+							</li>
+							<li>
+								Was skipping the alignment patterns a deliberate “not needed for this project”
+								decision, or a “later” that never happened?
+							</li>
+							<li>
+								Do you want to mention RANSAC and the fact that it is not in the production path, or
+								is that too much of a detour?
+							</li>
+							<li>
+								Which figure would you actually want here: the twelve-point correspondence and grid
+								overlay, the version-score curve, or the bottom-right failure? Pick one or two; the
+								post does not need all three.
+							</li>
+						</ul>
+					</section>
+				</section>
+
+				<section>
+					<h2 class="text-lg font-semibold text-stone-100">Structure</h2>
+					<div class="mt-3 flex flex-wrap gap-2 text-xs">
+						<span
+							class="inline-flex rounded-full bg-slate-900 px-2.5 py-0.5 font-medium text-slate-300 ring-1 ring-inset ring-slate-700"
+							>not started</span
+						>
+						<span
+							class="inline-flex rounded-full bg-blue-950 px-2.5 py-0.5 font-medium text-blue-300 ring-1 ring-inset ring-blue-900"
+							>in progress</span
+						>
+						<span
+							class="inline-flex rounded-full bg-amber-950 px-2.5 py-0.5 font-medium text-amber-300 ring-1 ring-inset ring-amber-900"
+							>under review</span
+						>
+						<span
+							class="inline-flex rounded-full bg-emerald-950 px-2.5 py-0.5 font-medium text-emerald-300 ring-1 ring-inset ring-emerald-900"
+							>done</span
+						>
+						<span
+							class="inline-flex rounded-full bg-rose-950 px-2.5 py-0.5 font-medium text-rose-300 ring-1 ring-inset ring-rose-900"
+							>omitted</span
+						>
+					</div>
+					<div class="mt-3 overflow-hidden rounded-lg border border-stone-800">
+						<table class="w-full text-left text-sm">
+							<thead class="bg-stone-900 text-xs uppercase tracking-wide text-stone-400">
+								<tr>
+									<th class="px-4 py-2 font-medium">Beat</th>
+									<th class="px-4 py-2 font-medium">What it does</th>
+									<th class="px-4 py-2 font-medium">Status</th>
+								</tr>
+							</thead>
+							<tbody class="divide-y divide-stone-800 bg-stone-900/40">
+								<tr>
+									<td class="px-4 py-3 font-medium text-stone-100">1. Cold open and scope</td>
+									<td class="px-4 py-3 text-stone-400">
+										Hook, finder patterns, versions, the pipeline overview, alignment patterns
+										deliberately left out, perspective as the hard part. Drafted.
+									</td>
+									<td class="px-4 py-3">
+										<span
+											class="inline-flex rounded-full bg-blue-950 px-2.5 py-0.5 text-xs font-medium text-blue-300 ring-1 ring-inset ring-blue-900"
+											>in progress</span
+										>
+									</td>
+								</tr>
+								<tr>
+									<td class="px-4 py-3 font-medium text-stone-100">2. From pixels to candidates</td>
+									<td class="px-4 py-3 text-stone-400">
+										Otsu thresholding, horizontal 1:1:3:1:1 run-length matching, the 30% tolerance,
+										greedy candidate clustering, vertical cross-check. Drafted.
+									</td>
+									<td class="px-4 py-3">
+										<span
+											class="inline-flex rounded-full bg-blue-950 px-2.5 py-0.5 text-xs font-medium text-blue-300 ring-1 ring-inset ring-blue-900"
+											>in progress</span
+										>
+									</td>
+								</tr>
+								<tr>
+									<td class="px-4 py-3 font-medium text-stone-100">3. Finding the corners</td>
+									<td class="px-4 py-3 text-stone-400">
+										Bridge, flood-fill attempt, Hough attempt, and ray-profile attempt are drafted.
+										The ray-profile prose makes clear that point clustering was the hard part; the
+										remainder was mostly parameter tuning.
+									</td>
+									<td class="px-4 py-3">
+										<span
+											class="inline-flex rounded-full bg-blue-950 px-2.5 py-0.5 text-xs font-medium text-blue-300 ring-1 ring-inset ring-blue-900"
+											>in progress</span
+										>
+									</td>
+								</tr>
+								<tr>
+									<td class="px-4 py-3 font-medium text-stone-100">
+										4. Choosing a triplet (attempt 1 only)
+									</td>
+									<td class="px-4 py-3 text-stone-400">
+										Intro and Attempt 1 drafted. Attempt 1 covers the edge-pairing method, the
+										high-version offset-normalization failure, and the brittleness on real images.
+										Attempt 2 is omitted from the post for brevity; one sentence can note that the
+										final code uses centre geometry.
+									</td>
+									<td class="px-4 py-3">
+										<span
+											class="inline-flex rounded-full bg-blue-950 px-2.5 py-0.5 text-xs font-medium text-blue-300 ring-1 ring-inset ring-blue-900"
+											>in progress</span
+										>
+									</td>
+								</tr>
+								<tr>
+									<td class="px-4 py-3 font-medium text-stone-100">
+										5. Cross-ratio version ranking
+									</td>
+									<td class="px-4 py-3 text-stone-400">
+										Why version comes first, the four outer corners per finder, the four sides of
+										the top-left finder as the cross-ratio lines, the cross-ratio formula, expected
+										ratios per <code>N</code>, median log-error scoring, and the runner-up. Prose
+										drafted from the rant; figure done.
+									</td>
+									<td class="px-4 py-3">
+										<span
+											class="inline-flex rounded-full bg-amber-950 px-2.5 py-0.5 text-xs font-medium text-amber-300 ring-1 ring-inset ring-amber-900"
+											>under review</span
+										>
+									</td>
+								</tr>
+								<tr>
+									<td class="px-4 py-3 font-medium text-stone-100">6. Estimating the homography</td>
+									<td class="px-4 py-3 text-stone-400">
+										Twelve finder corners, canonical corner order, Hartley-normalised DLT, LM
+										refinement, bounded candidate versions, bottom-right extrapolation. Algorithm
+										reference added. Figure done; prose not drafted. The section still needs the
+										homography explanation: the 12 correspondences, DLT, LM, and the limits.
+									</td>
+									<td class="px-4 py-3">
+										<span
+											class="inline-flex rounded-full bg-blue-950 px-2.5 py-0.5 text-xs font-medium text-blue-300 ring-1 ring-inset ring-blue-900"
+											>in progress</span
+										>
+									</td>
+								</tr>
+								<tr>
+									<td class="px-4 py-3 font-medium text-stone-100">7. Sampling the grid</td>
+									<td class="px-4 py-3 text-stone-400">
+										Adaptive threshold from known finder cells, 3×3 sub-cell sampling, weighted
+										majority vote, transpose for the decoder. Algorithm reference added; prose and
+										figure not drafted.
+									</td>
+									<td class="px-4 py-3">
+										<span
+											class="inline-flex rounded-full bg-blue-950 px-2.5 py-0.5 text-xs font-medium text-blue-300 ring-1 ring-inset ring-blue-900"
+											>in progress</span
+										>
+									</td>
+								</tr>
+								<tr>
+									<td class="px-4 py-3 font-medium text-stone-100">
+										8. Decoding the payload (short)
+									</td>
+									<td class="px-4 py-3 text-stone-400">
+										Agentically coded and out of scope. One or two paragraphs: format info, version
+										info cross-check, codewords, de-interleaving, Reed–Solomon, bitstream. Decode
+										success is the final candidate filter.
+									</td>
+									<td class="px-4 py-3">
+										<span
+											class="inline-flex rounded-full bg-slate-900 px-2.5 py-0.5 text-xs font-medium text-slate-300 ring-1 ring-inset ring-slate-700"
+											>not started</span
+										>
+									</td>
+								</tr>
+								<tr>
+									<td class="px-4 py-3 font-medium text-stone-100">
+										9. What worked, what did not / outro
+									</td>
+									<td class="px-4 py-3 text-stone-400">
+										Captured benchmark funnel, representative success and failure images,
+										limitations, agentic-development reflection, forward-looking close. Empty apart
+										from a short improvement list.
+									</td>
+									<td class="px-4 py-3">
+										<span
+											class="inline-flex rounded-full bg-slate-900 px-2.5 py-0.5 text-xs font-medium text-slate-300 ring-1 ring-inset ring-slate-700"
+											>not started</span
+										>
+									</td>
+								</tr>
+							</tbody>
+						</table>
+					</div>
+				</section>
+
+				<section>
+					<h2 class="text-lg font-semibold text-stone-100">Facts &amp; numbers</h2>
+					<ul class="mt-2 list-disc space-y-1 pl-5">
+						<li>
+							Version <em>V</em> is <code>17 + 4V</code> modules per side; version 1 is 21×21,
+							version 40 is 177×177. Each finder pattern is 7 modules across.
+						</li>
+						<li>
+							Finder ratio test: 1:1:3:1:1, each run within 30% of ideal; clustering uses 22%
+							segment-width agreement and 1.2× height distance.
+						</li>
+						<li>
+							Old pairwise association at v12/seed 0: true segment offsets ≈ 0.020 and 0.021; false
+							cross-pairs ≈ 0.110 and 0.139; threshold was 0.15. At v4 the false cross-pairs were ≈
+							0.25–0.30. Source: <code>docs/find-all-associations-debug.md</code>.
+						</li>
+						<li>
+							Current triplet gates: module-size agreement within 30%, centre distance between 2×
+							and 200× mean module pitch, inter-centre axis alignment
+							<code>max(|dot|) &gt; 0.9</code>
+							with the perpendicular component below 25% of that, and the angle at the corner finder
+							within 15° of 90°.
+						</li>
+						<li>
+							Homography input: 12 outer corners, four from each of the three finder patterns. For a
+							candidate module count <code>N</code>, those corners map to the grid blocks
+							<code>(0..7, 0..7)</code>, <code>(N-7..N, 0..7)</code> and
+							<code>(0..7, N-7..N)</code>. The homography has eight free parameters; DLT is solved
+							by SVD after Hartley normalization, then refined by LM on reprojection error.
+						</li>
+						<li>
+							Cross-ratio version ranking: <code>build_named_landmarks</code> builds A–F from the
+							triplet; <code>get_colinear_quadruples</code> gives four outer quadruples;
+							<code>estimate_version</code> scores every V by median
+							<code>|log(r_measured / r_expected)|</code>. Outer expected positions are
+							<code>0, 7, N-7, N</code>; inner positions are <code>1, 6, N-6, N-1</code>. The
+							current ray fit has outer corners only, so four constraints are available.
+						</li>
+						<li>
+							Cross-ratio examples: on <code>qr_code_ - 99.jpeg</code> (v1) the best score is 0.0045
+							and the runner-up is 0.1192 (v2); on <code>qr_code_ - 16.jpeg</code> (v10) it is
+							0.0003 versus 0.0025 (v11); on <code>qr_code_ - 35.jpeg</code> (v20) it is 0.0002
+							versus 0.0004 (v21).
+						</li>
+						<li>
+							Current pipeline: <code>_rank_triplets</code> computes the cross-ratio ranking for
+							every triplet and sorts triplets by best score.
+							<code>pipeline.decode_image</code> tries up to 5 triplets × 2 versions within a 15 s
+							budget. Empty constraints, all-filtered constraints or all non-finite scores raise
+							<code>ValueError</code>; there is no fallback.
+						</li>
+						<li>
+							Captured benchmark baseline before multi-triplet decode: 65 → 64 → 49 → 49 → 40 → 40
+							out of 100 images (candidates, finders, triplets, homography/version, decodable,
+							correct payload). Source: <code>benchmark_captured.json</code>. Rerun after the
+							pipeline change before quoting.
+						</li>
+						<li>
+							Synthetic benchmark: <code>benchmark_current.json</code> has 180 cases with 78
+							detection successes and 52 decodes; <code>benchmark_ray.json</code> has 180 cases with
+							62 detections and 60 decodes. Local ignored outputs; verify before quoting.
+						</li>
+						<li>
+							The detector chooses the version from the cross-ratio ranking, not from the QR
+							version-information bits. The decoder cross-checks version information for v≥7 only
+							after sampling. The old full forty-version timing-pattern search is gone.
+						</li>
+					</ul>
+				</section>
+
+				<section>
+					<h2 class="text-lg font-semibold text-stone-100">Figures</h2>
+					<ul class="mt-2 list-disc space-y-1 pl-5">
+						<li>
+							<strong class="text-stone-200">Done:</strong> QR anatomy (finder patterns + 1:1:3:1:1
+							zoom) and versions/spacing diagram. Assets <code>qr-anatomy.png</code> /
+							<code>qr-versions.png</code>.
+						</li>
+						<li>
+							<strong class="text-stone-200">Done:</strong> RLE scan animation and
+							candidate-clustering/vertical-check animation. Assets <code>rle-scan.gif</code> /
+							<code>candidate-clustering.gif</code>.
+						</li>
+						<li>
+							<strong class="text-stone-200">Done:</strong> RLE normalization figure on a real row
+							through two finder patterns. Asset <code>rle-normalization.png</code>.
+						</li>
+						<li>
+							<strong class="text-stone-200">Done:</strong> rough three-centre affine alignment,
+							progressive sampling, and wrong-bit comparison on a v1 code. Asset
+							<code>affine-sampling.gif</code>.
+						</li>
+						<li>
+							<strong class="text-stone-200">Homography figure (done):</strong> left, the warped
+							photo cropped to the QR with the twelve detected finder corners; right, the rectified
+							top-down QR with a module grid and the twelve canonical corners. Only the top-left
+							finder's four correspondence lines are drawn; all twelve corners are marked. The inset
+							zooms to a 3×3 module region around the top-left finder's bottom-left corner at 200
+							px/module, with the ideal and mapped points connected at true scale. No exaggeration.
+							Photo <code>qr_code_ - 20.jpeg</code> (v10); image-plane fit mean 0.80 px, max 2.06
+							px; chosen corner 0.15 modules. Asset <code>homography.png</code>.
+						</li>
+						<li>
+							<strong class="text-stone-200">Cross-ratio figure:</strong> the same version-10 photo
+							as the triplet figure. Highlight the four sides of the top-left finder, extended to
+							the other two finders, and annotate the four measured cross-ratios next to the lines.
+							Show the expected value for version 10 separately. Four lines, no table below. Done.
+							Asset <code>cross-ratio.png</code>.
+						</li>
+
+						<li>
+							<strong class="text-stone-200">Optional sampling figure:</strong> one module with the
+							3×3 sub-cell samples and the weighted majority vote.
+						</li>
+						<li>
+							Recommended from the inventory: Otsu image plus 2-D candidates plus cluster boxes;
+							finder ROI with radial profiles and fitted edges; chosen triplet, version evidence and
+							projected QR boundary; rectified sampled bit matrix at the decoder handoff.
+						</li>
+						<li>
+							Optional: rejected flood-fill/Hough comparison, and a clean finder-structure crop. The
+							user decides which figures are worth making.
+						</li>
+					</ul>
+				</section>
+
+				<section>
+					<h2 class="text-lg font-semibold text-stone-100">Chores</h2>
+					<ul class="mt-2 list-disc space-y-1 pl-5">
+						<li>
+							Otsu thresholding explainer figure: grayscale histogram with the chosen threshold,
+							plus a before/after binary crop. Not assigned to a beat.
+						</li>
+						<li>
+							Update the QR-reader post's image tags. The ten PNG figures are imported with
+							<code>?url</code> and rendered with plain <code>&lt;img&gt;</code>, which bypasses
+							Astro's image pipeline, so they ship as full-size PNGs instead of WebP. Switch those
+							ten to the optimizing path (Markdown <code>![...]</code> or
+							<code>&lt;Image&gt;</code>) and leave the six GIFs as plain <code>&lt;img&gt;</code>.
+							Why: every other raster figure on the blog already goes through
+							<code>img.astro</code> and is served as WebP; this post is the remaining raw-PNG
+							exception. Do this as a separate follow-up, not in the figure pass.
+						</li>
+					</ul>
+				</section>
+
+				<section>
+					<h2 class="text-lg font-semibold text-stone-100">Open questions</h2>
+					<ul class="mt-2 list-disc space-y-1 pl-5">
+						<li>
+							The teaser <code>qr-reader.jpg</code> does not exist in
+							<code>src/assets/teasers/</code>. Which image should it be?
+						</li>
+						<li>
+							How much decoder detail belongs in the post? Current intent is a short handoff plus a
+							candid note, not a decoder walkthrough.
+						</li>
+						<li>Which rejected approach deserves prose: flood fill, Hough, or both?</li>
+						<li>
+							Should the branch be renamed from <code>posts/qr-reader</code> to the skill's
+							<code>post/qr-reader</code> convention?
+						</li>
+						<li>Publish date and final title/excerpt are not settled.</li>
+					</ul>
+				</section>
+
+				<section>
+					<h2 class="text-lg font-semibold text-stone-100">Decisions</h2>
+					<ul class="mt-2 list-disc space-y-1 pl-5">
+						<li>
+							<strong class="text-stone-100">2026-11-12</strong> — Post order: triplet attempt 1
+							only; cross-ratio version ranking; homography; sampling; short decoder handoff; outro.
+							Attempt 2 of triplet finding is omitted for brevity.
+						</li>
+						<li>
+							<strong class="text-stone-100">2026-11-09</strong> — Rebased
+							<code>posts/qr-reader</code> onto blog <code>origin/main</code>. The new
+							blog-post-authoring skill came in with that rebase.
+						</li>
+						<li>
+							<strong class="text-stone-100">2026-11-09</strong> — Moved the inline drafting notes
+							out of the MDX file. Prettier escapes multi-line <code>{/* ... */}</code> blocks,
+							which breaks the MDX build. The plan is the right home for them.
+						</li>
+						<li>
+							<strong class="text-stone-100">2026-11-09</strong> — Keep the detector as the main
+							subject; the decoder stays a handoff with a short agentic-development note.
+						</li>
+					</ul>
+				</section>
+
+				<section>
+					<h2 class="text-lg font-semibold text-stone-100">Title and excerpt</h2>
+					<ul class="mt-2 list-disc space-y-1 pl-5">
+						<li>
+							<strong class="text-stone-100">Title:</strong> Writing a QR code reader from scratch
+							(working title; user decides).
+						</li>
+						<li>
+							<strong class="text-stone-100">Excerpt:</strong> Building a QR code decoder from
+							scratch in Python — the algorithms, the pitfalls, and what I learned along the way.
+							(Placeholder; rewrite without the em dash.)
+						</li>
+					</ul>
+				</section>
+
+				<section>
+					<h2 class="text-lg font-semibold text-stone-100">Change log</h2>
+					<ul class="mt-2 list-disc space-y-1 pl-5">
+						<li>
+							<strong class="text-stone-100">2026-11-09</strong> — Rebased onto
+							<code>origin/main</code>, created this plan from the old inline notes, and fixed the
+							post so it builds again.
+						</li>
+						<li>
+							<strong class="text-stone-100">2026-11-09</strong> — Added the algorithm orientation
+							and corner-finding rant prompts. Reconstructed from current <code>ray_fit.py</code> /
+							<code>edge_fitting.py</code>, the old flood-fill pipeline, and the deleted Hough
+							reports in git history.
+						</li>
+						<li>
+							<strong class="text-stone-100">2026-11-09</strong> — Drafted the flood-fill, Hough,
+							and ray-profile subsections, added the flood-fill success/failure figure, and dropped
+							the flood-fill speed discussion from the post.
+						</li>
+						<li>
+							<strong class="text-stone-100">2026-11-09</strong> — Added the Hough success/failure
+							panels and the ray-profile signal/clustering figures.
+						</li>
+						<li>
+							<strong class="text-stone-100">2026-11-09</strong> — Researched the triplet stage from
+							code and git history: pairwise edge colinearity, the high-version offset failure and
+							local-normalization repair, the per-finder homography detour, and the current
+							centre-geometry algorithm. Added triplet rant prompts and numbers to the plan.
+						</li>
+						<li>
+							<strong class="text-stone-100">2026-11-09</strong> — Drafted and inserted the triplet
+							intro and Attempt 1, with the ambiguity and colinearity figures. Dropped the
+							per-finder homography from the triplet story; it is a separate corner-fitting
+							experiment.
+						</li>
+						<li>
+							<strong class="text-stone-100">2026-11-09</strong> — Added the QR anatomy and
+							versions/spacing figures to the opening section.
+						</li>
+						<li>
+							<strong class="text-stone-100">2026-11-09</strong> — Added the affine-sampling
+							animation showing rough three-centre alignment and the resulting wrong bits.
+						</li>
+						<li>
+							<strong class="text-stone-100">2026-11-09</strong> — Added the RLE scan and
+							candidate-clustering/vertical-check animations.
+						</li>
+						<li>
+							<strong class="text-stone-100">2026-11-10</strong> — Added the RLE normalization
+							figure with measured run lengths and normalized ratios.
+						</li>
+						<li>
+							<strong class="text-stone-100">2026-11-11</strong> — Added the initial homography
+							algorithm reference (later superseded by cross-ratio version ranking and the
+							multi-triplet decode path).
+						</li>
+						<li>
+							<strong class="text-stone-100">2026-11-12</strong> — Reordered the post plan to:
+							triplet attempt 1 only, cross-ratio version ranking, homography, sampling, a short
+							decoder handoff, and the outro. Added algorithm references for each. Added the
+							unassigned Otsu thresholding figure chore.
+						</li>
+						<li>
+							<strong class="text-stone-100">2026-11-13</strong> — Drafted the cross-ratio
+							version-ranking section from the rant. Simplified the score to a median of log
+							differences, cut the numeric examples, and narrowed the runner-up explanation.
+							Generated <code>cross-ratio.png</code>: four lines, measured values beside each line,
+							expected value for version 10 separate.
+						</li>
+						<li>
+							<strong class="text-stone-100">2026-11-14</strong> — Finished the homography figure:
+							warped crop, rectified 57×57 grid, twelve marked corners, top-left correspondence
+							lines, and a true-scale 3×3 corner zoom at 200 px/module with no exaggeration.
+							Version-10 photo, image-plane fit mean 0.80 px and max 2.06 px; chosen corner 0.15
+							modules.
+						</li>
+					</ul>
+				</section>
+			</div>
+
+			<footer class="mt-12 border-t border-stone-800 pt-4 text-xs text-stone-500">
+				Living document. Delete before merging; CI rejects tracked ai-docs.
+			</footer>
+		</main>
+	</body>
+</html>

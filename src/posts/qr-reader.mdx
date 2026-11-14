@@ -1,0 +1,305 @@
+---
+title: 'Writing a QR code reader from scratch'
+date: '2026-07-30'
+categories: [projects]
+teaser: 'qr-reader.jpg'
+excerpt: 'Building a QR code decoder from scratch in Python — the algorithms, the pitfalls, and what I learned along the way.'
+---
+
+import qrAnatomy from '../assets/blog/qr-reader/qr-anatomy.png?url';
+import qrVersions from '../assets/blog/qr-reader/qr-versions.png?url';
+import rleScan from '../assets/blog/qr-reader/rle-scan.gif?url';
+import rleNormalization from '../assets/blog/qr-reader/rle-normalization.png?url';
+import candidateClustering from '../assets/blog/qr-reader/candidate-clustering.gif?url';
+import floodFillSuccess from '../assets/blog/qr-reader/flood-fill-success.gif?url';
+import floodFillFailure from '../assets/blog/qr-reader/flood-fill-failure.gif?url';
+import rayProfileSignal from '../assets/blog/qr-reader/ray-profile-signal.png?url';
+import rayProfileClustering from '../assets/blog/qr-reader/ray-profile-clustering.png?url';
+import houghSuccess from '../assets/blog/qr-reader/hough-success.png?url';
+import houghFailure from '../assets/blog/qr-reader/hough-failure.png?url';
+import affineSampling from '../assets/blog/qr-reader/affine-sampling.gif?url';
+import tripletAmbiguity from '../assets/blog/qr-reader/triplet-ambiguity.png?url';
+import tripletColinearity from '../assets/blog/qr-reader/triplet-colinearity.png?url';
+import crossRatio from '../assets/blog/qr-reader/cross-ratio.png?url';
+import homography from '../assets/blog/qr-reader/homography.png?url';
+import otsuColorGray from '../assets/blog/qr-reader/otsu-color-gray.png?url';
+import otsuThreshold from '../assets/blog/qr-reader/otsu-threshold.gif?url';
+import illuminationCorrection from '../assets/blog/qr-reader/illumination-correction.png?url';
+
+QR codes are everywhere, and they have been around since the 90s. Detecting and decoding them should be a simple, straightforward computer vision task, right? At least that's what I thought. I set out to write my own QR code detector and try to come up with an algorithm on my own. It turns out it's not as simple as I thought.
+
+## The problem: finding a QR code in an image
+
+The scope of the project is simple: detect a QR code, find its corners, and decode the payload. Before diving in, let's look at a QR code:
+
+<img
+	src={qrAnatomy}
+	alt="A QR code with its three finder patterns boxed, plus a zoomed finder showing the 1:1:3:1:1 bands and the 7-module width."
+/>
+
+You may notice the patterns in the top-left, top-right and bottom-left corners. These are the _finder patterns_ of a QR code. They are always present and contain no data themselves; they exist purely to help locate the code. If you draw a horizontal or vertical line through one of these patterns, you always see black, white, black, white, black in a ratio of 1:1:3:1:1. That signature makes the finder patterns relatively easy to spot, and later on we'll see how.
+
+To detect a QR code, you only need to find three things that look like finder patterns under the 1:1:3:1:1 rule and sit roughly in an isosceles triangle. Such a triangle has one right angle and two 45-degree angles, and the finder pattern at the right angle must be the top-left one. Assuming the QR code is not mirrored, the bottom-left finder pattern then sits counter-clockwise from the top-left, and the top-right one sits clockwise from it.
+
+There's more to it, though. QR codes come in different sizes, known as _versions_. The smallest is version 1, which is 21×21 dots, up to version 40 at 177×177. In general, version $V$ has $17+4V$ dots on each side. To decode a code you need to know its version. Fortunately, each finder pattern measures $1+1+3+1+1=7$ dots on a side. So if, say, the finder patterns are 70 px on a side and the gap between them is 110 px, then one dot is 10 px and the total side length is $70+110+70 = 250$ px, i.e. 25 dots — which is version 2. This works well for small versions. For larger versions we may only be able to pin the version down to a range like 32–35. In that case we can simply try decoding under each candidate version and move on to the next when one fails. The version is also encoded separately in the QR code itself for version 7 and up, which helps.
+
+<img
+	src={qrVersions}
+	alt="QR versions 1, 2, 5, and 10 with module counts, plus a spacing diagram showing 70 px + 110 px + 70 px = 250 px = 25 modules, which is version 2."
+/>
+
+To decode the code, we do need to know the corners of the three finder patterns fairly precisely. That establishes a correspondence from pixels to the dot grid: if we want to know whether the dot at (4, 10) is black or white, we know which pixels to inspect in the original image. The more precisely we know the location and orientation of the finder patterns, the more reliable this correspondence will be, and the more likely decoding is to succeed.
+
+This suggests the following pipeline:
+
+- Find parts of the image that look like finder patterns using the 1:1:3:1:1 rule.
+- Find the corners of each finder pattern, or reject the candidates that fail.
+- Find which triplets of finder patterns actually make up a QR code.
+- Determine the version `V`, and thus the number of dots `N=4*V+17` on each side.
+- Sample the QR code to get the `NxN` dot pattern.
+- Decode the payload.
+
+That, at a high level, is the pipeline I implemented. One thing it leaves out is the _alignment patterns_. These are smaller 1:1:1:1:1 patterns (a black outer ring, a white inner ring, and a black dot in the center) that you can see in every QR code with version greater than 1. Their number and placement depend on the version. Because the sampling step needs the QR code geometry more precisely at higher versions, these patterns help improve localization. For simplicity I decided to leave them out of my detector; as we will see, they are not strictly necessary to decode a QR code, even at higher versions.
+
+Finally, there is the matter of _perspective_. Capturing a QR code head-on is much easier to decode. I want my detector to handle QR codes that are rotated or viewed at unusual angles — basically, snap a photo from any odd angle and the detector should still find the code. That is far more satisfying than requiring the code to already be roughly aligned. But, as we will see, it also makes the problem much harder.
+
+I hope the basic idea and scope of the project are now clear, so let's dive into how each step of the algorithm works.
+
+## From pixels to candidates
+
+The finder patterns follow a 1:1:3:1:1 dark-bright-dark-bright-dark pattern. How can you detect that? First you have to know what 'dark' and 'bright' even means in the first place. In a photo, the white part of a QR code is more like light gray plus some random noise. An easy way to do that is by converting the image to pure black and white using a threshold. We can convert the RGB value to grayscale, and then compare the value to a threshold $t$. If the mean RGB value is below $t$, then it's black, above it's white. The figure below shows the same crop in color and in grayscale.
+
+<img src={otsuColorGray} />
+
+But how do you determine $t$? You can't just set it to $t=128$, because some images are bright and some are dark depending on ambient light and camera settings. One way to automatically determine a reasonable threshold is using _Otsu's method_. This converts the pixel intensities of the whole image into a histogram, and then finds the threshold that best separates the image into a bright and dark class (minimizing the intra class variance). It is a relatively simple and very popular thersholding method, and it works well for many images. The animation below shows the same image at different thresholds.
+
+<img src={otsuThreshold} />
+
+Otsu's method does have a major flaw: the lighting in the image isn't always uniform. It often happens that some parts of the image are more brightly lit than others, and then the ideal threshold may be higher in a brighter part of the image and lower in a darker part of the image.
+
+To correct for this we can try to estimate the difference in luminance across the image. We apply an aggressive blur, which destroys all details, but retains information on how bright a region is on average. We then correct the image by dividing by that mean luminance.
+
+As you can see below, this makes the histogram much more bimodal (having two peaks), which Otsu's method can cleanly separate. The result is a binarized image that is much cleaner than using Otsu's method directly.
+
+<img
+	src={illuminationCorrection}
+	alt="A QR image, the estimated illumination field, the illumination-corrected image, the intensity histogram before and after correction, and the Otsu binarization before and after."
+/>
+
+Now the image is divided in 'dark' (0) and 'light' (1) pixels. One row of the image could look like this 111*001100000001100*1111001, where the bold numbers are a 1:1:3:1:1 pattern. How we detect this pattern? We can use _run length encoding_. We convert the string of 0's and 1's above into a lengths of consecutive 1's or 0's. The string starts with 3x1, then 2x0, etc. so we can write: 3,_2,2,6,2,2_,4,2,1. Now observe that 2:2:6:2:2 is precisely the same set of ratios as 1:1:3:1:1!
+
+The real world is messy, and a perfectly valid finder pattern might have RLE 51, 47, 148, 45, 52. How do we compare that to 1:1:3:1:1? There are many ways to do this, but a simple way is to divide by the sum and compare to the ideal, keeping each element within 30% of the ideal. Here the sum is 343, and the reference 1:1:3:1:1 sums to 7, so we can use that to normalize. This transforms 51, 47, 148, 45, 52 into 1.04, 0.96, 3.02, 0.92, 1.06; all within 30% of 1,1,3,1,1, so we accept this sequence as a potential finder pattern.
+
+The figure below shows a real row through two finder patterns. The left finder is centred on the scanline, so its five runs normalize cleanly. The right finder is off-centre at this row, so its cut is distorted.
+
+<img
+	src={rleNormalization}
+	alt="A real QR photo with a scanline through two finder patterns, the run lengths along that row, and the normalization of the left finder's five runs against 1:1:3:1:1."
+/>
+
+You may think that 30% is a pretty loose threshold, and you'd be right. But there are good reasons for this. First of all, it's easy to throw away false positives later, so we are optimizing for high recall at this point. On the other hand, QR codes can be rotated, blurred, distorted by perspective, etc., so a loose threshold is really necessary in practice. Even then this method is not ideal. Just one rogue pixel can mess everything up. There are ways around that, but it works well enough in practice. It's rather effective for something so cheap and simple!
+
+The animation below shows the scan in action: the binary image is recolored, the scanline sweeps down, and every 1:1:3:1:1 match leaves a box behind.
+
+<img
+	src={rleScan}
+	alt="A binary QR image with a horizontal scanline sweeping down. Each 1:1:3:1:1 match leaves an orange candidate box behind."
+/>
+
+Observe however that a finder pattern can have may matching RLE 5-tuples. We ideally only only output one candidate region per finder pattern, so we have to group the RLE 5-tuples that belong to the same finder pattern somehow. This fortunately really easy! Well, it took a few tries to get right, but you know, it's easy in hind sight.
+What I settled on after some painful trial and error is the following approach.
+
+- Encode each candidate with the pixels denoting each of the 6 transitions (white to black, black to white, ...). I say that the estimate heigh of a cluster is the width of the center segment.
+- We can check if canidate A overlaps candidate B if all segment widths are withing 22% of each other, if the vertical distance is less that 1.2x the 'height' of the candidate, and if the center x coordinate of B lies in the central segment of A.
+
+Then if two candidates overlap we merge them by taking the mean of all quantities of interest (segment widths, estimated height). This gives a candidate cluster. When merging clusters consisting of different numbers of candidates, we take a weighted mean to give more weight to clusters with mroe candidates.
+
+The full procedure is to take a cluster, check it against all other clusters, and merge greedily. You do this top to bottom, and stop when there's nothing left to merge. With some minor optimization this is pretty fast.
+
+At first I tried fancier clustering approaches like agglomerative clustering, and different overlap metrics. Some methods were too expensive, but most simply didn't work that well and would for example refuse to merge candidates, or end up with a cluster center that is not really represenative of the finder patterns center. My approach works and is fast and simple, but I have no good intuition why it works better than other approaches I tried. I think that the simple merge rule just ends up capturing the right geometry.
+
+This clustering step reduces the number of candidate finder patterns substantially, but we're not done yet! There is a cheap trick to substantially reduce false positives. A real finder pattern still looks like a finder pattern if you rotate it 90', because, well, it's a square (duh). So we can just take a look at the RLE in the vertical direction (column by column instead of row by row). If our candidate finder pattern also has a match on the RLE in the vertical direction (with a slightly firther relaxed threshold) then we keep it, else we throw it out.
+
+The animation below shows both steps on a real photo. The raw candidates merge into five clusters, and the vertical check throws out the two false positives in the QR data region, leaving the three finder patterns.
+
+<img
+	src={candidateClustering}
+	alt="Raw RLE candidates merging into cluster boxes, followed by a vertical check that rejects two false positives and keeps the three finder patterns."
+/>
+
+## Finding the corners
+
+Now we have hopefully correctly identified the locations of all the finder patterns, with maybe some false postiives. How do we go from there to a decoded QR code? We could just take all triplets of candidate finder patterns, and see if they rougly form a right-angled triangle, and just try to decode the QR code. But that doesn't work, because to decode you need to know pretty precisely where you are inside the QR code.
+
+The animation below shows what that looks like on a v1 code. The three finder centers are enough to get a rough affine alignment, but not enough to correct the perspective. The sampled matrix is close, and then the bits in the bottom-right start to go wrong.
+
+<img
+	src={affineSampling}
+	alt="A v1 QR code rectified from its three finder centres, with the module grid being sampled into a bit matrix on the right. The wrong bits are highlighted in red at the end."
+/>
+
+### The first attempt: flood filling the finder pattern
+
+At this point I was still writing everything by hand. No AI, no autocomplete doing the thinking for me -- partly because I wanted to keep my hand in, and partly because I hadn’t given in yet.
+
+The finder-pattern finder had already done most of the hard work for free. The 1:1:3:1:1 scan gave me a seed pixel on the outer black ring, plus the white and black ring structure around it. So the obvious next move was to grow that seed into the whole finder pattern.
+
+All the pixels that belong to the pattern form a connected component. The simplest way to recover one is flood filling: start with a single pixel, look at its neighbors, and if they have the same color, add them to the mask. Then keep going. A few iterations later you have the entire pattern.
+
+Once I had that mask, I only needed the corners. I used a few heuristics: the point farthest from the center is probably one corner, the others should be roughly 90 degrees away and also be local maxima along the boundary. A bit of non-maximum suppression gave me four candidates.
+
+In practice the flood fill itself was usually not the problem. The thresholding isn’t perfect, so a mask can have holes, and that does happen. But the failure I kept running into was one step later: turning the boundary into four corners. The farthest-point heuristic works fine when the finder is roughly square in the image. Under perspective it doesn’t. The finder becomes a general quadrilateral, the farthest points are not necessarily the corners, and the four points I picked could collapse onto the same acute corner. The mask was clean; the corners were wrong.
+
+The two animations below show what that looks like on the same photo. In the first, the fill and the corner picks work. In the second, the mask is still clean, but the corners collapse onto the acute side.
+
+<div class="grid grid-cols-1 gap-3 sm:grid-cols-2">
+	<img
+		src={floodFillSuccess}
+		alt="Flood filling a QR finder pattern succeeds and the four corner picks land on the ring."
+	/>
+	<img
+		src={floodFillFailure}
+		alt="Flood filling a perspective-distorted QR finder pattern succeeds, but the four corner picks collapse onto the acute corners."
+	/>
+</div>
+
+I spent quite a bit of time trying to make this work, but it never reached the recall or precision I wanted. So I dropped it and started over.
+
+### The second attempt: Hough lines
+
+The next thing I tried was a more classical computer-vision approach: Hough lines.
+
+The basic idea is almost annoyingly simple. Finding edges is not that hard, and once you have an edge, the image gradient also tells you its direction. If you know the direction and one point on the edge, you know the line. So you can let every strong edge pixel vote for the line it thinks it is on. Discretize the angle and the intercept into bins -- I used about half a degree and half a pixel -- and keep a table of votes. If many edge pixels agree that “the line with this angle and this intercept” exists, there probably is a line there. Then you take the largest peaks in the table, turn each peak into a line segment, and intersect the four outer segments to get the corners.
+
+To find the edges and angles I used something like Canny, but with fewer steps. First a little blurring, which matters: without it you get staircase edges and messy angles. Then a Sobel filter for the x and y derivatives, from which you get the gradient magnitude and angle. Then non-maximum suppression along the gradient direction, so you keep only the thin edge pixels you actually want. For the Hough table, you find the largest peak, suppress a small neighborhood around it, and repeat. Each peak gives you a line; to turn it into a segment you look at the support set -- the edge pixels close to that line -- and fit or trim the segment to those points. Intersect the four outer segments and you have the finder corners.
+
+This was a step up from flood filling. It worked better, and it was a lot faster. On synthetic images it looked like it was going to work. On real images it kind of, sort of worked, but never reliably enough.
+
+There were three problems. The first was gaps. Real edges are not perfectly smooth, so the non-maximum suppression leaves gaps that the algorithm cannot bridge, and a line that should be one segment comes out as several disconnected pieces. The second was that the cutout around the finder pattern still contains other edges: parts of the QR code, or just background clutter. We do not know exactly where the finder pattern is -- if we did, we would already know its corners -- so we cannot exclude those edges, and they mess up the voting. The third was weak edges. If the finder boundary is not strong enough, its votes get diluted, and the right line either does not win or does not show up at all.
+
+So we ended up in the same place as before. The basic approach looked good on synthetic images, but on real images it was finicky. Some parameter tuning helped, but no setting made it work all the time. Finding the corners was still hard, and making it robust was harder.
+
+The two figures below show a clean case and a failure case. In the clean one, each outer edge produces a single clear peak, and the four lines intersect at the corners. In the failure, the edges break into pieces and other QR edges compete for votes, so the selected lines are wrong.
+
+<div class="space-y-4">
+	<img
+		src={houghSuccess}
+		alt="Hough success: original crop, thin edge map, Hough accumulator with four clear peaks, and the four lines intersecting at the finder corners."
+	/>
+	<img
+		src={houghFailure}
+		alt="Hough failure: original crop, a broken edge map, a cluttered Hough accumulator, and selected lines that miss two of the corners."
+	/>
+</div>
+
+### The third attempt: ray profiles
+
+The next idea was to treat the finder pattern as a signal-processing problem.
+
+If you start at the center of a finder pattern and cast a ray outward, the intensity along that ray has a very specific shape. It starts dark, goes bright, dark again, bright again, and then eventually turns into whatever is around the finder pattern. The 1:1:3:1:1 structure is right there in the signal. So instead of trying to find edges and lines, I could fit a known template to that one-dimensional profile and read off the transition points. The fit has a scale parameter -- the module pitch -- and once I know that, I know where every transition should be along that ray.
+
+This is much more robust than thresholding and then trying to recover a clean boundary. If one pixel in the middle is the wrong color, or the threshold is slightly off, the fit doesn’t care. The whole profile votes on the scale, and the transitions come out as a smooth compromise instead of a hard edge.
+
+<img
+	src={rayProfileSignal}
+	alt="A ray cast at 20 degrees from a finder-pattern centre, with the intensity profile along that ray and the fitted template overlaid."
+/>
+
+I did this for 36 half-rays, spaced 10 degrees apart, and sampled each profile at 120 points. For each ray I fitted the template and placed a boundary point at 3.5 module pitches from the center, on the outer edge of the finder. So after the ray stage I had 36 candidate boundary points, one per direction, each one probably sitting somewhere on the outer edge. The inner transitions were useful for fitting the scale, but I did not need them to find the corners.
+
+Then the problem became clustering those points into the four sides. This turned out to be the hardest part of the whole ray-fitting approach. The ray profiles themselves were fairly straightforward, and the rest was mostly parameter tuning, but getting the clustering right took a lot of iterations. I tried a whole range of clustering algorithms here. What worked best was to treat a cluster as defining a single line, fit that line with total least squares, and then decide whether a nearby point belongs to it by seeing how much the fit worsens. If the point makes the line much worse, it probably belongs to a different edge. Refit, repeat. TLS is a simple line fit, and the residual tells you how well the points actually lie on a line, which is exactly the signal I needed.
+
+<img
+	src={rayProfileClustering}
+	alt="Three panels showing all 36 half-rays, the fitted boundary points, and the points clustered into the four finder sides with a fitted line for each."
+/>
+
+Once I had four line clusters, I could intersect them and get the corners. I also added a gate: the four clusters have to contain most of the boundary points. In a real finder pattern, almost all of the ray points land on one of the four outer edges; there are a few outliers, but the majority are consistent. If the clusters only explain a small fraction of the points, the candidate is probably not a finder pattern, and I threw it away.
+
+I only used the outer edges for the final geometry. The inner transitions were useful for fitting the scale, but I didn’t need them to compute the corners. You could use them too and get a slightly better fit, but that wasn’t the bottleneck anymore. The ray fitting worked well enough that the bottleneck moved: now the hard part was finding the candidate finder patterns in the first place. Which meant the corner finder was no longer the thing holding the detector back.
+
+## Choosing a triplet
+
+Suppose we have found three finder patterns and their corners. Which one is the top-left, which is the top-right, and which is the bottom-left? We do not assume the QR code is upright — it could be rotated by any angle, including 180°. And if we found more than three candidates, which three belong to the same QR code? We need an algorithm for this, and as with everything else in this project, it is trickier than it appears at first glance.
+
+<div class="mx-auto max-w-xl">
+	<img
+		src={tripletAmbiguity}
+		alt="Four candidate finder patterns outlined on a version-3 QR code, with no correct triplet marked."
+	/>
+</div>
+
+### Matching the outer edges
+
+Each finder has four outer edges. If two finders sit next to each other in the QR grid, two of their edges should lie on the same line. So for every pair of finders, we compare their four edges. We don’t know which edge is which, so we try both one-to-one pairings of the opposite edges and keep the best match. If two pairs line up, the finders are associated.
+
+<div class="mx-auto max-w-2xl">
+	<img
+		src={tripletColinearity}
+		alt="Three finder patterns with all outer edges extended as thin lines and the pairs of collinear edges along the two legs of the L highlighted."
+	/>
+</div>
+
+The three finders of a QR form an L. One finder is connected to the other two, and those two are not connected to each other. The finder at the corner of the L is the top-left finder.
+
+That leaves the top-right and bottom-left. Call the two remaining finders A and B. Take the vectors from the top-left finder to A and B. If the cross product `(A − TL) × (B − TL)` is positive, A is the top-right and B is the bottom-left; if it is negative, swap them. That’s the orientation.
+
+And that’s the triplet.
+
+## Finding the version
+
+At this point we have a triplet, so we know where the QR code is and roughly how it is oriented. But we are not ready to decode anything yet. To sample the code we need to map it onto a standardized grid, and before we can do that we need to know how many modules that grid has. That's the version. Version 1 is 21×21 modules, and each version after that adds four modules per side, so version $V$ is $(17 + 4V) \times (17 + 4V)$. If we get the version wrong, the grid is wrong, and every sample after that is wrong too.
+
+The naive way is to try all forty versions and see which one decodes. That works, but it means forty homographies, forty samplings, and forty decode attempts, and almost all of them are obviously wrong. We can rule out most versions before we do any of that, just by looking at the points we already have.
+
+Each finder pattern gives us four outer corners. Those are landmarks: we know where they sit on an ideal QR code. The top-left finder is a 7×7 square, the top-right finder is the same square shifted $N-7$ modules to the right, and the bottom-left finder is the same square shifted $N-7$ modules down. The only unknown is $N$.
+
+The trick is to measure something that does not change under perspective. Take four ordered points on a line, with coordinates $u_0, u_1, u_2, u_3$ along that line. Their _cross-ratio_ is
+
+$$
+r = \frac{(u_2 - u_0)(u_3 - u_1)}{(u_3 - u_0)(u_2 - u_1)}.
+$$
+
+This number is invariant under any projective transformation. If you photograph the same line from a different angle, the individual distances change, but the cross-ratio stays the same. That is exactly what we need, because the QR code in the photo has been through an unknown projective transform.
+
+Now look at the left edge of the QR code. It passes through four corners: the top-left and bottom-left corners of the top-left finder, and the top-left and bottom-left corners of the bottom-left finder. On an ideal version-$V$ code those points sit at positions $0$, $7$, $N-7$ and $N$ along the edge. So we can compute the cross-ratio of the four points we detected, compute the cross-ratio those four points would have for a candidate $N$, and compare the two. If the candidate is right, the numbers should match. If it is wrong, they won't.
+
+We can do the same thing on the other three sides of the top-left finder: the right side of the top-left and bottom-left finders, the top side of the top-left and top-right finders, and the bottom side of the top-left and top-right finders. That gives us four separate measurements. We could add more if we had the inner corners of the finder patterns or the alignment patterns, but the ray fit only gives us the outer corners, and four is plenty.
+
+In other words, the four lines are just the four sides of the top-left finder, extended until they hit the other two finders. All four lines use the same four positions, so they all share the same expected cross-ratio for a given $N$.
+
+For each candidate version we compute the error
+
+$$
+e_V = \operatorname{median}_i \left| \log r_i^{\text{measured}} - \log r_i^{\text{expected}}(V) \right|,
+$$
+
+where the median runs over the four constraints. The median keeps one bad line from dominating. We then pick the version with the smallest error. We still loop over all forty versions, but each iteration is just a few arithmetic operations on four numbers, so the whole ranking costs almost nothing compared with sampling and decoding.
+
+In practice this works well. We keep the runner-up around just to avoid small errors, but usually we don't need it.
+
+The figure below shows the four lines on a real photo, with the measured cross-ratios next to the lines and the expected value for version 10.
+
+<div class="mx-auto max-w-3xl">
+	<img
+		src={crossRatio}
+		alt="The four sides of the top-left finder extended to the other two finders, with the measured cross-ratios beside each line and the expected value for version 10."
+	/>
+</div>
+
+## Estimating the homography
+
+<div class="mx-auto max-w-4xl">
+	<img
+		src={homography}
+		alt="Left: the captured QR photo with the twelve detected finder corners. Right: the rectified QR grid with the canonical corners and a callout around one corner. Bottom inset: a true-scale 3×3 module zoom on the bottom-left corner of the top-left finder, showing the ideal and mapped corner positions and the residual between them."
+	/>
+</div>
+
+## What worked, what did not
+
+Ideas how to improve:
+
+- better thresholding (not one threshold for whole image)
+- more flexible than RLE
+-
