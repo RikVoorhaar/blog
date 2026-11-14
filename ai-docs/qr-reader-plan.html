@@ -879,7 +879,8 @@ colinear_pairs: [(0, 0), (0, 2), (2, 0), (2, 2)]</code></pre>
 									<td class="px-4 py-3 text-stone-400">
 										Twelve finder corners, canonical corner order, Hartley-normalised DLT, LM
 										refinement, bounded candidate versions, bottom-right extrapolation. Algorithm
-										reference added; figure design in progress; prose not drafted.
+										reference added. Figure done; prose not drafted. The section still needs the
+										homography explanation: the 12 correspondences, DLT, LM, and the limits.
 									</td>
 									<td class="px-4 py-3">
 										<span
@@ -1032,11 +1033,13 @@ colinear_pairs: [(0, 0), (0, 2), (2, 0), (2, 2)]</code></pre>
 							<code>affine-sampling.gif</code>.
 						</li>
 						<li>
-							<strong class="text-stone-200">Homography figure (in progress):</strong> left, the
-							warped photo cropped to the QR with the twelve detected finder corners; right, the
-							rectified top-down QR with a module grid and the twelve canonical corners; thin
-							correspondence lines between them. A zoom inset on one finder shows the ideal
-							canonical corners and the mapped detected corners, with labeled error exaggeration.
+							<strong class="text-stone-200">Homography figure (done):</strong> left, the warped
+							photo cropped to the QR with the twelve detected finder corners; right, the rectified
+							top-down QR with a module grid and the twelve canonical corners. Only the top-left
+							finder's four correspondence lines are drawn; all twelve corners are marked. A zoom
+							inset shows the ideal canonical corners and the mapped detected corners, with
+							residuals exaggerated ×10. Photo <code>qr_code_ - 20.jpeg</code> (v10); image-plane
+							fit mean 0.80 px, max 2.06 px. Asset <code>homography.png</code>.
 						</li>
 						<li>
 							<strong class="text-stone-200">Cross-ratio figure:</strong> the same version-10 photo
@@ -1212,9 +1215,10 @@ colinear_pairs: [(0, 0), (0, 2), (2, 0), (2, 2)]</code></pre>
 							expected value for version 10 separate.
 						</li>
 						<li>
-							<strong class="text-stone-100">2026-11-14</strong> — Started the homography figure:
-							warped crop, rectified grid, twelve-point correspondences, and a zoom inset on one
-							finder showing ideal vs mapped corners with labeled error exaggeration.
+							<strong class="text-stone-100">2026-11-14</strong> — Finished the homography figure:
+							warped crop, rectified 57×57 grid, twelve marked corners, top-left correspondence
+							lines, and a zoom inset with residuals exaggerated ×10. Version-10 photo, image-plane
+							fit mean 0.80 px and max 2.06 px.
 						</li>
 					</ul>
 				</section>

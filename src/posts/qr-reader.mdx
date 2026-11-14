@@ -21,6 +21,7 @@ import affineSampling from '../assets/blog/qr-reader/affine-sampling.gif?url';
 import tripletAmbiguity from '../assets/blog/qr-reader/triplet-ambiguity.png?url';
 import tripletColinearity from '../assets/blog/qr-reader/triplet-colinearity.png?url';
 import crossRatio from '../assets/blog/qr-reader/cross-ratio.png?url';
+import homography from '../assets/blog/qr-reader/homography.png?url';
 import otsuColorGray from '../assets/blog/qr-reader/otsu-color-gray.png?url';
 import otsuThreshold from '../assets/blog/qr-reader/otsu-threshold.gif?url';
 import illuminationCorrection from '../assets/blog/qr-reader/illumination-correction.png?url';
@@ -287,6 +288,13 @@ The figure below shows the four lines on a real photo, with the measured cross-r
 </div>
 
 ## Estimating the homography
+
+<div class="mx-auto max-w-4xl">
+	<img
+		src={homography}
+		alt="Left: the captured QR photo with the twelve detected finder corners. Right: the rectified QR grid with the canonical corners and correspondence lines. Bottom inset: a zoom on the top-left finder showing the ideal and mapped corners with exaggerated residuals."
+	/>
+</div>
 
 ## What worked, what did not
 
