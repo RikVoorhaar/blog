@@ -289,20 +289,19 @@ The figure below shows the four lines on a real photo, with the measured cross-r
 
 ## Estimating the homography
 
-By now we have a triplet and a version, so we know where the QR code is and how many modules it has. The remaining problem is to find the mapping between the QR code in the photo and the ideal QR grid. That is a homography problem.
+By now we have a triplet and a version. The next problem is to find the mapping between the QR code in the photo and the ideal QR grid. That is a homography problem.
 
-A homography is a projective transformation between two planes. In this case it maps the flat QR grid onto the flat piece of paper in the photo. Straight lines stay straight, but parallel lines can meet at a vanishing point, and cross-ratios are preserved -- the same property we used to estimate the version. We can write the homography as a $3 \times 3$ matrix
+A homography is a projective transformation between two planes. It is more general than an affine transformation: affine is the special case where the bottom row of the matrix is $(0, 0, 1)$. The extra two parameters let the plane tilt, which is what happens when you photograph a flat QR code from an angle. We can write it as a $3 \times 3$ matrix $H$. If $(x, y)$ is a point on the ideal QR grid, its image in the photo is
 
 $$
-\begin{bmatrix} u \\ v \\ 1 \end{bmatrix}
-\sim
-H
-\begin{bmatrix} x \\ y \\ 1 \end{bmatrix},
+u = \frac{h_{11}x + h_{12}y + h_{13}}{h_{31}x + h_{32}y + h_{33}},
+\qquad
+v = \frac{h_{21}x + h_{22}y + h_{23}}{h_{31}x + h_{32}y + h_{33}}.
 $$
 
-where $(x, y)$ is a point on the ideal QR grid and $(u, v)$ is the corresponding point in the photo. The tilde means up to scale, so $H$ has eight degrees of freedom; we fix the bottom-right entry to 1.
+The matrix is defined up to an overall scale, so it has eight independent entries.
 
-The landmarks are the same finder corners we have been using. Each finder gives four outer corners, and once we know the version we know exactly where those corners sit on the ideal grid. The top-left finder is the $7 \times 7$ square at the origin, the top-right finder is the same square shifted $N-7$ modules to the right, and the bottom-left finder is shifted $N-7$ modules down. That gives us twelve correspondences between ideal grid points and detected image points.
+To find the homography we need point correspondences between the two planes: the photo and the ideal QR code. We already have a natural set: the twelve outer corners of the three finder patterns. Once we know the version, we know where those corners sit on the ideal grid. The top-left finder is the $7 \times 7$ square at the origin, the top-right finder is the same square shifted $N-7$ modules to the right, and the bottom-left finder is shifted $N-7$ modules down. That gives us twelve correspondences between ideal grid points and detected image points.
 
 <div class="mx-auto max-w-4xl">
 	<img
@@ -314,20 +313,14 @@ The landmarks are the same finder corners we have been using. Each finder gives 
 We want the homography that maps the twelve grid corners as close as possible to the twelve detected corners. The cost is the reprojection error:
 
 $$
-\sum_i \left\| \pi(H p_i) - q_i \right\|^2,
+\sum_i \left\| H(p_i) - q_i \right\|^2,
 $$
 
-where $p_i$ is an ideal grid corner, $q_i$ is the corresponding detected corner, and $\pi$ is the perspective division that turns homogeneous coordinates back into $(u, v)$. This is nonlinear in the entries of $H$, because of that division, so we cannot solve it in one step.
+where $p_i$ is an ideal grid corner and $q_i$ is the corresponding detected corner. The division in the formula makes this nonlinear in the entries of $H$, so we cannot solve it in one step. We first solve a linearized version of the problem to get an initial guess, and then refine it with a standard nonlinear optimizer -- Levenberg-Marquardt in this case -- starting from that guess.
 
-What we can do is solve a linearized version first. Each point correspondence gives two linear equations in the nine entries of $H$. Stack the equations from all twelve correspondences and you get an overdetermined homogeneous system. The solution is the singular vector with the smallest singular value, which is exactly what the SVD gives you. That is the direct linear transform, or DLT. In practice we normalize the points first -- shift them so their centroid is at the origin and scale them so the mean distance is $\sqrt{2}$ -- because otherwise the system is badly conditioned.
+Once we have $H$, mapping the ideal grid into the photo is just a matter of plugging points into the formula. That is what the sampling step uses, and it is also how we produce the rectified view on the right of the figure. The inset zooms in on the top-left finder pattern so you can see the actual residual at true scale.
 
-The DLT gives a decent initial guess, but it minimizes an algebraic error, not the reprojection error we actually care about. So we refine it with Levenberg-Marquardt, starting from the DLT solution and minimizing the reprojection error over the eight free parameters. The code uses SciPy's `least_squares` with an analytic Jacobian, which is fast enough to fit one homography per candidate.
-
-Once we have $H$, we can map any point on the ideal grid into the photo. To sample the QR code, we use $H$ to map the grid into the photo and sample the modules where they actually land. Or, equivalently, we warp the whole photo onto the ideal grid, which is what the right panel of the figure shows.
-
-The inset in the figure zooms in on the top-left finder pattern so you can see the actual reprojection residual at true scale. It is small, but it is not zero.
-
-The one thing to keep in mind is that all twelve landmarks are on the three finder patterns, which sit in three corners of the QR code. The fourth corner is extrapolated. On a strong perspective, or a high version, the grid can drift there. The decoder is the final check: if the homography is wrong enough, the sampled bits will not decode.
+All twelve landmarks are on the three finder patterns, so the fourth corner is extrapolated. Under strong perspective, or at high versions, the grid can drift there. The decoder is the final check: if the homography is wrong enough, the sampled bits will not decode.
 
 ## What worked, what did not
 
