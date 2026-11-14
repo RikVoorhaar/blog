@@ -299,7 +299,7 @@ u = \frac{h_{11}x + h_{12}y + h_{13}}{h_{31}x + h_{32}y + h_{33}},
 v = \frac{h_{21}x + h_{22}y + h_{23}}{h_{31}x + h_{32}y + h_{33}}.
 $$
 
-The matrix is defined up to an overall scale, so it has eight independent entries.
+The matrix is defined up to an overall scale, so it has eight independent entries; we set $h_{33} = 1$.
 
 To find the homography we need point correspondences between the two planes: the photo and the ideal QR code. We already have a natural set: the twelve outer corners of the three finder patterns. Once we know the version, we know where those corners sit on the ideal grid. The top-left finder is the $7 \times 7$ square at the origin, the top-right finder is the same square shifted $N-7$ modules to the right, and the bottom-left finder is shifted $N-7$ modules down. That gives us twelve correspondences between ideal grid points and detected image points.
 
@@ -319,8 +319,6 @@ $$
 where $p_i$ is an ideal grid corner and $q_i$ is the corresponding detected corner. The division in the formula makes this nonlinear in the entries of $H$, so we cannot solve it in one step. We first solve a linearized version of the problem to get an initial guess, and then refine it with a standard nonlinear optimizer -- Levenberg-Marquardt in this case -- starting from that guess.
 
 Once we have $H$, mapping the ideal grid into the photo is just a matter of plugging points into the formula. That is what the sampling step uses, and it is also how we produce the rectified view on the right of the figure. The inset zooms in on the top-left finder pattern so you can see the actual residual at true scale.
-
-All twelve landmarks are on the three finder patterns, so the fourth corner is extrapolated. Under strong perspective, or at high versions, the grid can drift there. The decoder is the final check: if the homography is wrong enough, the sampled bits will not decode.
 
 ## What worked, what did not
 
