@@ -879,7 +879,7 @@ colinear_pairs: [(0, 0), (0, 2), (2, 0), (2, 2)]</code></pre>
 									<td class="px-4 py-3 text-stone-400">
 										Twelve finder corners, canonical corner order, Hartley-normalised DLT, LM
 										refinement, bounded candidate versions, bottom-right extrapolation. Algorithm
-										reference added; prose and figure not drafted.
+										reference added; figure design in progress; prose not drafted.
 									</td>
 									<td class="px-4 py-3">
 										<span
@@ -1032,10 +1032,11 @@ colinear_pairs: [(0, 0), (0, 2), (2, 0), (2, 2)]</code></pre>
 							<code>affine-sampling.gif</code>.
 						</li>
 						<li>
-							<strong class="text-stone-200">Recommended for homography:</strong> a twelve-point
-							correspondence figure — the three finder patterns with their four corners marked, the
-							grid coordinates they map to, and the projected QR grid overlaid on the image. This is
-							the figure that explains the method.
+							<strong class="text-stone-200">Homography figure (in progress):</strong> left, the
+							warped photo cropped to the QR with the twelve detected finder corners; right, the
+							rectified top-down QR with a module grid and the twelve canonical corners; thin
+							correspondence lines between them. A zoom inset on one finder shows the ideal
+							canonical corners and the mapped detected corners, with labeled error exaggeration.
 						</li>
 						<li>
 							<strong class="text-stone-200">Cross-ratio figure:</strong> the same version-10 photo
@@ -1044,11 +1045,7 @@ colinear_pairs: [(0, 0), (0, 2), (2, 0), (2, 2)]</code></pre>
 							Show the expected value for version 10 separately. Four lines, no table below. Done.
 							Asset <code>cross-ratio.png</code>.
 						</li>
-						<li>
-							<strong class="text-stone-200">Optional homography figure:</strong> the bottom-right
-							drift on a strong-perspective or high-version photo. The twelve-point correspondence
-							figure remains the main homography figure.
-						</li>
+
 						<li>
 							<strong class="text-stone-200">Optional sampling figure:</strong> one module with the
 							3×3 sub-cell samples and the weighted majority vote.
@@ -1213,6 +1210,11 @@ colinear_pairs: [(0, 0), (0, 2), (2, 0), (2, 2)]</code></pre>
 							differences, cut the numeric examples, and narrowed the runner-up explanation.
 							Generated <code>cross-ratio.png</code>: four lines, measured values beside each line,
 							expected value for version 10 separate.
+						</li>
+						<li>
+							<strong class="text-stone-100">2026-11-14</strong> — Started the homography figure:
+							warped crop, rectified grid, twelve-point correspondences, and a zoom inset on one
+							finder showing ideal vs mapped corners with labeled error exaggeration.
 						</li>
 					</ul>
 				</section>
