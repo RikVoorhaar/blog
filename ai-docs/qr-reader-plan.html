@@ -537,14 +537,25 @@ colinear_pairs: [(0, 0), (0, 2), (2, 0), (2, 2)]</code></pre>
 							<div class="space-y-3 border-t border-stone-800 px-4 py-4 text-sm text-stone-400">
 								<p>
 									Current entry point: <code>_fit_candidate_homography</code> in
-									<code>detector/detector.py</code>. It fits one homography for one
-									<code>(triplet, version)</code> candidate.
+									<code>detector/detector.py</code>, followed by
+									<code>build_refined_homography</code> in
+									<code>detector/landmarks_refined.py</code> inside
+									<code>pipeline.decode_image</code>. The baseline fits one homography from the 12
+									outer corners; the refined pass adds the interior alignment patterns and refits.
 								</p>
 								<p>
-									<strong class="text-stone-200">Twelve correspondences.</strong> Each finder
+									<strong class="text-stone-200">Outer corners first.</strong> Each finder
 									contributes four outer corners. For a candidate module count <code>N</code>, the
 									TL finder maps to <code>(0,0)…(7,7)</code>, the TR finder to
 									<code>(N-7,0)…(N,7)</code>, and the BL finder to <code>(0,N-7)…(7,N)</code>.
+								</p>
+								<p>
+									<strong class="text-stone-200">Alignment patterns.</strong> From version 2 up, the
+									QR code contains interior 5×5 alignment patterns. For each canonical centre,
+									project it through the baseline homography, render a 5×5 template at the local
+									module pitch, and match it in a small search window. Those extra centres are
+									spread across the symbol, so the refit is constrained over the whole image instead
+									of only at the three finders.
 								</p>
 								<p>
 									<strong class="text-stone-200">Canonical corner order.</strong> The ray fit
@@ -565,9 +576,11 @@ colinear_pairs: [(0, 0), (0, 2), (2, 0), (2, 2)]</code></pre>
 									all forty versions.
 								</p>
 								<p>
-									<strong class="text-stone-200">Limitation.</strong> The homography is exact at the
-									three finders and extrapolated at the bottom-right. Alignment patterns would
-									constrain that corner, but they are left out.
+									<strong class="text-stone-200">Limitation.</strong> The 12-corner baseline is
+									exact at the three finders and extrapolated at the bottom-right. The alignment
+									patterns put constraints in the interior and near that corner, which is why the
+									refined pass helps on the harder photos. If the refinement fails, the pipeline
+									falls back to the 12-corner homography.
 								</p>
 							</div>
 						</details>
@@ -878,9 +891,10 @@ colinear_pairs: [(0, 0), (0, 2), (2, 0), (2, 2)]</code></pre>
 									<td class="px-4 py-3 font-medium text-stone-100">6. Estimating the homography</td>
 									<td class="px-4 py-3 text-stone-400">
 										Twelve finder corners, canonical corner order, Hartley-normalised DLT, LM
-										refinement, bounded candidate versions, bottom-right extrapolation. Algorithm
-										reference added. Figure done; prose not drafted. The section still needs the
-										homography explanation: the 12 correspondences, DLT, LM, and the limits.
+										refinement, bounded candidate versions, bottom-right extrapolation. Refined pass
+										adds interior alignment-pattern centres (v≥2) and is wired into
+										<code>pipeline.decode_image</code>. Prose drafted; figure updating to show the
+										actual 12 outer + alignment landmarks.
 									</td>
 									<td class="px-4 py-3">
 										<span
@@ -968,7 +982,9 @@ colinear_pairs: [(0, 0), (0, 2), (2, 0), (2, 2)]</code></pre>
 							candidate module count <code>N</code>, those corners map to the grid blocks
 							<code>(0..7, 0..7)</code>, <code>(N-7..N, 0..7)</code> and
 							<code>(0..7, N-7..N)</code>. The homography has eight free parameters; DLT is solved
-							by SVD after Hartley normalization, then refined by LM on reprojection error.
+							by SVD after Hartley normalization, then refined by LM on reprojection error. The
+							refined pass adds interior 5×5 alignment-pattern centres for versions ≥ 2 via template
+							matching: 12 outer + 6 alignment = 18 correspondences for v10.
 						</li>
 						<li>
 							Cross-ratio version ranking: <code>build_named_landmarks</code> builds A–F from the
@@ -1033,14 +1049,15 @@ colinear_pairs: [(0, 0), (0, 2), (2, 0), (2, 2)]</code></pre>
 							<code>affine-sampling.gif</code>.
 						</li>
 						<li>
-							<strong class="text-stone-200">Homography figure (done):</strong> left, the warped
-							photo cropped to the QR with the twelve detected finder corners; right, the rectified
-							top-down QR with a module grid and the twelve canonical corners. Only the top-left
-							finder's four correspondence lines are drawn; all twelve corners are marked. The inset
-							zooms to a 3×3 module region around the top-left finder's bottom-left corner at 200
-							px/module, with the ideal and mapped points connected at true scale. No exaggeration.
-							Photo <code>qr_code_ - 20.jpeg</code> (v10); image-plane fit mean 0.80 px, max 2.06
-							px; chosen corner 0.15 modules. Asset <code>homography.png</code>.
+							<strong class="text-stone-200">Homography figure (updating):</strong> left, the warped
+							photo with the twelve outer finder corners and the six detected alignment-pattern
+							centres; right, the QR rectified with the refined homography, with the module grid and
+							the twelve outer plus six canonical alignment correspondences. Correspondence lines
+							are drawn for the six alignment centres and the four top-left outer corners. The inset
+							zooms on one alignment pattern at true scale, with the ideal and matched centres
+							connected by a true-length line. No exaggeration. Photo
+							<code>qr_code_ - 20.jpeg</code> (v10); refined fit mean 0.80 px, max 1.86 px; max
+							alignment centre about 1.36 px. Asset <code>homography.png</code>.
 						</li>
 						<li>
 							<strong class="text-stone-200">Cross-ratio figure:</strong> the same version-10 photo
@@ -1221,6 +1238,13 @@ colinear_pairs: [(0, 0), (0, 2), (2, 0), (2, 2)]</code></pre>
 							lines, and a true-scale 3×3 corner zoom at 200 px/module with no exaggeration.
 							Version-10 photo, image-plane fit mean 0.80 px and max 2.06 px; chosen corner 0.15
 							modules.
+						</li>
+						<li>
+							<strong class="text-stone-100">2026-11-14</strong> — Wired the alignment-pattern
+							refined homography into <code>pipeline.decode_image</code>. Updating the homography
+							figure to show the actual 12 outer + 6 alignment correspondences for v10 and a
+							true-scale alignment-pattern inset. The prose now ends with the alignment-pattern
+							extension.
 						</li>
 					</ul>
 				</section>
