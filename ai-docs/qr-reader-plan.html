@@ -893,13 +893,13 @@ colinear_pairs: [(0, 0), (0, 2), (2, 0), (2, 2)]</code></pre>
 										Twelve finder corners, canonical corner order, Hartley-normalised DLT, LM
 										refinement, bounded candidate versions, bottom-right extrapolation. Refined pass
 										adds interior alignment-pattern centres (v≥2) and is wired into
-										<code>pipeline.decode_image</code>. Prose drafted; figure updating to show the
-										actual 12 outer + alignment landmarks.
+										<code>pipeline.decode_image</code>. Prose drafted; figure done with the actual
+										12 outer + 6 alignment landmarks.
 									</td>
 									<td class="px-4 py-3">
 										<span
-											class="inline-flex rounded-full bg-blue-950 px-2.5 py-0.5 text-xs font-medium text-blue-300 ring-1 ring-inset ring-blue-900"
-											>in progress</span
+											class="inline-flex rounded-full bg-amber-950 px-2.5 py-0.5 text-xs font-medium text-amber-300 ring-1 ring-inset ring-amber-900"
+											>under review</span
 										>
 									</td>
 								</tr>
@@ -1049,15 +1049,16 @@ colinear_pairs: [(0, 0), (0, 2), (2, 0), (2, 2)]</code></pre>
 							<code>affine-sampling.gif</code>.
 						</li>
 						<li>
-							<strong class="text-stone-200">Homography figure (updating):</strong> left, the warped
+							<strong class="text-stone-200">Homography figure (done):</strong> left, the warped
 							photo with the twelve outer finder corners and the six detected alignment-pattern
 							centres; right, the QR rectified with the refined homography, with the module grid and
 							the twelve outer plus six canonical alignment correspondences. Correspondence lines
 							are drawn for the six alignment centres and the four top-left outer corners. The inset
-							zooms on one alignment pattern at true scale, with the ideal and matched centres
-							connected by a true-length line. No exaggeration. Photo
-							<code>qr_code_ - 20.jpeg</code> (v10); refined fit mean 0.80 px, max 1.86 px; max
-							alignment centre about 1.36 px. Asset <code>homography.png</code>.
+							zooms on the centre alignment pattern at true scale (160 px/module), with the ideal
+							and matched centres connected by a true-length line. No exaggeration. Photo
+							<code>qr_code_ - 20.jpeg</code> (v10); refined fit mean 0.80 px, max 1.86 px;
+							rectified 1.50 px mean / 3.46 px max; chosen alignment centre 0.103 modules = 16.5 px
+							at this scale. Asset <code>homography.png</code>.
 						</li>
 						<li>
 							<strong class="text-stone-200">Cross-ratio figure:</strong> the same version-10 photo
@@ -1241,10 +1242,10 @@ colinear_pairs: [(0, 0), (0, 2), (2, 0), (2, 2)]</code></pre>
 						</li>
 						<li>
 							<strong class="text-stone-100">2026-11-14</strong> — Wired the alignment-pattern
-							refined homography into <code>pipeline.decode_image</code>. Updating the homography
-							figure to show the actual 12 outer + 6 alignment correspondences for v10 and a
-							true-scale alignment-pattern inset. The prose now ends with the alignment-pattern
-							extension.
+							refined homography into <code>pipeline.decode_image</code>. Completed the homography
+							figure with the actual 12 outer + 6 alignment correspondences for v10 and a true-scale
+							5×5 alignment-pattern inset. Refined fit mean 0.80 px, max 1.86 px. The prose now ends
+							with the alignment-pattern extension.
 						</li>
 					</ul>
 				</section>
