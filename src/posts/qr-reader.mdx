@@ -22,6 +22,8 @@ import tripletAmbiguity from '../assets/blog/qr-reader/triplet-ambiguity.png?url
 import tripletColinearity from '../assets/blog/qr-reader/triplet-colinearity.png?url';
 import crossRatio from '../assets/blog/qr-reader/cross-ratio.png?url';
 import homography from '../assets/blog/qr-reader/homography.png?url';
+import alignmentMatching from '../assets/blog/qr-reader/alignment-matching.gif?url';
+import alignmentSubpixel from '../assets/blog/qr-reader/alignment-subpixel.png?url';
 import otsuColorGray from '../assets/blog/qr-reader/otsu-color-gray.png?url';
 import otsuThreshold from '../assets/blog/qr-reader/otsu-threshold.gif?url';
 import illuminationCorrection from '../assets/blog/qr-reader/illumination-correction.png?url';
@@ -318,7 +320,41 @@ $$
 
 where $p_i$ is an ideal grid corner and $q_i$ is the corresponding detected corner. The division in the formula makes this nonlinear in the entries of $H$, so we cannot solve it in one step. We first solve a linearized version of the problem to get an initial guess, and then refine it with a standard nonlinear optimizer -- Levenberg-Marquardt in this case -- starting from that guess.
 
-Once we have $H$, mapping the ideal grid into the photo is just a matter of plugging points into the formula. That is what the sampling step uses, and it is also how we produce the rectified view on the right of the figure. The inset zooms in on the top-left finder pattern so you can see the actual residual at true scale.
+Once we have $H$, mapping the ideal grid into the photo is just a matter of plugging points into the formula. That is what the sampling step uses, and it is also how we produce the rectified view on the right of the figure. The inset zooms in on the top-left finder pattern so you can see the actual residual at true scale. In principle we could stop here and start sampling. But ideally we would use a few more landmarks to get a better homography estimate.
+
+## Finding the alignment patterns
+
+With only the twelve finder corners, the homography is pretty good. But it is constrained at three corners and extrapolated at the fourth, and on the harder photos that extrapolation is not good enough. That is where the alignment patterns come in.
+
+From version 2 onward, QR codes also contain alignment patterns: the small 5×5 squares in the interior. They are there exactly to make the alignment easier. If we only use the three finder patterns, the bottom-right corner is the obvious weak spot, but at high versions the modules are small enough that the whole grid can drift. The alignment patterns give us more landmarks spread across the code.
+
+They also look different from the finder patterns. A finder pattern has a 1:1:3:1:1 ratio, while an alignment pattern has a 1:1:1:1:1 ratio. We could run the same ray-profile fit on them, but it is slower and the weaker profile makes it a poor fit. We do not need to: the homography from the finder corners is already a good prior for where each alignment pattern should be. We just need to search a small window around that prediction.
+
+The search is template matching. We render what the pattern should look like at the local scale predicted by the homography -- a dark centre, a white ring, a dark border, plus a white quiet ring -- and slide it over the image one pixel at a time. At each shift we compute the Pearson correlation between the template and the image patch. The shift with the highest correlation is the best match.
+
+The GIF below shows the template sliding across a real capture. The right panel is the correlation surface, and the peak is the match.
+
+<div class="mx-auto max-w-4xl">
+	<img
+		src={alignmentMatching}
+		alt="Left: a real version-3 capture cropped around its alignment pattern, with a synthetic 5×5 template drawn as a moving outline and a live correlation score. Right: the Pearson correlation surface filling in as the template slides, with the peak marked."
+	/>
+</div>
+
+The peak of the correlation surface is at integer pixel coordinates, and one pixel can be a lot in a small QR code. So we refine it with a quadratic fit: take the correlation values immediately left, right, above, and below the peak, fit a 1-D parabola in each direction, and use the vertex as the sub-pixel centre.
+
+The figure below shows the two parabolas through the peak.
+
+<div class="mx-auto max-w-4xl">
+	<img
+		src={alignmentSubpixel}
+		alt="Two separable one-dimensional parabolas through the correlation peak. The horizontal fit gives centre x = 626.04 px; the vertical fit gives centre y = 986.59 px."
+	/>
+</div>
+
+The correlation at every shift sounds expensive, but it is a convolution, so we can compute it with FFTs. The whole search costs a millisecond or two per image. Once we have the centres, we add them to the twelve finder corners and refit the homography the same way. The extra points are spread across the symbol, so the fit is no longer extrapolating the fourth corner from three. If the search fails, we keep the twelve-corner homography.
+
+On most photos this makes no difference; the twelve corners were already good enough. But on the harder ones it can be the difference between a decode and a failure. On the captured benchmark it took us from 52 to 56 successful decodes out of 100, with four recovered and none lost. That is not a huge win, but it is a real one, and it is why the pipeline keeps the alignment patterns.
 
 ## What worked, what did not
 
