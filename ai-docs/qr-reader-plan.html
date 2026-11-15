@@ -551,11 +551,70 @@ colinear_pairs: [(0, 0), (0, 2), (2, 0), (2, 2)]</code></pre>
 								</p>
 								<p>
 									<strong class="text-stone-200">Alignment patterns.</strong> From version 2 up, the
-									QR code contains interior 5×5 alignment patterns. For each canonical centre,
-									project it through the baseline homography, render a 5×5 template at the local
-									module pitch, and match it in a small search window. Those extra centres are
-									spread across the symbol, so the refit is constrained over the whole image instead
-									of only at the three finders.
+									QR code contains interior 5×5 alignment patterns. Their canonical centres come
+									from <code>VERSIONS[version].alignment_positions</code>; the three positions that
+									coincide with the finder patterns are skipped. Each surviving centre becomes an
+									extra correspondence in the homography fit, so the constraints are spread across
+									the symbol instead of leaving the interior and the bottom-right corner to
+									extrapolation from the three finders.
+								</p>
+
+								<p>
+									<strong class="text-stone-200">Finding one centre.</strong> The baseline 12-corner
+									homography <code>H_base</code> predicts where the pattern should be. Use that
+									predicted image point as the search centre, and take the local module pitch from
+									the projected step of one grid unit in each direction. Render a synthetic 5×5
+									template at that pitch: dark centre, white ring, dark border, plus a one-module
+									white quiet ring. Search integer translations in a window of ±2 modules.
+								</p>
+
+								<p>
+									<strong class="text-stone-200">Score.</strong> The score is the Pearson
+									correlation (zero-mean normalized cross-correlation) between the template and the
+									image patch at each shift. The cross-term <code>Σ t·p</code> is one convolution,
+									computed for every shift at once with <code>scipy.signal.fftconvolve</code>; the
+									per-patch mean and standard deviation needed for the normalization come from two
+									integral images, so they cost O(1) per shift. The template is pre-flipped, which
+									turns the convolution into a correlation. No OpenCV is used.
+								</p>
+
+								<p>
+									<strong class="text-stone-200">Sub-pixel centre.</strong> The integer maximum is
+									refined with two separable 1-D parabolas: one through the horizontal triple (left,
+									peak, right), one through the vertical triple (up, peak, down). That is five of
+									the nine neighbours, not a 3×3 quadratic fit. For values
+									<code>f₋₁, f₀, f₊₁</code> the vertex offset is
+									<code>½(f₋₁ − f₊₁) / (f₋₁ − 2f₀ + f₊₁)</code>.
+								</p>
+
+								<p>
+									<strong class="text-stone-200">Refit.</strong> The correspondences are the 12
+									outer corners plus one centre per alignment pattern. Centres are used, not
+									corners: the spec defines the pattern by its centre, and the pattern corners are
+									nearly coincident and noisier. Every correspondence is equally weighted — the
+									matcher returns a confidence but the fit does not use it. The combined set is
+									refit with DLT + LM. If the refinement fails, the pipeline falls back to the
+									12-corner homography.
+								</p>
+
+								<p>
+									<strong class="text-stone-200">Evidence.</strong> On synthetic reconstructions
+									with a known ground-truth homography, the refined correspondence set cut the
+									worst-case dense reprojection error by 19–44% (easy/medium/hard); the integrated
+									version uses the outer corners plus alignment centres, without inner corners. On
+									the 100-photo captured benchmark, decode goes from 52 to 56, with four recovered
+									and none lost. The added runtime is about 1–2 ms per image.
+								</p>
+
+								<p>
+									<strong class="text-stone-200">What was rejected.</strong> A ray-profile fit (the
+									finder-pattern method) regressed decode from 56 to 38 and was about 70× slower:
+									the 5×5 pattern's 1:1:1:1:1 profile is weaker than the finder's 1:1:3:1:1, and the
+									square pattern does not match the circular ray model. Inner finder corners are
+									colinear with the outer ones and add no spatial spread; alone they cost one
+									decode. Warping the template to the local affine orientation recovered correlation
+									confidence at 45° (0.48 → 0.96) but did not improve decode (55 vs 56), so the
+									template stays axis-aligned and translation-only.
 								</p>
 								<p>
 									<strong class="text-stone-200">Canonical corner order.</strong> The ray fit
@@ -1061,6 +1120,18 @@ colinear_pairs: [(0, 0), (0, 2), (2, 0), (2, 2)]</code></pre>
 							<code>qr_code_ - 20.jpeg</code> (v10); refined fit mean 0.80 px, max 1.86 px. Asset
 							<code>homography.png</code>.
 						</li>
+
+						<li>
+							<strong class="text-stone-200">Alignment matching (done):</strong> the synthesized 5×5
+							template sliding across a real version-3 capture (score 0.571), with the Pearson
+							correlation surface filling in and the peak marked. Asset
+							<code>alignment-matching.gif</code>.
+						</li>
+						<li>
+							<strong class="text-stone-200">Sub-pixel centre (done):</strong> the two separable 1-D
+							parabolas through the correlation peak, annotated with the final centre (x = 626.04
+							px, y = 986.59 px). Asset <code>alignment-subpixel.png</code>.
+						</li>
 						<li>
 							<strong class="text-stone-200">Cross-ratio figure:</strong> the same version-10 photo
 							as the triplet figure. Highlight the four sides of the top-left finder, extended to
@@ -1128,6 +1199,13 @@ colinear_pairs: [(0, 0), (0, 2), (2, 0), (2, 2)]</code></pre>
 				<section>
 					<h2 class="text-lg font-semibold text-stone-100">Decisions</h2>
 					<ul class="mt-2 list-disc space-y-1 pl-5">
+						<li>
+							<strong class="text-stone-100">2026-11-15</strong> — Alignment-pattern refinement is
+							on by default in <code>decode_image</code>. The template is axis-aligned and
+							translation-only (Pearson NCC via FFT + integral images; no OpenCV). Warping it to the
+							local affine orientation was tried and did not improve the captured benchmark (55 vs
+							56), so it was reverted. Inner finder corners are not used.
+						</li>
 						<li>
 							<strong class="text-stone-100">2026-11-12</strong> — Post order: triplet attempt 1
 							only; cross-ratio version ranking; homography; sampling; short decoder handoff; outro.
