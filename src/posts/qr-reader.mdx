@@ -25,6 +25,8 @@ import homography from '../assets/blog/qr-reader/homography.png?url';
 import alignmentMatching from '../assets/blog/qr-reader/alignment-matching.gif?url';
 import alignmentSubpixel from '../assets/blog/qr-reader/alignment-subpixel.png?url';
 import samplingVote from '../assets/blog/qr-reader/sampling-vote.png?url';
+import datasetExamples from '../assets/blog/qr-reader/dataset-examples.png?url';
+import pipelineAblation from '../assets/blog/qr-reader/pipeline-ablation.svg?url';
 import otsuColorGray from '../assets/blog/qr-reader/otsu-color-gray.png?url';
 import otsuThreshold from '../assets/blog/qr-reader/otsu-threshold.gif?url';
 import illuminationCorrection from '../assets/blog/qr-reader/illumination-correction.png?url';
@@ -382,10 +384,57 @@ We could instead warp the whole image to a clean grid and average each cell. Tha
 
 The result is an $N \times N$ grid of bits, and that is what the decoder consumes.
 
-## What worked, what did not
+## Decoding
 
-Ideas how to improve:
+I am going to be honest: I did not care about this part. The decoder is a port of zxing-cpp's decoder. I told the agent to use their source as reference and make a basic implementation, not the full spec. I did not guide it, I did not check it, and I am not going to explain it. The hard parts are hard, and I do not understand them. Credit for those goes to zxing-cpp; I just wanted the bits to turn into text. It skips parts of the spec, and it still decodes every QR code I have thrown at it in daily life. I approached this section with a 10-meter fierljeppen pole.
 
-- better thresholding (not one threshold for the whole code)
-- more flexible than RLE
--
+## Test data
+
+I went through three datasets, each one a reaction to the previous one.
+
+The first was a simple synthetic generator: take a clean QR code, rotate it, warp it, add noise, and blur it. Three presets (easy, medium, hard), six versions, ten seeds, for 180 images. It was enough to get something working, and it kept some of the ugly parts of real photos.
+
+The second embedded QR patches into indoor photos from HomeObjects-3K, with feathered edges, blur, noise, and JPEG compression. That made the backgrounds more realistic, and it produced 300 images. But it still was not the real world.
+
+So I made the real dataset myself: 100 photos of 15 printed QR codes, five versions and three sizes, around the house on a sunny day. They all encode `rikvoorhaar.com`. This is the dataset that mattered. It showed me that my implementation was not good enough, and most of the improvements in this post came from trying to make that number go up.
+
+The figure below shows one example from each, at the same low version.
+
+<div class="mx-auto max-w-5xl">
+	<img
+		src={datasetExamples}
+		alt="Three version-3 QR examples side by side: a simple synthetic render on a noisy white background, a synthetic QR composited into an indoor photo, and a real captured photo of a printed QR code on a desk."
+	/>
+</div>
+
+## Results
+
+I ran all three implementations on the 100 captured photos. Accuracy is an exact payload match; runtime is warm, single-threaded, detection plus decode, with image loading excluded.
+
+|                        | This project (Python) |   OpenCV | zxing-cpp |
+| ---------------------- | --------------------: | -------: | --------: |
+| Correct payload        |                58/100 |   48/100 |    77/100 |
+| Average time per image |              51.75 ms | 73.82 ms |   3.96 ms |
+
+I never claimed this was fast. The point of the table is to give a sense of where my implementation stands: is it horribly slow and bad at detecting things, or is it almost on par with the existing implementations? The answer is somewhere in between. My pipeline is faster than OpenCV and decodes more images. I did not expect that. zxing-cpp is in a different league: about 13 times faster and 19 images more accurate. So it is not hopeless, and it is not on par either.
+
+## Where the pipeline breaks
+
+The whole pipeline is a chain of stages, and every one of them has to work. The diagram below is a recap of everything in this post, with the number of the 100 captured photos that make it to each stage.
+
+<div class="mx-auto max-w-3xl">
+	<img
+		src={pipelineAblation}
+		alt="Vertical flow of the QR pipeline stages, with the number of the 100 captured photos reaching each stage. Grey stages cannot fail, amber stages can fail but never did, and red stages failed on at least one photo. The biggest losses are at the triplet search and the decoder."
+	/>
+</div>
+
+Grey stages cannot fail; amber stages can fail but never did on these 100 photos; red stages did fail. Most of the losses happen early: 30 of the 42 failures are gone by the triplet stage. The decoder takes another 12, but the detector is still the bottleneck.
+
+## Final thoughts
+
+For the detection and geometry, I wanted to figure this out by myself. I deliberately did not read how other people detect and align QR codes, and I still have not. The decoder is the exception; that is a port, and I already said so. I used AI for a lot of the implementation and brainstorming, but I never asked it how to detect or align a QR code. I am sure I got some of the tricks right and made some bad choices along the way. That is engineering.
+
+It took people years to make QR readers fast and reliable, and people are still finding smarter ways. These days the detection part is often a neural net, with classical geometry for the precise alignment and sampling. But you do not need that. QR codes have been around since 1994, and whatever methods they had back then were good enough to use them in practice. That is humbling. What I came up with is complicated, and people figured this out more than 30 years ago.
+
+This was a very fun project, but it also took way too much time. I kept putting off writing this post because it felt like such a large task. I am glad I got around to it, because writing it down and making the figures helped my own understanding too.
