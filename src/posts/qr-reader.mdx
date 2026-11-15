@@ -24,6 +24,7 @@ import crossRatio from '../assets/blog/qr-reader/cross-ratio.png?url';
 import homography from '../assets/blog/qr-reader/homography.png?url';
 import alignmentMatching from '../assets/blog/qr-reader/alignment-matching.gif?url';
 import alignmentSubpixel from '../assets/blog/qr-reader/alignment-subpixel.png?url';
+import samplingVote from '../assets/blog/qr-reader/sampling-vote.png?url';
 import otsuColorGray from '../assets/blog/qr-reader/otsu-color-gray.png?url';
 import otsuThreshold from '../assets/blog/qr-reader/otsu-threshold.gif?url';
 import illuminationCorrection from '../assets/blog/qr-reader/illumination-correction.png?url';
@@ -356,10 +357,35 @@ The correlation at every shift sounds expensive, but it is a convolution, so we 
 
 On most photos this makes no difference; the twelve corners were already good enough. But on the harder ones it can be the difference between a decode and a failure. That is not a huge win, but it is a real one, and it is why the pipeline keeps the alignment patterns.
 
+## Sampling the modules
+
+The homography gives us a map from the ideal QR grid to the photo. Sampling is then almost trivial: for each module, map its center through the homography and read the pixel. But one pixel is fragile. A speck of noise, a bit of blur, or a small error in the homography can flip it.
+
+So we take nine samples per module instead, at 25%, 50%, and 75% across the module in each direction. The points are projected through the homography and read with bilinear interpolation. The center sample counts double, and the other eight count once.
+
+The nine values still need a threshold. We do not reuse the global Otsu threshold from the start. That threshold was chosen for the whole image, and the QR code may be only a small part of it; the code's black and white levels can sit somewhere else. But we do know some modules for certain: the finder patterns have a fixed pattern of black and white modules. We sample the centers of those known modules, take the median of the black values and the median of the white values, and use the midpoint as the threshold. The median ignores a few bad samples.
+
+This is still one threshold for the whole code, so it does not correct for illumination changes across the symbol. But it is close enough, and the nine-sample vote handles the rest.
+
+With the threshold, the vote is simple. Each of the nine samples is either above or below it, and we call the module white when the weighted vote is at least five out of ten. A single bad sample cannot outvote the rest. And because the nine points sit in the middle half of the module, a slightly misplaced grid does not pull in the neighboring module.
+
+The figure below zooms in on a real capture. In one module, the center pixel lands on the wrong side of the threshold, but the nine-sample vote gets it right.
+
+<div class="mx-auto max-w-4xl">
+	<img
+		src={samplingVote}
+		alt="Two zoomed views of the same QR module. Left: the single center sample is light, so the module is read as white, which is wrong. Right: nine samples, with the center counted twice, vote the module dark, which is correct."
+	/>
+</div>
+
+We could instead warp the whole image to a clean grid and average each cell. That would be exact, but it is slower, and sampling is already one of the more expensive steps in the pipeline.
+
+The result is an $N \times N$ grid of bits, and that is what the decoder consumes.
+
 ## What worked, what did not
 
 Ideas how to improve:
 
-- better thresholding (not one threshold for whole image)
+- better thresholding (not one threshold for the whole code)
 - more flexible than RLE
 -
