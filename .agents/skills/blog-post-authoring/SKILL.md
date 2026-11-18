@@ -132,6 +132,24 @@ Figures are collaborative. Propose one when it might explain something, but the 
 decides. Never add one unilaterally. Anything heavier than an image is imported in the post
 itself, not registered globally.
 
+## Images
+
+Raster figures should go through Astro's image pipeline so the build serves WebP:
+
+- Put the file in `src/assets/blog/<slug>/`.
+- Reference it with Markdown: `![alt](/blog/<slug>/<file>.png)`. The global `img`
+  component resolves that path to the asset and renders `<Image>`, which emits WebP.
+- Use `<Image>` directly only when you need explicit sizing or format control. Import the
+  image normally; do **not** add `?url`, which returns a URL string and bypasses the
+  pipeline.
+- Use plain `<img>` for GIFs (the component deliberately excludes them) and for SVGs if
+  you want them raw. Do not use `?url` + `<img>` for PNG/JPG figures.
+- Generated figures should be written into `src/assets/blog/<slug>/` so the same Markdown
+  reference works.
+
+Why: `?url` + `<img>` serves the original PNG/JPG at full size. The Markdown path lets
+Astro emit WebP and responsive sizes at build time, with no manual conversion step.
+
 ## Publish
 
 Before the PR:
@@ -156,7 +174,8 @@ ask before going off on one.
 - Commands: `npm run dev`, `npm run build`, `npm run lint`.
 - Posts: `src/posts/<slug>.mdx`; URL `/blog/<slug>`.
 - Frontmatter: `title`, `date`, `excerpt`, `teaser`, `categories`. No `draft` key.
-- Post images: `src/assets/blog/<slug>/`; teasers: `src/assets/teasers/`.
+- Post images: `src/assets/blog/<slug>/`; reference with Markdown
+  `![alt](/blog/<slug>/<file>.png)` so Astro emits WebP. Teasers: `src/assets/teasers/`.
 - Branches: `post/<slug>`.
 - The site deploys from `main` via Cloudflare Pages; every branch gets a preview alias.
 
