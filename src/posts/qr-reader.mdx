@@ -394,9 +394,9 @@ I am going to be honest: I did not care about this part. The decoder is a port o
 
 The first thing I did in this project, before I had written any decoding code, was generate a single QR image. I wrote most of that generator myself. It took a clean QR code, applied a perspective transform (which includes rotation), added noise, and blurred it. At first it was one fixed image, generated from a fixed seed. Later it grew into a small dataset across versions and difficulty levels.
 
-This was a good starting point because the way I like to develop this is to keep the failure modes in mind at every step. A real photo is never a straight-on QR code; it is rotated, perspective-distorted, noisy, and blurred. If I can reproduce those problems in a synthetic image, I can stress-test a stage before I have any real data. A blank background is not very realistic, though, so the next step was to composite the QR patches onto photos of indoor scenes. That added a bit more: now the background and the foreground can have different lighting and brightness.
+This was a good starting point because the way I like to develop this is to keep the failure modes in mind at every step. A real photo is never a straight-on QR code; it is rotated, perspective-distorted, noisy, and blurred. If we can reproduce those problems in a synthetic image, we can stress-test a stage before there is any real data. A blank background is not very realistic, though, so the next step was to composite the QR patches onto photos of indoor scenes. That added a bit more: now the background and the foreground can have different lighting and brightness.
 
-Once the pipeline was drafted, I wanted to know how good it actually was, and the synthetic sets did not cut it anymore. So I printed 15 QR codes -- five versions, three physical sizes -- and took 100 photos of them. That easily took an hour. They all encode `rikvoorhaar.com`, so I did not have to annotate anything: if the reader returns that string, the whole pipeline worked. This set is a different problem from the synthetic ones. It is more realistic, but the ground truth is worse.
+Once the pipeline was drafted, it was time to find out how good it actually was, and the synthetic sets did not cut it anymore. So I printed 15 QR codes -- five versions, three physical sizes -- and spent about an hour taking 100 photos of them. They all encode `rikvoorhaar.com`, so no annotation was needed: if the reader returns that string, the whole pipeline worked. This set is a different problem from the synthetic ones. It is more realistic, but the ground truth is worse.
 
 The figure below shows one example from each, all version 3.
 
@@ -407,9 +407,9 @@ The figure below shows one example from each, all version 3.
 	/>
 </div>
 
-With the synthetic images I know the exact corner coordinates, and the coordinates of every other landmark, which means I can measure the corner error in pixels and benchmark the corner finder and the homography on their own, not just the final decode. With the captured set I only have the payload as ground truth, and annotating every corner by hand is exactly the kind of work I wanted to avoid. So the two sets do different jobs, and I used both.
+With the synthetic images we know the exact corner coordinates, and the coordinates of every other landmark, which means we can measure the corner error in pixels and benchmark the corner finder and the homography on their own, not just the final decode. With the captured set the only ground truth is the payload, and annotating every corner by hand is exactly the kind of work I wanted to avoid. So the two sets do different jobs, and I used both.
 
-Keeping in mind early what kind of test data can support the development is super useful. It was a very good decision to start by asking what test data I could use. In a way, that is test-driven development before there is anything to test.
+Keeping in mind early what kind of test data can support the development is super useful. It was a very good decision to start by asking what test data to use. In a way, that is test-driven development before there is anything to test.
 
 ## Results
 
