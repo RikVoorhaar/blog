@@ -27,6 +27,7 @@ import alignmentSubpixel from '../assets/blog/qr-reader/alignment-subpixel.png?u
 import samplingVote from '../assets/blog/qr-reader/sampling-vote.png?url';
 import datasetExamples from '../assets/blog/qr-reader/dataset-examples.png?url';
 import pipelineAblation from '../assets/blog/qr-reader/pipeline-ablation.svg?url';
+import BlogImage from '../components/markdown/img.astro';
 import otsuColorGray from '../assets/blog/qr-reader/otsu-color-gray.png?url';
 import otsuThreshold from '../assets/blog/qr-reader/otsu-threshold.gif?url';
 import illuminationCorrection from '../assets/blog/qr-reader/illumination-correction.png?url';
@@ -429,7 +430,7 @@ That is humbling. Beating OpenCV is an achievement, but it is not close to being
 That was a lot of steps. The figure below recaps the pipeline and shows how many of the 100 captured photos make it through each part. To find a triplet, we need at least three candidate clusters and three fitted finders, so the figure counts images with fewer than three as lost at those stages.
 
 <div class="mx-auto max-w-3xl">
-	<img
+	<BlogImage
 		src={pipelineAblation}
 		alt="QR pipeline stages showing how many of the 100 captured photos remain after each step, including thresholds of at least three candidate clusters and three fitted finders."
 	/>
