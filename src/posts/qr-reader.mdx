@@ -411,21 +411,18 @@ With the synthetic images we know the exact corner coordinates, and the coordina
 
 ## Results
 
-{/* TODO(rik): rewrite from scratch; current prose is an agent placeholder. */}
+One thing you might wonder at this point is whether any of this is actually good. The answer is mixed.
 
-<div class="my-5 rounded-lg border-2 border-red-400 bg-red-50 px-4 py-3 text-sm text-red-900">
-	<strong>Rewrite this section from scratch.</strong> The current prose is an agent draft, not my
-	voice. Do not publish until it is rewritten. Keep the table for reference.
-</div>
-
-I ran all three implementations on the 100 captured photos. Accuracy is an exact payload match; runtime is warm, single-threaded, detection plus decode, with image loading excluded.
+Running the three implementations on the same 100 captured photos gives this:
 
 |                        | This project (Python) |   OpenCV | zxing-cpp |
 | ---------------------- | --------------------: | -------: | --------: |
 | Correct payload        |                58/100 |   48/100 |    77/100 |
 | Average time per image |              51.75 ms | 73.82 ms |   3.96 ms |
 
-I never claimed this was fast. The point of the table is to give a sense of where my implementation stands: is it horribly slow and bad at detecting things, or is it almost on par with the existing implementations? The answer is somewhere in between. My pipeline is faster than OpenCV and decodes more images. I did not expect that. zxing-cpp is in a different league: about 13 times faster and 19 images more accurate. So it is not hopeless, and it is not on par either.
+What is encouraging is that my implementation, even though it is not super optimized and not in a compiled language, is both faster and more accurate than OpenCV. That is a real result. On the other hand, zxing-cpp is a genuinely good implementation, so comparing to it makes sense. It still beats mine on both accuracy and speed. We are nowhere near as good.
+
+That is humbling. Beating OpenCV is an achievement, but it is not close to being useful in practice next to a dedicated QR library. And that is okay; this is a hobby project. A fair conclusion is that we made something that is not crap. It is not terrible, it is not great. I'll take pride in that.
 
 ## Where the pipeline breaks
 
