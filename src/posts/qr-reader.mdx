@@ -311,7 +311,7 @@ To find the homography we need point correspondences between the two planes: the
 <div class="mx-auto max-w-4xl">
 	<img
 		src={homography}
-		alt="Left: the captured QR photo with the twelve detected outer finder corners. Right: the QR rectified with the homography, showing the canonical corners and the rectified grid. Bottom inset: a true-scale zoom on the top-left finder pattern, with the ideal and mapped corner positions connected by their residuals."
+		alt="Top left: the captured QR photo with the twelve detected outer finder corners. Top right: the QR rectified with the homography, showing the canonical corners and the rectified grid. Bottom left: a true-scale zoom on the top-left finder pattern, with the ideal and mapped corner positions connected by their residuals. Bottom right: a deeper zoom on the finder's bottom-left corner, where the offset between ideal and mapped is clearest."
 	/>
 </div>
 
@@ -323,7 +323,7 @@ $$
 
 where $p_i$ is an ideal grid corner and $q_i$ is the corresponding detected corner. The division in the formula makes this nonlinear in the entries of $H$, so we cannot solve it in one step. We first solve a linearized version of the problem to get an initial guess, and then refine it with a standard nonlinear optimizer -- Levenberg-Marquardt in this case -- starting from that guess.
 
-Once we have $H$, mapping the ideal grid into the photo is just a matter of plugging points into the formula. That is what the sampling step uses, and it is also how we produce the rectified view on the right of the figure. The inset zooms in on the top-left finder pattern so you can see the actual residual at true scale. In principle we could stop here and start sampling. But ideally we would use a few more landmarks to get a better homography estimate.
+Once we have $H$, mapping the ideal grid into the photo is just a matter of plugging points into the formula. That is what the sampling step uses, and it is also how we produce the rectified view on the right of the figure. The bottom-left inset zooms in on the top-left finder pattern so you can see the actual residual at true scale, and the close-up beside it isolates the finder's bottom-left corner, where the offset is largest. In principle we could stop here and start sampling. But ideally we would use a few more landmarks to get a better homography estimate.
 
 ## Finding the alignment patterns
 
@@ -343,6 +343,8 @@ The GIF below shows the template sliding across a real capture. The right panel 
 		alt="Left: a real version-3 capture cropped around its alignment pattern, with a synthetic 5×5 template drawn as a moving outline and a live correlation score. Right: the Pearson correlation surface filling in as the template slides, with the peak marked."
 	/>
 </div>
+
+You might look at that GIF and wonder why we could not do the same thing for the finder patterns. The reason is that we do not just need to know where a finder pattern is: we need to know where its corners are, since those are the landmarks the homography is built from, and a template match only gives us the center. There is a second problem. For an alignment pattern we know its size almost exactly, because the homography predicts the local module scale before we search, so one template is enough. For a finder pattern we would have to try many sizes and rotations, and we could not use the homography to narrow them down, because the finder patterns are what we need in order to build the homography in the first place.
 
 The peak of the correlation surface is at integer pixel coordinates, and one pixel can be a lot in a small QR code. So we refine it with a quadratic fit: take the correlation values immediately left, right, above, and below the peak, fit a 1-D parabola in each direction, and use the vertex as the sub-pixel center.
 
@@ -376,7 +378,7 @@ The figure below zooms in on a real capture. In one module, the center pixel lan
 <div class="mx-auto max-w-4xl">
 	<img
 		src={samplingVote}
-		alt="Two zoomed views of the same QR module. Left: the single center sample is light, so the module is read as white, which is wrong. Right: nine samples, with the center counted twice, vote the module dark, which is correct."
+		alt="Two zoomed views of the same QR module. Left: the single center sample is white, so the module is read as white, which is wrong. Right: the nine samples are shown as black or white dots and vote 8 out of 10 dark, so the module is read as dark, which is correct."
 	/>
 </div>
 
@@ -390,22 +392,13 @@ I am going to be honest: I did not care about this part. The decoder is a port o
 
 ## Test data
 
-{/* TODO(rik): rewrite from scratch; current prose is an agent placeholder. */}
+The first thing I did in this project, before I had written any decoding code, was generate a single QR image. I wrote most of that generator myself. It took a clean QR code, applied a perspective transform (which includes rotation), added noise, and blurred it. At first it was one fixed image, generated from a fixed seed. Later it grew into a small dataset across versions and difficulty levels.
 
-<div class="my-5 rounded-lg border-2 border-red-400 bg-red-50 px-4 py-3 text-sm text-red-900">
-	<strong>Rewrite this section from scratch.</strong> The current prose is an agent draft, not my
-	voice. Do not publish until it is rewritten. Keep the figure for reference.
-</div>
+This was a good starting point because the way I like to develop this is to keep the failure modes in mind at every step. A real photo is never a straight-on QR code; it is rotated, perspective-distorted, noisy, and blurred. If I can reproduce those problems in a synthetic image, I can stress-test a stage before I have any real data. A blank background is not very realistic, though, so the next step was to composite the QR patches onto photos of indoor scenes. That added a bit more: now the background and the foreground can have different lighting and brightness.
 
-I went through three datasets, each one a reaction to the previous one.
+Once the pipeline was drafted, I wanted to know how good it actually was, and the synthetic sets did not cut it anymore. So I printed 15 QR codes -- five versions, three physical sizes -- and took 100 photos of them. That easily took an hour. They all encode `rikvoorhaar.com`, so I did not have to annotate anything: if the reader returns that string, the whole pipeline worked. This set is a different problem from the synthetic ones. It is more realistic, but the ground truth is worse.
 
-The first was a simple synthetic generator: take a clean QR code, rotate it, warp it, add noise, and blur it. Three presets (easy, medium, hard), six versions, ten seeds, for 180 images. It was enough to get something working, and it kept some of the ugly parts of real photos.
-
-The second embedded QR patches into indoor photos from HomeObjects-3K, with feathered edges, blur, noise, and JPEG compression. That made the backgrounds more realistic, and it produced 300 images. But it still was not the real world.
-
-So I made the real dataset myself: 100 photos of 15 printed QR codes, five versions and three sizes, around the house on a sunny day. They all encode `rikvoorhaar.com`. This is the dataset that mattered. It showed me that my implementation was not good enough, and most of the improvements in this post came from trying to make that number go up.
-
-The figure below shows one example from each, at the same low version.
+The figure below shows one example from each, all version 3.
 
 <div class="mx-auto max-w-5xl">
 	<img
@@ -413,6 +406,10 @@ The figure below shows one example from each, at the same low version.
 		alt="Three version-3 QR examples side by side: a simple synthetic render on a noisy white background, a synthetic QR composited into an indoor photo, and a real captured photo of a printed QR code on a desk."
 	/>
 </div>
+
+With the synthetic images I know the exact corner coordinates, and the coordinates of every other landmark, which means I can measure the corner error in pixels and benchmark the corner finder and the homography on their own, not just the final decode. With the captured set I only have the payload as ground truth, and annotating every corner by hand is exactly the kind of work I wanted to avoid. So the two sets do different jobs, and I used both.
+
+Keeping in mind early what kind of test data can support the development is super useful. It was a very good decision to start by asking what test data I could use. In a way, that is test-driven development before there is anything to test.
 
 ## Results
 
