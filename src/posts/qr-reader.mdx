@@ -6,31 +6,30 @@ teaser: 'qr-reader.jpg'
 excerpt: 'Building a QR code decoder from scratch in Python — the algorithms, the pitfalls, and what I learned along the way.'
 ---
 
-import { Image } from 'astro:assets';
 import qrAnatomy from '../assets/blog/qr-reader/qr-anatomy.png';
 import qrVersions from '../assets/blog/qr-reader/qr-versions.png';
-import rleScan from '../assets/blog/qr-reader/rle-scan.gif?url';
+import rleScan from '../assets/blog/qr-reader/rle-scan.gif';
 import rleNormalization from '../assets/blog/qr-reader/rle-normalization.png';
-import candidateClustering from '../assets/blog/qr-reader/candidate-clustering.gif?url';
-import floodFillSuccess from '../assets/blog/qr-reader/flood-fill-success.gif?url';
-import floodFillFailure from '../assets/blog/qr-reader/flood-fill-failure.gif?url';
+import candidateClustering from '../assets/blog/qr-reader/candidate-clustering.gif';
+import floodFillSuccess from '../assets/blog/qr-reader/flood-fill-success.gif';
+import floodFillFailure from '../assets/blog/qr-reader/flood-fill-failure.gif';
 import rayProfileSignal from '../assets/blog/qr-reader/ray-profile-signal.png';
 import rayProfileClustering from '../assets/blog/qr-reader/ray-profile-clustering.png';
 import houghSuccess from '../assets/blog/qr-reader/hough-success.png';
 import houghFailure from '../assets/blog/qr-reader/hough-failure.png';
-import affineSampling from '../assets/blog/qr-reader/affine-sampling.gif?url';
+import affineSampling from '../assets/blog/qr-reader/affine-sampling.gif';
 import tripletAmbiguity from '../assets/blog/qr-reader/triplet-ambiguity.png';
 import tripletColinearity from '../assets/blog/qr-reader/triplet-colinearity.png';
 import crossRatio from '../assets/blog/qr-reader/cross-ratio.png';
 import homography from '../assets/blog/qr-reader/homography.png';
-import alignmentMatching from '../assets/blog/qr-reader/alignment-matching.gif?url';
+import alignmentMatching from '../assets/blog/qr-reader/alignment-matching.gif';
 import alignmentSubpixel from '../assets/blog/qr-reader/alignment-subpixel.png';
 import samplingVote from '../assets/blog/qr-reader/sampling-vote.png';
 import datasetExamples from '../assets/blog/qr-reader/dataset-examples.png';
 import pipelineAblation from '../assets/blog/qr-reader/pipeline-ablation.svg?url';
 import BlogImage from '../components/markdown/img.astro';
 import otsuColorGray from '../assets/blog/qr-reader/otsu-color-gray.png';
-import otsuThreshold from '../assets/blog/qr-reader/otsu-threshold.gif?url';
+import otsuThreshold from '../assets/blog/qr-reader/otsu-threshold.gif';
 import illuminationCorrection from '../assets/blog/qr-reader/illumination-correction.png';
 
 QR codes are everywhere, and they have been around since the 90s. Detecting and decoding them should be a simple, straightforward computer vision task, right? At least that's what I thought. I set out to write my own QR code detector and try to come up with an algorithm on my own. It turns out it's not as simple as I thought.
@@ -39,8 +38,7 @@ QR codes are everywhere, and they have been around since the 90s. Detecting and 
 
 The scope of the project is simple: detect a QR code, find its corners, and decode the payload. Before diving in, let's look at a QR code:
 
-<Image
-	class="block mx-auto my-2 max-w-full h-auto rounded-md"
+<BlogImage
 	src={qrAnatomy}
 	alt="A QR code with its three finder patterns boxed, plus a zoomed finder showing the 1:1:3:1:1 bands and the 7-module width."
 />
@@ -51,8 +49,7 @@ To detect a QR code, you only need to find three things that look like finder pa
 
 There's more to it, though. QR codes come in different sizes, known as _versions_. The smallest is version 1, which is 21×21 dots, up to version 40 at 177×177. In general, version $V$ has $17+4V$ dots on each side. To decode a code you need to know its version. Fortunately, each finder pattern measures $1+1+3+1+1=7$ dots on a side. So if, say, the finder patterns are 70 px on a side and the gap between them is 110 px, then one dot is 10 px and the total side length is $70+110+70 = 250$ px, i.e. 25 dots — which is version 2. This works well for small versions. For larger versions we may only be able to pin the version down to a range like 32–35. In that case we can simply try decoding under each candidate version and move on to the next when one fails. The version is also encoded separately in the QR code itself for version 7 and up, which helps.
 
-<Image
-	class="block mx-auto my-2 max-w-full h-auto rounded-md"
+<BlogImage
 	src={qrVersions}
 	alt="QR versions 1, 2, 5, and 10 with module counts, plus a spacing diagram showing 70 px + 110 px + 70 px = 250 px = 25 modules, which is version 2."
 />
@@ -78,15 +75,15 @@ I hope the basic idea and scope of the project are now clear, so let's dive into
 
 The finder patterns follow a 1:1:3:1:1 dark-bright-dark-bright-dark pattern. How can you detect that? First you have to know what 'dark' and 'bright' even means in the first place. In a photo, the white part of a QR code is more like light gray plus some random noise. An easy way to do that is by converting the image to pure black and white using a threshold. We can convert the RGB value to grayscale, and then compare the value to a threshold $t$. If the mean RGB value is below $t$, then it's black, above it's white. The figure below shows the same crop in color and in grayscale.
 
-<Image
-	class="block mx-auto my-2 max-w-full h-auto rounded-md"
-	src={otsuColorGray}
-	alt="A QR image shown in color and grayscale."
-/>
+<BlogImage src={otsuColorGray} alt="A QR image shown in color and grayscale." />
 
 But how do you determine $t$? You can't just set it to $t=128$, because some images are bright and some are dark depending on ambient light and camera settings. One way to automatically determine a reasonable threshold is using _Otsu's method_. This converts the pixel intensities of the whole image into a histogram, and then finds the threshold that best separates the image into a bright and dark class (minimizing the intra-class variance). It is a relatively simple and very popular thresholding method, and it works well for many images. The animation below shows the same image at different thresholds.
 
-<img src={otsuThreshold} />
+<BlogImage
+	src={otsuThreshold}
+	alt="An animation showing the QR image at different thresholds."
+	unoptimized
+/>
 
 Otsu's method does have a major flaw: the lighting in the image isn't always uniform. It often happens that some parts of the image are more brightly lit than others, and then the ideal threshold may be higher in a brighter part of the image and lower in a darker part of the image.
 
@@ -94,8 +91,7 @@ To correct for this we can try to estimate the difference in luminance across th
 
 As you can see below, this makes the histogram much more bimodal (having two peaks), which Otsu's method can cleanly separate. The result is a binarized image that is much cleaner than using Otsu's method directly.
 
-<Image
-	class="block mx-auto my-2 max-w-full h-auto rounded-md"
+<BlogImage
 	src={illuminationCorrection}
 	alt="A QR image, the estimated illumination field, the illumination-corrected image, the intensity histogram before and after correction, and the Otsu binarization before and after."
 />
@@ -106,8 +102,7 @@ The real world is messy, and a perfectly valid finder pattern might have RLE 51,
 
 The figure below shows a real row through two finder patterns. The left finder is centered on the scanline, so its five runs normalize cleanly. The right finder is off-center at this row, so its cut is distorted.
 
-<Image
-	class="block mx-auto my-2 max-w-full h-auto rounded-md"
+<BlogImage
 	src={rleNormalization}
 	alt="A real QR photo with a scanline through two finder patterns, the run lengths along that row, and the normalization of the left finder's five runs against 1:1:3:1:1."
 />
@@ -116,8 +111,9 @@ You may think that 30% is a pretty loose threshold, and you'd be right. But ther
 
 The animation below shows the scan in action: the binary image is recolored, the scanline sweeps down, and every 1:1:3:1:1 match leaves a box behind.
 
-<img
+<BlogImage
 	src={rleScan}
+	unoptimized
 	alt="A binary QR image with a horizontal scanline sweeping down. Each 1:1:3:1:1 match leaves an orange candidate box behind."
 />
 
@@ -137,8 +133,9 @@ This clustering step reduces the number of candidate finder patterns substantial
 
 The animation below shows both steps on a real photo. The raw candidates merge into five clusters, and the vertical check throws out the two false positives in the QR data region, leaving the three finder patterns.
 
-<img
+<BlogImage
 	src={candidateClustering}
+	unoptimized
 	alt="Raw RLE candidates merging into cluster boxes, followed by a vertical check that rejects two false positives and keeps the three finder patterns."
 />
 
@@ -148,7 +145,7 @@ Now we have hopefully correctly identified the locations of all the finder patte
 
 The animation below shows what that looks like on a v1 code. The three finder centers are enough to get a rough affine alignment, but not enough to correct the perspective. The sampled matrix is close, and then the bits in the bottom-right start to go wrong.
 
-<img
+<BlogImage
 	src={affineSampling}
 	alt="A v1 QR code rectified from its three finder centers, with the module grid being sampled into a bit matrix on the right. The wrong bits are highlighted in red at the end."
 />
@@ -168,11 +165,11 @@ In practice the flood fill itself was usually not the problem. The thresholding 
 The two animations below show what that looks like on the same photo. In the first, the fill and the corner picks work. In the second, the mask is still clean, but the corners collapse onto the acute side.
 
 <div class="grid grid-cols-1 gap-3 sm:grid-cols-2">
-	<img
+	<BlogImage
 		src={floodFillSuccess}
 		alt="Flood filling a QR finder pattern succeeds and the four corner picks land on the ring."
 	/>
-	<img
+	<BlogImage
 		src={floodFillFailure}
 		alt="Flood filling a perspective-distorted QR finder pattern succeeds, but the four corner picks collapse onto the acute corners."
 	/>
@@ -197,13 +194,11 @@ So we ended up in the same place as before. The basic approach looked good on sy
 The two figures below show a clean case and a failure case. In the clean one, each outer edge produces a single clear peak, and the four lines intersect at the corners. In the failure, the edges break into pieces and other QR edges compete for votes, so the selected lines are wrong.
 
 <div class="space-y-4">
-	<Image
-		class="block mx-auto my-2 max-w-full h-auto rounded-md"
+	<BlogImage
 		src={houghSuccess}
 		alt="Hough success: original crop, thin edge map, Hough accumulator with four clear peaks, and the four lines intersecting at the finder corners."
 	/>
-	<Image
-		class="block mx-auto my-2 max-w-full h-auto rounded-md"
+	<BlogImage
 		src={houghFailure}
 		alt="Hough failure: original crop, a broken edge map, a cluttered Hough accumulator, and selected lines that miss two of the corners."
 	/>
@@ -217,8 +212,7 @@ If you start at the center of a finder pattern and cast a ray outward, the inten
 
 This is much more robust than thresholding and then trying to recover a clean boundary. If one pixel in the middle is the wrong color, or the threshold is slightly off, the fit doesn’t care. The whole profile votes on the scale, and the transitions come out as a smooth compromise instead of a hard edge.
 
-<Image
-	class="block mx-auto my-2 max-w-full h-auto rounded-md"
+<BlogImage
 	src={rayProfileSignal}
 	alt="A ray cast at 20 degrees from a finder-pattern center, with the intensity profile along that ray and the fitted template overlaid."
 />
@@ -227,8 +221,7 @@ I did this for 36 half-rays, spaced 10 degrees apart, and sampled each profile a
 
 Then the problem became clustering those points into the four sides. This turned out to be the hardest part of the whole ray-fitting approach. The ray profiles themselves were fairly straightforward, and the rest was mostly parameter tuning, but getting the clustering right took a lot of iterations. I tried a whole range of clustering algorithms here. What worked best was to treat a cluster as defining a single line, fit that line with total least squares, and then decide whether a nearby point belongs to it by seeing how much the fit worsens. If the point makes the line much worse, it probably belongs to a different edge. Refit, repeat. TLS is a simple line fit, and the residual tells you how well the points actually lie on a line, which is exactly the signal I needed.
 
-<Image
-	class="block mx-auto my-2 max-w-full h-auto rounded-md"
+<BlogImage
 	src={rayProfileClustering}
 	alt="Three panels showing all 36 half-rays, the fitted boundary points, and the points clustered into the four finder sides with a fitted line for each."
 />
@@ -242,8 +235,7 @@ I only used the outer edges for the final geometry. The inner transitions were u
 Suppose we have found three finder patterns and their corners. Which one is the top-left, which is the top-right, and which is the bottom-left? We do not assume the QR code is upright — it could be rotated by any angle, including 180°. And if we found more than three candidates, which three belong to the same QR code? We need an algorithm for this, and as with everything else in this project, it is trickier than it appears at first glance.
 
 <div class="mx-auto max-w-xl">
-	<Image
-		class="block mx-auto my-2 max-w-full h-auto rounded-md"
+	<BlogImage
 		src={tripletAmbiguity}
 		alt="Four candidate finder patterns outlined on a version-3 QR code, with no correct triplet marked."
 	/>
@@ -254,8 +246,7 @@ Suppose we have found three finder patterns and their corners. Which one is the 
 Each finder has four outer edges. If two finders sit next to each other in the QR grid, two of their edges should lie on the same line. So for every pair of finders, we compare their four edges. We don’t know which edge is which, so we try both one-to-one pairings of the opposite edges and keep the best match. If two pairs line up, the finders are associated.
 
 <div class="mx-auto max-w-2xl">
-	<Image
-		class="block mx-auto my-2 max-w-full h-auto rounded-md"
+	<BlogImage
 		src={tripletColinearity}
 		alt="Three finder patterns with all outer edges extended as thin lines and the pairs of collinear edges along the two legs of the L highlighted."
 	/>
@@ -302,8 +293,7 @@ In practice this works well. We keep the runner-up around just to avoid small er
 The figure below shows the four lines on a real photo, with the measured cross-ratios next to the lines and the expected value for version 10.
 
 <div class="mx-auto max-w-3xl">
-	<Image
-		class="block mx-auto my-2 max-w-full h-auto rounded-md"
+	<BlogImage
 		src={crossRatio}
 		alt="The four sides of the top-left finder extended to the other two finders, with the measured cross-ratios beside each line and the expected value for version 10."
 	/>
@@ -326,8 +316,7 @@ The matrix is defined up to an overall scale, so it has eight independent entrie
 To find the homography we need point correspondences between the two planes: the photo and the ideal QR code. We already have a natural set: the twelve outer corners of the three finder patterns. Once we know the version, we know where those corners sit on the ideal grid. The top-left finder is the $7 \times 7$ square at the origin, the top-right finder is the same square shifted $N-7$ modules to the right, and the bottom-left finder is shifted $N-7$ modules down. That gives us twelve correspondences between ideal grid points and detected image points.
 
 <div class="mx-auto max-w-4xl">
-	<Image
-		class="block mx-auto my-2 max-w-full h-auto rounded-md"
+	<BlogImage
 		src={homography}
 		alt="Top left: the captured QR photo with the twelve detected outer finder corners. Top right: the QR rectified with the homography, showing the canonical corners and the rectified grid. Bottom left: a true-scale zoom on the top-left finder pattern, with the ideal and mapped corner positions connected by their residuals. Bottom right: a deeper zoom on the finder's bottom-left corner, where the offset between ideal and mapped is clearest."
 	/>
@@ -356,7 +345,7 @@ The search is template matching. We render what the pattern should look like at 
 The GIF below shows the template sliding across a real capture. The right panel is the correlation surface, and the peak is the match.
 
 <div class="mx-auto max-w-4xl">
-	<img
+	<BlogImage
 		src={alignmentMatching}
 		alt="Left: a real version-3 capture cropped around its alignment pattern, with a synthetic 5×5 template drawn as a moving outline and a live correlation score. Right: the Pearson correlation surface filling in as the template slides, with the peak marked."
 	/>
@@ -369,8 +358,7 @@ The peak of the correlation surface is at integer pixel coordinates, and one pix
 The figure below shows the two parabolas through the peak.
 
 <div class="mx-auto max-w-4xl">
-	<Image
-		class="block mx-auto my-2 max-w-full h-auto rounded-md"
+	<BlogImage
 		src={alignmentSubpixel}
 		alt="Two separable one-dimensional parabolas through the correlation peak. The horizontal fit gives center x = 626.04 px; the vertical fit gives center y = 986.59 px."
 	/>
@@ -395,8 +383,7 @@ With the threshold, the vote is simple. Each of the nine samples is either above
 The figure below zooms in on a real capture. In one module, the center pixel lands on the wrong side of the threshold, but the nine-sample vote gets it right.
 
 <div class="mx-auto max-w-4xl">
-	<Image
-		class="block mx-auto my-2 max-w-full h-auto rounded-md"
+	<BlogImage
 		src={samplingVote}
 		alt="Two zoomed views of the same QR module. Left: the single center sample is white, so the module is read as white, which is wrong. Right: the nine samples are shown as black or white dots and vote 8 out of 10 dark, so the module is read as dark, which is correct."
 	/>
@@ -421,8 +408,7 @@ Once the pipeline was drafted, it was time to find out how good it actually was,
 The figure below shows one example from each, all version 3.
 
 <div class="mx-auto max-w-5xl">
-	<Image
-		class="block mx-auto my-2 max-w-full h-auto rounded-md"
+	<BlogImage
 		src={datasetExamples}
 		alt="Three version-3 QR examples side by side: a simple synthetic render on a noisy white background, a synthetic QR composited into an indoor photo, and a real captured photo of a printed QR code on a desk."
 	/>
