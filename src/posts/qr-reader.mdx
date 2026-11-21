@@ -426,23 +426,24 @@ That is humbling. Beating OpenCV is an achievement, but it is not close to being
 
 ## Where the pipeline breaks
 
-{/* TODO(rik): rewrite from scratch; current prose is an agent placeholder. */}
-
-<div class="my-5 rounded-lg border-2 border-red-400 bg-red-50 px-4 py-3 text-sm text-red-900">
-	<strong>Rewrite this section from scratch.</strong> The current prose is an agent draft, not my
-	voice. Do not publish until it is rewritten. Keep the SVG for reference.
-</div>
-
-The whole pipeline is a chain of stages, and every one of them has to work. The diagram below is a recap of everything in this post, with the number of the 100 captured photos that make it to each stage.
+That was a lot of steps. The figure below recaps the pipeline and shows how many of the 100 captured photos make it through each part. To find a triplet, we need at least three candidate clusters and three fitted finders, so the figure counts images with fewer than three as lost at those stages.
 
 <div class="mx-auto max-w-3xl">
 	<img
 		src={pipelineAblation}
-		alt="Vertical flow of the QR pipeline stages, with the number of the 100 captured photos reaching each stage. Grey stages cannot fail, amber stages can fail but never did, and red stages failed on at least one photo. The biggest losses are at the triplet search and the decoder."
+		alt="QR pipeline stages showing how many of the 100 captured photos remain after each step, including thresholds of at least three candidate clusters and three fitted finders."
 	/>
 </div>
 
-Grey stages cannot fail; amber stages can fail but never did on these 100 photos; red stages did fail. Most of the losses happen early: 30 of the 42 failures are gone by the triplet stage. The decoder takes another 12, but the detector is still the bottleneck.
+There are losses at several points:
+
+- **Finding candidates:** 5 images have no candidates at all. The scan didn't find anything that looked like a finder pattern.
+- **Clustering:** 12 more have fewer than three candidate clusters. There may simply not have been candidates for all three finders to begin with.
+- **Fitting finders:** 2 more have at least three clusters, but fewer than three fitted finders.
+- **Finding triplets:** 11 more have at least three finders, but no valid triplet was found. There might not have been a valid triplet among them, or the algorithm might have missed it.
+- **Decoding:** 12 more don't produce the correct payload. That doesn't necessarily mean the decoder itself is the problem: the triplet or finder corners could be wrong, or the homography could be inaccurate, leaving us sampling the wrong bits.
+
+These numbers tell us where the images drop out, but not exactly what went wrong. For that, we'd have to look at the images in more detail.
 
 ## Final thoughts
 
