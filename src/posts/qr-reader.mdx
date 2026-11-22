@@ -2,7 +2,7 @@
 title: 'Writing a QR code reader from scratch'
 date: '2026-11-22'
 categories: [projects]
-teaser: 'qr-reader.jpg'
+teaser: 'qr-reader.png'
 excerpt: 'I wanted to figure out how to make my own QR code reader. Turns out this was more difficult than I expected.'
 ---
 
@@ -47,7 +47,7 @@ You may notice the patterns in the top-left, top-right and bottom-left corners. 
 
 To detect a QR code, you only need to find three things that look like finder patterns under the 1:1:3:1:1 rule and sit roughly in an isosceles triangle. Such a triangle has one right angle and two 45-degree angles, and the finder pattern at the right angle must be the top-left one. Assuming the QR code is not mirrored, the bottom-left finder pattern then sits counterclockwise from the top-left, and the top-right one sits clockwise from it.
 
-There's more to it, though. QR codes come in different sizes, known as _versions_. The smallest is version 1, which is 21×21 dots, up to version 40 at 177×177. In general, version $V$ has $17+4V$ dots on each side. To decode a code you need to know its version. Fortunately, each finder pattern measures $1+1+3+1+1=7$ dots on a side. So if, say, the finder patterns are 70 px on a side and the gap between them is 110 px, then one dot is 10 px and the total side length is $70+110+70 = 250$ px, i.e. 25 dots — which is version 2. This works well for small versions. For larger versions we may only be able to pin the version down to a range like 32–35. In that case we can simply try decoding under each candidate version and move on to the next when one fails. The version is also encoded separately in the QR code itself for version 7 and up, which helps.
+There's more to it, though. QR codes come in different sizes, known as _versions_. The smallest is version 1, which is 21×21 dots, up to version 40 at 177×177. In general, version $V$ has $17+4V$ dots on each side. To decode a code you need to know its version. Fortunately, each finder pattern measures $1+1+3+1+1=7$ dots on a side. So if, say, the finder patterns are 70 px on a side and the gap between them is 110 px, then one dot is 10 px and the total side length is $70+110+70 = 250$ px, i.e. 25 dots — which is version 2. This works well for small versions. For larger versions we may only be able to pin the version down to a range like 32–35. In that case we can try decoding under the most promising candidate versions and move on to the next when one fails. The version is also encoded separately in the QR code itself for version 7 and up, which helps.
 
 <BlogImage
 	src={qrVersions}

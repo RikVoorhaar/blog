@@ -54,8 +54,10 @@
 						</li>
 						<li>
 							The triplet section describes the historical edge-collinearity approach, whereas the
-							current implementation uses center geometry. Check whether the distinction needs to be
-							made explicit during the full read.
+							current implementation uses center geometry. A full-pipeline comparison on 100
+							captured photos gave 58 correct decodes for center geometry versus 51 for repaired
+							collinearity: 9 center-only, 2 collinearity-only. Decide how to reconcile the post
+							with the code; no implementation change has been made.
 						</li>
 					</ul>
 					<h3 class="mt-4 font-semibold text-stone-100">Facts, figures and chores</h3>
@@ -89,13 +91,14 @@
 					<ul class="mt-2 list-disc space-y-1 pl-5">
 						<li>
 							Author reads the complete rendered post and decides on any substantive or stylistic
-							revisions. In particular, check the historical triplet description against current
-							code and the simplified version-retry explanation.
+							revisions. In particular, reconcile the historical triplet description with current
+							code. The opening version-retry explanation now says the most promising candidates are
+							tried, rather than claiming every candidate is tried.
 						</li>
 						<li>
-							Teaser: the author chose a third-attempt ray-profile picture, but that section has
-							both a signal plot and a clustering figure. Confirm which one; the referenced
-							<code>qr-reader.jpg</code> teaser is not present.
+							Teaser: the author chose the ray-profile signal plot. A draft teaser is being refined
+							with tighter cropping and transparency for light and dark themes; author review
+							remains.
 						</li>
 						<li>
 							Date is provisionally 2026-11-22; confirm or update at publication. Title is
@@ -114,6 +117,10 @@
 						2026-11-22: Reconciled the plan with the completed draft, benchmark, figures, image
 						handling, provisional metadata and the author's requested full read-through. Earlier
 						notes remain below as an archive.
+					</p>
+					<p class="mt-2">
+						Compared the triplet selectors, revised the opening's version-retry wording, and began
+						refining the chosen ray-profile signal teaser.
 					</p>
 				</section>
 				<details>
