@@ -71,8 +71,8 @@
 							100 preloaded photos: 6.31 s, 7.22 s and 0.39 s.
 						</li>
 						<li>
-							First-pass viability counts and fallback recoveries are regenerated from the
-							integrated code. Recovery attribution uses successful
+							The pipeline figure counts 63 decodes on the original image, including both sampling
+							variants, and three more after resizing. Recovery attribution uses successful
 							<code>DecodeAttempt.provenance</code>; viability counts are not necessarily actual
 							pipeline exits.
 						</li>
@@ -142,6 +142,11 @@
 						Clarified the head-on comparison, fixed the bold digits in the run-length example, and
 						removed the collinearity benchmark paragraph. The voice and fallback wording are
 						unchanged pending review.
+					</p>
+					<p class="mt-2">
+						Applied the approved voice edits to clustering, flood filling, and ray fitting. Folded
+						the sampling variants into the original-image decode count and kept only the scale retry
+						separate in the text and figure.
 					</p>
 				</section>
 				<details>

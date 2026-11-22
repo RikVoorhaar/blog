@@ -122,7 +122,7 @@ The animation below shows the scan in action: the binary image is recolored, the
 Observe, however, that a finder pattern can have many matching RLE 5-tuples. We ideally only output one candidate region per finder pattern, so we have to group the RLE 5-tuples that belong to the same finder pattern somehow. This is fortunately really easy! Well, it took a few tries to get right, but you know, it's easy in hindsight.
 What I settled on after some painful trial and error is the following approach.
 
-- Encode each candidate with the pixels denoting each of the 6 transitions (white to black, black to white, ...). I say that the estimated height of a cluster is the width of the center segment.
+- Encode each candidate with the pixels denoting each of the 6 transitions (white to black, black to white, ...). We estimate the cluster's height from the width of the center segment.
 - We can check if candidate A overlaps candidate B if all segment widths are within 22% of each other, if the vertical distance is less than 1.2× the 'height' of the candidate, and if the center x coordinate of B lies in the central segment of A.
 
 Then if two candidates overlap we merge them by taking the mean of all quantities of interest (segment widths, estimated height). This gives a candidate cluster. When merging clusters consisting of different numbers of candidates, we take a weighted mean to give more weight to clusters with more candidates.
@@ -156,13 +156,13 @@ The animation below shows what that looks like on a v1 code. The three finder ce
 
 At this point I was still writing everything by hand. No AI, no autocomplete doing the thinking for me -- partly because I wanted to keep my hand in, and partly because I hadn’t given in yet.
 
-The finder-pattern detector had already done most of the hard work for free. The 1:1:3:1:1 scan gave me a seed pixel on the outer black ring, plus the white and black ring structure around it. So the obvious next move was to grow that seed into the whole finder pattern.
+The finder-pattern detector had already done most of the hard work for free. The 1:1:3:1:1 scan gives us a seed pixel on the outer black ring, plus the white and black ring structure around it. So the obvious next move was to grow that seed into the whole finder pattern.
 
 All the pixels that belong to the pattern form a connected component. The simplest way to recover one is flood filling: start with a single pixel, look at its neighbors, and if they have the same color, add them to the mask. Then keep going. A few iterations later you have the entire pattern.
 
-Once I had that mask, I only needed the corners. I used a few heuristics: the point farthest from the center is probably one corner, the others should be roughly 90 degrees away and also be local maxima along the boundary. A bit of non-maximum suppression gave me four candidates.
+Once we have the mask, we can look for its corners. I used a few heuristics: the point farthest from the center is probably one corner, the others should be roughly 90 degrees away and also be local maxima along the boundary. A bit of non-maximum suppression leaves four candidates.
 
-In practice the flood fill itself was usually not the problem. The thresholding isn’t perfect, so a mask can have holes, and that does happen. But the failure I kept running into was one step later: turning the boundary into four corners. The farthest-point heuristic works fine when the finder is roughly square in the image. Under perspective it doesn’t. The finder becomes a general quadrilateral, the farthest points are not necessarily the corners, and the four points I picked could collapse onto the same acute corner. The mask was clean; the corners were wrong.
+In practice the flood fill itself was usually not the problem. The thresholding isn’t perfect, so a mask can have holes, and that does happen. But the failure I kept running into was one step later: turning the boundary into four corners. The farthest-point heuristic works fine when the finder is roughly square in the image. Under perspective it doesn’t. The finder becomes a general quadrilateral, the farthest points are not necessarily the corners, and the four points can end up bunched around the same acute corner. The mask was clean; the corners were wrong.
 
 The two animations below show what that looks like on the same photo. In the first, the fill and the corner picks work. In the second, the mask is still clean, but the corners collapse onto the acute side.
 
@@ -210,7 +210,7 @@ The two figures below show a clean case and a failure case. In the clean one, ea
 
 The next idea was to treat the finder pattern as a signal-processing problem.
 
-If you start at the center of a finder pattern and cast a ray outward, the intensity along that ray has a very specific shape. It starts dark, goes bright, dark again, bright again, and then eventually turns into whatever is around the finder pattern. The 1:1:3:1:1 structure is right there in the signal. So instead of trying to find edges and lines, I could fit a known template to that one-dimensional profile and read off the transition points. The fit has a scale parameter -- the module pitch -- and once I know that, I know where every transition should be along that ray.
+If you start at the center of a finder pattern and cast a ray outward, the intensity along that ray has a very specific shape. It starts dark, goes bright, dark again, bright again, and then eventually turns into whatever is around the finder pattern. The 1:1:3:1:1 structure is right there in the signal. So instead of trying to find edges and lines, I could fit a known template to that one-dimensional profile and read off the transition points. The fit has a scale parameter -- the module pitch -- and once we know the pitch, we know where every transition should be along that ray.
 
 This is much more robust than thresholding and then trying to recover a clean boundary. If one pixel in the middle is the wrong color, or the threshold is slightly off, the fit doesn’t care. The whole profile votes on the scale, and the transitions come out as a smooth compromise instead of a hard edge.
 
@@ -219,7 +219,7 @@ This is much more robust than thresholding and then trying to recover a clean bo
 	alt="A ray cast at 20 degrees from a finder-pattern center, with the intensity profile along that ray and the fitted template overlaid."
 />
 
-I did this for 36 half-rays, spaced 10 degrees apart, and sampled each profile at 120 points. For each ray I fitted the template and placed a boundary point at 3.5 module pitches from the center, on the outer edge of the finder. So after the ray stage I had 36 candidate boundary points, one per direction, each one probably sitting somewhere on the outer edge. The inner transitions were useful for fitting the scale, but I did not need them to find the corners.
+We sample 36 half-rays, 10 degrees apart, at 120 points each. For each ray, we fit the template and place a boundary point 3.5 module pitches from the center. That gives us 36 candidate boundary points, one per direction, each one probably sitting somewhere on the outer edge. The inner transitions help estimate the pitch, but we don't need them to find the corners.
 
 Then the problem became clustering those points into the four sides. This turned out to be the hardest part of the whole ray-fitting approach. The ray profiles themselves were fairly straightforward, and the rest was mostly parameter tuning, but getting the clustering right took a lot of iterations. I tried a whole range of clustering algorithms here. What worked best was to treat a cluster as defining a single line, fit that line with total least squares, and then decide whether a nearby point belongs to it by seeing how much the fit worsens. If the point makes the line much worse, it probably belongs to a different edge. Refit, repeat. TLS is a simple line fit, and the residual tells you how well the points actually lie on a line, which is exactly the signal I needed.
 
@@ -228,9 +228,9 @@ Then the problem became clustering those points into the four sides. This turned
 	alt="Three panels showing all 36 half-rays, the fitted boundary points, and the points clustered into the four finder sides with a fitted line for each."
 />
 
-Once I had four line clusters, I could intersect them and get the corners. I also added a gate: the four clusters have to contain most of the boundary points. In a real finder pattern, almost all of the ray points land on one of the four outer edges; there are a few outliers, but the majority are consistent. If the clusters only explain a small fraction of the points, the candidate is probably not a finder pattern, and I threw it away.
+Once we have four line clusters, we can intersect the lines to get the corners. I also added a gate: the four clusters have to contain most of the boundary points. In a real finder pattern, almost all of the ray points land on one of the four outer edges; there are a few outliers, but the majority are consistent. If the clusters explain too few points, we discard the candidate.
 
-I only used the outer edges for the final geometry. The inner transitions were useful for fitting the scale, but I didn’t need them to compute the corners. You could use them too and get a slightly better fit, but that wasn’t the bottleneck anymore. The ray fitting worked well enough that the bottleneck moved: now the hard part was finding the candidate finder patterns in the first place. Which meant the corner finder was no longer the thing holding the detector back.
+I only used the outer edges for the final geometry. You could use the inner transitions too and get a slightly better fit, but that wasn’t the bottleneck anymore. The ray fitting worked well enough that the bottleneck moved: now the hard part was finding the candidate finder patterns in the first place. Which meant the corner finder was no longer the thing holding the detector back.
 
 ## Choosing a triplet
 
@@ -378,11 +378,9 @@ So we take nine samples per module instead, at 25%, 50%, and 75% across the modu
 
 The nine values still need a threshold. We do not reuse the global Otsu threshold from the start. That threshold was chosen for the whole image, and the QR code may be only a small part of it; the code's black and white levels can sit somewhere else. But we do know some modules for certain: the finder patterns have a fixed pattern of black and white modules. We sample the centers of those known modules, take the median of the black values and the median of the white values, and use the midpoint as the threshold. The median ignores a few bad samples.
 
-This is still one threshold for the whole code, so it does not correct for illumination changes across the symbol. But it is close enough, and the nine-sample vote handles the rest.
+This gives us a single threshold for the whole code. It's usually good enough, though it doesn't account for changes in lighting across the code.
 
 With the threshold, the vote is simple. Each of the nine samples is either above or below it, and we call the module white when the weighted vote is at least five out of ten. A single bad sample cannot outvote the rest. And because the nine points sit in the middle half of the module, a slightly misplaced grid does not pull in the neighboring module.
-
-If the first pass does not decode, I added a few retries. If it found exactly two finder patterns, the pipeline enlarges the image by 1.25× and tries again. If it found a triplet, it first tries sampling with the original twelve-corner homography, without alignment-pattern refinement. It then tries the refined homography with a threshold that varies across the grid, estimated from the black and white levels at the finder patterns. These sampling retries use the same triplet and version candidates as the first pass; they do not expand the search.
 
 The figure below zooms in on a real capture. In one module, the center pixel lands on the wrong side of the threshold, but the nine-sample vote gets it right.
 
@@ -437,12 +435,12 @@ That is humbling. Beating OpenCV is an achievement, but it is not close to being
 
 ## Where the pipeline breaks
 
-That was a lot of steps. The figure below recaps the pipeline and shows how many of the 100 captured photos make it through each part on the first pass. To find a triplet, we need at least three candidate clusters and three fitted finders, so the figure counts images with fewer than three as lost at those stages. The three boxes at the bottom show how many additional photos the retries recover, and the running total.
+That was a lot of steps. The figure below recaps the pipeline and shows how many of the 100 captured photos make it through each part without resizing the image. To find a triplet, we need at least three candidate clusters and three fitted finders, so the figure counts images with fewer than three as lost at those stages.
 
 <div class="mx-auto max-w-3xl">
 	<BlogImage
 		src={pipelineAblation}
-		alt="First-pass QR pipeline viability counts: 100 images, then 95, 83, 81, 72 through triplet finding, and 60 decoded. Separate retries recover three images by scaling, one with the original homography, and two with a spatial threshold, for 66 decoded in total."
+		alt="QR pipeline counts without resizing: 100 images, then 95, 83, 81, 72 through triplet finding, and 63 decoded. Retrying on an enlarged image recovers three more, for 66 decoded in total."
 	/>
 </div>
 
@@ -452,11 +450,11 @@ There are losses at several points:
 - **Clustering:** 12 more have fewer than three candidate clusters. There may simply not have been candidates for all three finders to begin with.
 - **Fitting finders:** 2 more have at least three clusters, but fewer than three fitted finders.
 - **Finding triplets:** 9 more have at least three finders, but no valid triplet was found. There might not have been a valid triplet among them, or the algorithm might have missed it.
-- **Decoding:** 12 more don't produce the correct payload. That doesn't necessarily mean the decoder itself is the problem: the triplet or finder corners could be wrong, or the homography could be inaccurate, leaving us sampling the wrong bits.
+- **Decoding:** 9 more don't produce the correct payload. That doesn't necessarily mean the decoder itself is the problem: the triplet or finder corners could be wrong, or the homography could be inaccurate, leaving us sampling the wrong bits.
 
 These numbers tell us where the images drop out, but not exactly what went wrong. For that, we'd have to look at the images in more detail.
 
-The first pass decodes 60 photos. The scale retry recovers three more, sampling with the original homography recovers one, and the spatial threshold recovers two, bringing the total to 66.
+Without resizing, we decode 63 photos. If decoding fails and we found exactly two finder patterns, we enlarge the image by 25% and run the pipeline again. That recovers three more photos, bringing the total to 66.
 
 ## Final thoughts
 
