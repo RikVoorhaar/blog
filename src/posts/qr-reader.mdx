@@ -65,7 +65,9 @@ This suggests the following pipeline:
 - Sample the QR code to get the `NxN` dot pattern.
 - Decode the payload.
 
-That, at a high level, is the pipeline I implemented. One thing it leaves out is the _alignment patterns_. These are smaller 1:1:1:1:1 patterns (a black outer ring, a white inner ring, and a black dot in the center) that you can see in every QR code with version greater than 1. Their number and placement depend on the version. Because the sampling step needs the QR code geometry more precisely at higher versions, these patterns help improve localization. For simplicity I started without them; as we will see, they are not strictly necessary to decode a QR code, even at higher versions, but they do help on the harder photos.
+That, at a high level, is the pipeline I implemented. None of these steps use OpenCV. That would feel a bit like cheating: OpenCV already implements so many of the useful algorithms, but then they would remain black boxes. A big part of this project was figuring out what is inside those boxes.
+
+One thing the pipeline above leaves out is the _alignment patterns_. These are smaller 1:1:1:1:1 patterns (a black outer ring, a white inner ring, and a black dot in the center) that you can see in every QR code with version greater than 1. Their number and placement depend on the version. Because the sampling step needs the QR code geometry more precisely at higher versions, these patterns help improve localization. For simplicity I started without them; as we will see, they are not strictly necessary to decode a QR code, even at higher versions, but they do help on the harder photos.
 
 Finally, there is the matter of _perspective_. Capturing a QR code head-on is much easier to decode. I want my detector to handle QR codes that are rotated or viewed at unusual angles — basically, snap a photo from any odd angle and the detector should still find the code. That is far more satisfying than requiring the code to already be roughly aligned. But, as we will see, it also makes the problem much harder.
 
@@ -431,7 +433,7 @@ Running the three implementations on the same 100 captured photos gives this. Th
 | Correct payload            |                66/100 | 48/100 |    77/100 |
 | Median time for 100 photos |                6.31 s | 7.22 s |    0.39 s |
 
-What is encouraging is that my implementation, even though it is not super optimized and not in a compiled language, is both faster and more accurate than OpenCV. That is a real result. On the other hand, zxing-cpp is a genuinely good implementation, so comparing to it makes sense. It still beats mine on both accuracy and speed. We are nowhere near as good.
+What is encouraging is that my implementation, even though it is not super optimized and not in a compiled language, is both faster and more accurate than OpenCV. And it does that without using OpenCV in the reader itself. I did use OpenCV for testing and for this comparison, but not to find or decode the QR codes. That is a real result. On the other hand, zxing-cpp is a genuinely good implementation, so comparing to it makes sense. It still beats mine on both accuracy and speed. We are nowhere near as good.
 
 That is humbling. Beating OpenCV is an achievement, but it is not close to being useful in practice next to a dedicated QR library. And that is okay; this is a hobby project. A fair conclusion is that we made something that is not crap. It is not terrible, it is not great. I'll take pride in that.
 
