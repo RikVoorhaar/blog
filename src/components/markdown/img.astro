@@ -1,7 +1,7 @@
 ---
 import { Image } from 'astro:assets';
 
-const { src, alt = '' } = Astro.props;
+const { src, alt = '', unoptimized = false } = Astro.props;
 
 // Look up imported images (astro:assets); SVGs stay as plain <img>
 const images = import.meta.glob<{ default: ImageMetadata }>(
@@ -10,6 +10,7 @@ const images = import.meta.glob<{ default: ImageMetadata }>(
 );
 
 const imgMeta = (() => {
+	if (typeof src !== 'string') return src;
 	for (const [key, mod] of Object.entries(images)) {
 		// key: '../../assets/blog/bayes_exam/bayes_exam_11_0.png'
 		// src:  '/blog/bayes_exam/bayes_exam_11_0.png'
@@ -22,7 +23,7 @@ const imgMeta = (() => {
 ---
 
 <div class="w-full flex justify-center">
-	{imgMeta ? (
+	{imgMeta && !unoptimized ? (
 		<Image
 			src={imgMeta}
 			alt={alt}
@@ -32,8 +33,10 @@ const imgMeta = (() => {
 		/>
 	) : (
 		<img
-			src={src}
+			src={imgMeta?.src ?? src}
 			alt={alt}
+			width={imgMeta?.width}
+			height={imgMeta?.height}
 			loading="lazy"
 			class="block mx-auto my-2 max-w-full h-auto"
 			style="border-radius: var(--radius-md);"
