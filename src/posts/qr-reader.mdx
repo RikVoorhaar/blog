@@ -454,15 +454,8 @@ These numbers tell us where the images drop out, but not exactly what went wrong
 
 ## Final thoughts
 
-{/* TODO(rik): rewrite from scratch; current prose is an agent placeholder. */}
+This was a lot more complicated than I expected, but figuring it out was a fun puzzle. QR codes have been around since 1994, and it's a bit humbling how much there is to learn just by trying to read one. Many of the ideas I came across or rediscovered along the way have been around for a long time.
 
-<div class="my-5 rounded-lg border-2 border-red-400 bg-red-50 px-4 py-3 text-sm text-red-900">
-	<strong>Rewrite this section from scratch.</strong> The current prose is an agent draft, not my
-	voice. Do not publish until it is rewritten.
-</div>
+I finished a preliminary version of the code months ago, but kept putting off this post because it was such a large task. I think I spent more time writing it than on the initial implementation. On the other hand, writing it helped me understand the algorithm better, and I made quite a few improvements along the way.
 
-For the detection and geometry, I wanted to figure this out by myself. I deliberately did not read how other people detect and align QR codes, and I still have not. The decoder is the exception; that is a port, and I already said so. I used AI for a lot of the implementation and brainstorming, but I never asked it how to detect or align a QR code. I am sure I got some of the tricks right and made some bad choices along the way. That is engineering.
-
-It took people years to make QR readers fast and reliable, and people are still finding smarter ways. These days the detection part is often a neural net, with classical geometry for the precise alignment and sampling. But you do not need that. QR codes have been around since 1994, and whatever methods they had back then were good enough to use them in practice. That is humbling. What I came up with is complicated, and people figured this out more than 30 years ago.
-
-This was a very fun project, but it also took way too much time. I kept putting off writing this post because it felt like such a large task. I am glad I got around to it, because writing it down and making the figures helped my own understanding too.
+I even finished two other side projects between writing the code and finishing this post. Hopefully the next one will be a bit smaller.
