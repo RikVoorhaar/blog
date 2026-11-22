@@ -54,10 +54,11 @@
 						</li>
 						<li>
 							The triplet section describes the historical edge-collinearity approach, whereas the
-							current implementation uses center geometry. A full-pipeline comparison on 100
-							captured photos gave 58 correct decodes for center geometry versus 51 for repaired
-							collinearity: 9 center-only, 2 collinearity-only. Decide how to reconcile the post
-							with the code; no implementation change has been made.
+							current implementation uses center geometry. On 100 captured photos, full-pipeline
+							comparisons gave 58 decodes for center geometry, 51 for repaired collinearity at
+							offset tolerance 0.30, and 60 for collinearity at 0.62. At 0.62 collinearity decoded
+							all 58 center successes and two additional images. Decide whether to switch the
+							implementation and how to reconcile the post; no pipeline change has been made.
 						</li>
 					</ul>
 					<h3 class="mt-4 font-semibold text-stone-100">Facts, figures and chores</h3>
@@ -96,9 +97,7 @@
 							tried, rather than claiming every candidate is tried.
 						</li>
 						<li>
-							Teaser: the author chose the ray-profile signal plot. A draft teaser is being refined
-							with tighter cropping and transparency for light and dark themes; author review
-							remains.
+							Teaser: the author accepted the tightly cropped, transparent ray-profile signal plot.
 						</li>
 						<li>
 							Date is provisionally 2026-11-22; confirm or update at publication. Title is
@@ -119,8 +118,9 @@
 						notes remain below as an archive.
 					</p>
 					<p class="mt-2">
-						Compared the triplet selectors, revised the opening's version-retry wording, and began
-						refining the chosen ray-profile signal teaser.
+						Compared the triplet selectors at both the default 0.30 and the previously tested 0.62
+						offset tolerances, revised the opening's version-retry wording, and completed the chosen
+						ray-profile signal teaser.
 					</p>
 				</section>
 				<details>
