@@ -53,25 +53,23 @@
 							full-post review.
 						</li>
 						<li>
-							The triplet section describes the historical edge-collinearity approach, whereas the
-							current implementation uses center geometry. On 100 captured photos, full-pipeline
-							comparisons gave 58 decodes for center geometry, 51 for repaired collinearity at
-							offset tolerance 0.30, and 60 for collinearity at 0.62. At 0.62 collinearity decoded
-							all 58 center successes and two additional images. Decide whether to switch the
-							implementation and how to reconcile the post; no pipeline change has been made.
+							The current implementation uses edge collinearity at offset tolerance 0.62. The post
+							describes that method and the comparison with center geometry. Commit
+							<code>6a4fed7</code> also adds gated scale and sampling fallbacks.
 						</li>
 					</ul>
 					<h3 class="mt-4 font-semibold text-stone-100">Facts, figures and chores</h3>
 					<ul class="mt-2 list-disc space-y-1 pl-5">
 						<li>
-							Captured comparison: 58/100 and 51.75 ms for this project, 48/100 and 73.82 ms for
-							OpenCV, 77/100 and 3.96 ms for zxing-cpp. Measurements and funnel are from root commit
-							<code>8f8081f</code>.
+							Captured comparison at <code>6a4fed7</code>: 66/100, 48/100 and 77/100 for this
+							project, OpenCV and zxing-cpp respectively. Median totals over three runs of the same
+							100 preloaded photos: 6.31 s, 7.22 s and 0.39 s.
 						</li>
 						<li>
-							Pipeline viability funnel: 100 → 95 → 83 → 81 → 70 → 70 → 70 → 70 → 70 → 58. The
-							counts identify viability checks, not necessarily actual pipeline exits; attribution
-							does not establish underlying causes.
+							First-pass viability counts and fallback recoveries are regenerated from the
+							integrated code. Recovery attribution uses successful
+							<code>DecodeAttempt.provenance</code>; viability counts are not necessarily actual
+							pipeline exits.
 						</li>
 						<li>
 							Otsu explainer chore: covered by the color/grayscale figure, threshold animation and
@@ -92,9 +90,9 @@
 					<ul class="mt-2 list-disc space-y-1 pl-5">
 						<li>
 							Author reads the complete rendered post and decides on any substantive or stylistic
-							revisions. In particular, reconcile the historical triplet description with current
-							code. The opening version-retry explanation now says the most promising candidates are
-							tried, rather than claiming every candidate is tried.
+							revisions, including the new fallback explanation and updated measurements. The
+							opening version-retry explanation says the most promising candidates are tried, rather
+							than claiming every candidate is tried.
 						</li>
 						<li>
 							Teaser: the author accepted the tightly cropped, transparent ray-profile signal plot.
@@ -121,6 +119,10 @@
 						Compared the triplet selectors at both the default 0.30 and the previously tested 0.62
 						offset tolerances, revised the opening's version-retry wording, and completed the chosen
 						ray-profile signal teaser.
+					</p>
+					<p class="mt-2">
+						Updated the post, benchmark, and pipeline funnel for the cascade integrated at
+						<code>6a4fed7</code>; awaiting the author's full read-through.
 					</p>
 				</section>
 				<details>

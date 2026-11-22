@@ -258,6 +258,8 @@ That leaves the top-right and bottom-left. Call the two remaining finders A and 
 
 And that’s the triplet.
 
+Loosening the collinearity tolerance improved the captured-set result from 58 to 60 decodes. I also tried other tolerances, fitting a shared line to each pair of edges, and searching more versions, but none of those added decodes.
+
 ## Finding the version
 
 At this point we have a triplet, so we know where the QR code is and roughly how it is oriented. But we are not ready to decode anything yet. To sample the code we need to map it onto a standardized grid, and before we can do that we need to know how many modules that grid has. That's the version. Version 1 is 21×21 modules, and each version after that adds four modules per side, so version $V$ is $(17 + 4V) \times (17 + 4V)$. If we get the version wrong, the grid is wrong, and every sample after that is wrong too.
@@ -380,6 +382,8 @@ This is still one threshold for the whole code, so it does not correct for illum
 
 With the threshold, the vote is simple. Each of the nine samples is either above or below it, and we call the module white when the weighted vote is at least five out of ten. A single bad sample cannot outvote the rest. And because the nine points sit in the middle half of the module, a slightly misplaced grid does not pull in the neighboring module.
 
+If the first pass does not decode, I added a few retries. If it found exactly two finder patterns, the pipeline enlarges the image by 1.25× and tries again. If it found a triplet, it first tries sampling with the original twelve-corner homography, without alignment-pattern refinement. It then tries the refined homography with a threshold that varies across the grid, estimated from the black and white levels at the finder patterns. These sampling retries use the same triplet and version candidates as the first pass; they do not expand the search.
+
 The figure below zooms in on a real capture. In one module, the center pixel lands on the wrong side of the threshold, but the nine-sample vote gets it right.
 
 <div class="mx-auto max-w-4xl">
@@ -420,12 +424,12 @@ With the synthetic images we know the exact corner coordinates, and the coordina
 
 One thing you might wonder at this point is whether any of this is actually good. The answer is mixed.
 
-Running the three implementations on the same 100 captured photos gives this:
+Running the three implementations on the same 100 captured photos gives this. The timing is the median total over three runs, with the images already loaded into memory and each reader using one thread.
 
-|                        | This project (Python) |   OpenCV | zxing-cpp |
-| ---------------------- | --------------------: | -------: | --------: |
-| Correct payload        |                58/100 |   48/100 |    77/100 |
-| Average time per image |              51.75 ms | 73.82 ms |   3.96 ms |
+|                            | This project (Python) | OpenCV | zxing-cpp |
+| -------------------------- | --------------------: | -----: | --------: |
+| Correct payload            |                66/100 | 48/100 |    77/100 |
+| Median time for 100 photos |                6.31 s | 7.22 s |    0.39 s |
 
 What is encouraging is that my implementation, even though it is not super optimized and not in a compiled language, is both faster and more accurate than OpenCV. That is a real result. On the other hand, zxing-cpp is a genuinely good implementation, so comparing to it makes sense. It still beats mine on both accuracy and speed. We are nowhere near as good.
 
@@ -433,12 +437,12 @@ That is humbling. Beating OpenCV is an achievement, but it is not close to being
 
 ## Where the pipeline breaks
 
-That was a lot of steps. The figure below recaps the pipeline and shows how many of the 100 captured photos make it through each part. To find a triplet, we need at least three candidate clusters and three fitted finders, so the figure counts images with fewer than three as lost at those stages.
+That was a lot of steps. The figure below recaps the pipeline and shows how many of the 100 captured photos make it through each part on the first pass. To find a triplet, we need at least three candidate clusters and three fitted finders, so the figure counts images with fewer than three as lost at those stages. The three boxes at the bottom show how many additional photos the retries recover, and the running total.
 
 <div class="mx-auto max-w-3xl">
 	<BlogImage
 		src={pipelineAblation}
-		alt="QR pipeline stages showing how many of the 100 captured photos remain after each step, including thresholds of at least three candidate clusters and three fitted finders."
+		alt="First-pass QR pipeline viability counts: 100 images, then 95, 83, 81, 72 through triplet finding, and 60 decoded. Separate retries recover three images by scaling, one with the original homography, and two with a spatial threshold, for 66 decoded in total."
 	/>
 </div>
 
@@ -447,10 +451,12 @@ There are losses at several points:
 - **Finding candidates:** 5 images have no candidates at all. The scan didn't find anything that looked like a finder pattern.
 - **Clustering:** 12 more have fewer than three candidate clusters. There may simply not have been candidates for all three finders to begin with.
 - **Fitting finders:** 2 more have at least three clusters, but fewer than three fitted finders.
-- **Finding triplets:** 11 more have at least three finders, but no valid triplet was found. There might not have been a valid triplet among them, or the algorithm might have missed it.
+- **Finding triplets:** 9 more have at least three finders, but no valid triplet was found. There might not have been a valid triplet among them, or the algorithm might have missed it.
 - **Decoding:** 12 more don't produce the correct payload. That doesn't necessarily mean the decoder itself is the problem: the triplet or finder corners could be wrong, or the homography could be inaccurate, leaving us sampling the wrong bits.
 
 These numbers tell us where the images drop out, but not exactly what went wrong. For that, we'd have to look at the images in more detail.
+
+The first pass decodes 60 photos. The scale retry recovers three more, sampling with the original homography recovers one, and the spatial threshold recovers two, bringing the total to 66.
 
 ## Final thoughts
 
